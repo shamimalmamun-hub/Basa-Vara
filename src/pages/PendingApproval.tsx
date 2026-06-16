@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Clock, ShieldAlert, ArrowLeft, CheckCircle2 } from 'lucide-react';
@@ -7,6 +7,10 @@ import { motion } from 'motion/react';
 export default function PendingApproval() {
   const { language } = useLanguage();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <div className="min-h-screen p-4 pt-6 sm:pt-12 pb-10 flex flex-col items-center selection:bg-indigo-500/30">
