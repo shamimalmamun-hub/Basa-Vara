@@ -9,7 +9,7 @@ export default function PendingApproval() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex justify-center p-4 pt-16 selection:bg-indigo-500/30">
+    <div className="min-h-screen p-4 py-16 flex flex-col items-center selection:bg-indigo-500/30">
       <div className="relative backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 w-full max-w-lg p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl shadow-indigo-500/5 dark:shadow-indigo-900/10 transition-all duration-500 text-center overflow-hidden">
         
         {/* Top Glow Decor */}
@@ -21,7 +21,7 @@ export default function PendingApproval() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 15 }}
-            className="w-20 h-20 bg-indigo-55/70 dark:bg-indigo-950/40 rounded-full flex items-center justify-center border border-indigo-100/50 dark:border-indigo-900/40 shadow-inner"
+            className="w-20 h-20 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-full flex items-center justify-center border border-indigo-100/50 dark:border-indigo-900/40 shadow-inner"
           >
             <Clock className="w-10 h-10 text-indigo-600 dark:text-indigo-400 animate-spin" style={{ animationDuration: '4s' }} />
           </motion.div>
@@ -36,13 +36,13 @@ export default function PendingApproval() {
         </div>
 
         {/* Dynamic Typography and Content based on language context */}
-        <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
+        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
           {language === 'bn' ? 'রেজিস্ট্রেশন সফল হয়েছে!' : 'Registration Successful!'}
         </h2>
         
         <p className="text-indigo-600 dark:text-indigo-400 font-bold text-xs sm:text-sm mb-6 flex items-center justify-center gap-1 bg-indigo-50/50 dark:bg-indigo-950/20 py-2 px-4 rounded-full max-w-md mx-auto border border-indigo-100/30 dark:border-indigo-900/20">
           <ShieldAlert className="w-4 h-4 shrink-0" />
-          <span>{language === 'bn' ? 'অ্যাকাউন্ট বর্তমানে অনুমোদনের অপেক্ষায় রয়েছে' : 'Your account is pending admin approval'}</span>
+          <span className="whitespace-nowrap">{language === 'bn' ? 'অ্যাকাউন্ট বর্তমানে অনুমোদনের অপেক্ষায় রয়েছে' : 'Your account is pending admin approval'}</span>
         </p>
 
         <div className="space-y-4 text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed mb-8 text-justify bg-slate-50/50 dark:bg-slate-950/30 p-5 rounded-2xl border border-slate-100 dark:border-transparent">
