@@ -49,7 +49,7 @@ export default function PendingApproval() {
           <span className="whitespace-nowrap">{language === 'bn' ? 'অ্যাকাউন্ট বর্তমানে অনুমোদনের অপেক্ষায় রয়েছে' : 'Your account is pending admin approval'}</span>
         </p>
 
-        <div className="space-y-4 text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed mb-8 text-justify bg-slate-50/50 dark:bg-slate-950/30 p-5 rounded-2xl border border-slate-100 dark:border-transparent">
+        <div className="space-y-4 text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed mb-8 text-justify bg-slate-50/50 dark:bg-slate-950/30 p-5 rounded-2xl border border-slate-100 dark:border-transparent">
           {language === 'bn' ? (
             <>
               <p>
