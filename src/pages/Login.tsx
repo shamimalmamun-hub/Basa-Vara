@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { generateId } from '../lib/utils';
+import { generateId, compressImage } from '../lib/utils';
 import { FileBadge } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -56,29 +56,41 @@ export default function Login() {
     }
   };
 
-  const handleFileChangeFront = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChangeFront = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNidFront(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setNidFront(compressed);
+      } catch (err) {
+        console.error("Front image compression failed:", err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setNidFront(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
-  const handleFileChangeBack = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChangeBack = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNidBack(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setNidBack(compressed);
+      } catch (err) {
+        console.error("Back image compression failed:", err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setNidBack(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
@@ -97,24 +109,34 @@ export default function Login() {
     const packageLabel = role === 'visitor' ? 'Visitor Package (৳২৫/মাস)' : role === 'tutor' ? 'Tutor Package (৳৫০/মাস)' : 'Owner Package (৳৫০/মাস)';
     const oneMonthLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    registerUser({
-      id: generateId(),
-      name: regName,
-      email: regEmail,
-      password: regPassword,
-      role: role,
-      nidStatus: role === 'visitor' ? 'unsubmitted' : 'pending',
-      nidFrontBase64: nidFront,
-      nidBackBase64: nidBack,
-      transactionId: transactionId,
-      paymentMethod: paymentMethod,
-      subscriptionType: packageLabel,
-      subscriptionEnd: oneMonthLater
-    });
+    try {
+      const registrationPromise = registerUser({
+        id: generateId(),
+        name: regName,
+        email: regEmail,
+        password: regPassword,
+        role: role,
+        nidStatus: role === 'visitor' ? 'unsubmitted' : 'pending',
+        nidFrontBase64: nidFront,
+        nidBackBase64: nidBack,
+        transactionId: transactionId,
+        paymentMethod: paymentMethod,
+        subscriptionType: packageLabel,
+        subscriptionEnd: oneMonthLater
+      } as any);
 
-    // Reset submitting state and directly navigate to pending
-    setIsSubmitting(false);
-    navigate('/pending');
+      await toast.promise(registrationPromise as any, {
+        loading: language === 'bn' ? 'অ্যাকাউন্ট তৈরি হচ্ছে...' : 'Creating account...',
+        success: language === 'bn' ? 'রেজিস্ট্রেশন সফল হয়েছে!' : 'Registration successful!',
+        error: language === 'bn' ? 'রেজিস্ট্রেশন সম্পন্ন করা সম্ভব হয়নি।' : 'Registration failed.'
+      });
+
+      setIsSubmitting(false);
+      navigate('/pending');
+    } catch (err) {
+      console.error("Registration error:", err);
+      setIsSubmitting(false);
+    }
   };
 
   return (

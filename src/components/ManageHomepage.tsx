@@ -3,9 +3,10 @@ import { useLanguage, Language } from '../contexts/LanguageContext';
 import { useApp } from '../contexts/AppContext';
 import { FileCode2, Image, Save, RotateCcw, Layout, Compass, Type, Eye, Sparkles, Copy } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { compressImage } from '../lib/utils';
 
 export default function ManageHomepage() {
-  const { overrides, updateOverrides } = useLanguage();
+  const { overrides, updateOverrides, language } = useLanguage();
   const { properties, tutors, banners, heroVideoUrl } = useApp();
   const [activeSubTab, setActiveSubTab] = useState<'logo' | 'menu' | 'hero' | 'sections' | 'sync'>('logo');
 
@@ -27,25 +28,31 @@ export default function ManageHomepage() {
     }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error('ছবিটি ২ এমবির চেয়ে কম সাইজের হতে হবে (Image must be under 2MB)');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        // Save same logo for both bn & en or general key
+      try {
+        const compressed = await compressImage(file);
         setTempOverrides(prev => ({
           ...prev,
-          bn: { ...prev.bn, customLogoImage: base64 },
-          en: { ...prev.en, customLogoImage: base64 }
+          bn: { ...prev.bn, customLogoImage: compressed },
+          en: { ...prev.en, customLogoImage: compressed }
         }));
-        toast.success('লোগো লোড করা হয়েছে, পরিবর্তন সেভ করতে নিচে বাটন চাপুন।');
-      };
-      reader.readAsDataURL(file);
+        toast.success(language === 'bn' ? 'লোগো কম্প্রেসড ও লোড করা হয়েছে, পরিবর্তন সেভ করতে নিচে বাটন চাপুন।' : 'Logo loaded and compressed, press save below to submit.');
+      } catch (err) {
+        console.error("Logo compression failed:", err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = reader.result as string;
+          setTempOverrides(prev => ({
+            ...prev,
+            bn: { ...prev.bn, customLogoImage: base64 },
+            en: { ...prev.en, customLogoImage: base64 }
+          }));
+          toast.success('লোগো লোড করা হয়েছে, পরিবর্তন সেভ করতে নিচে বাটন চাপুন।');
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

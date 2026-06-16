@@ -1,0 +1,141 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role, NID, and subscription info",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "password": { "type": "string" },
+        "transactionId": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user", "tutor", "visitor"] },
+        "nidStatus": { "type": "string", "enum": ["pending", "verified", "rejected", "unsubmitted"] },
+        "nidFrontBase64": { "type": "string" },
+        "nidBackBase64": { "type": "string" },
+        "avatar": { "type": "string" },
+        "dob": { "type": "string" },
+        "subscriptionEnd": { "type": "string" },
+        "subscriptionType": { "type": "string" },
+        "isApproved": { "type": "boolean" },
+        "paymentMethod": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role", "nidStatus"]
+    },
+    "Property": {
+      "title": "Property",
+      "description": "Property listed for rent",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "location": { "type": "string" },
+        "address": { "type": "string" },
+        "type": { "type": "string", "enum": ["Flat", "Mess", "Single Room", "Seat"] },
+        "price": { "type": "number" },
+        "images": { "type": "array" },
+        "isAvailable": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "contactNumber": { "type": "string" }
+      },
+      "required": ["id", "ownerId", "title", "description", "location", "address", "type", "price", "isAvailable", "createdAt"]
+    },
+    "Tutor": {
+      "title": "Tutor",
+      "description": "Tutor profile details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "subjects": { "type": "array" },
+        "education": { "type": "string" },
+        "availableDays": { "type": "array" },
+        "availableTime": { "type": "string" },
+        "location": { "type": "string" },
+        "salaryExpected": { "type": "number" },
+        "image": { "type": "string" },
+        "isVerified": { "type": "boolean" },
+        "contactNumber": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "subjects", "education", "availableDays", "availableTime", "location", "salaryExpected", "isVerified"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Fee payment invoices",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["paid", "pending"] },
+        "date": { "type": "string" },
+        "trxId": { "type": "string" },
+        "method": { "type": "string", "enum": ["bkash", "nagad", "rocket"] }
+      },
+      "required": ["id", "userId", "amount", "status", "date", "trxId", "method"]
+    },
+    "AdBanner": {
+      "title": "AdBanner",
+      "description": "Promotional banners",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "badgeBn": { "type": "string" },
+        "badgeEn": { "type": "string" },
+        "titleBn": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "descBn": { "type": "string" },
+        "descEn": { "type": "string" },
+        "buttonTextBn": { "type": "string" },
+        "buttonTextEn": { "type": "string" },
+        "link": { "type": "string" },
+        "image": { "type": "string" },
+        "gradientFrom": { "type": "string" },
+        "gradientTo": { "type": "string" },
+        "iconEmoji": { "type": "string" },
+        "secondaryEmoji": { "type": "string" }
+      },
+      "required": ["id", "badgeBn", "badgeEn", "titleBn", "titleEn", "descBn", "descEn", "buttonTextBn", "buttonTextEn", "link", "gradientFrom", "gradientTo"]
+    },
+    "SystemSettings": {
+      "title": "SystemSettings",
+      "description": "Global settings like home background video URL",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "heroVideoUrl": { "type": "string" }
+      },
+      "required": ["id", "heroVideoUrl"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "properties/{propertyId}": {
+      "schema": "Property",
+      "description": "Property rentals"
+    },
+    "tutors/{tutorId}": {
+      "schema": "Tutor",
+      "description": "Tutor listings"
+    },
+    "invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Paid/pending invoices"
+    },
+    "banners/{bannerId}": {
+      "schema": "AdBanner",
+      "description": "Banners on home page"
+    },
+    "settings/{settingId}": {
+      "schema": "SystemSettings",
+      "description": "App configurations"
+    }
+  }
+}

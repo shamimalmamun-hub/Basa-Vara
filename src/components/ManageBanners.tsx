@@ -4,6 +4,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { AdBanner } from '../types';
 import { Trash2, Plus, Upload, Link as LinkIcon, Edit, Eye, Sparkles, X, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { compressImage } from '../lib/utils';
 
 export default function ManageBanners() {
   const { banners, updateBanner, addBanner, deleteBanner } = useApp();
@@ -45,7 +46,7 @@ export default function ManageBanners() {
   };
 
   // File upload reader function
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -59,29 +60,29 @@ export default function ManageBanners() {
       return;
     }
 
-    const maxSizeBytes = 3 * 1024 * 1024; // 3MB limit
-    if (file.size > maxSizeBytes) {
-      toast.error(
-        language === 'bn' 
-          ? 'ছবিটি ৩ মেগাবাইটের চেয়ে ছোট হতে হবে!' 
-          : 'Image size must be less than 3MB!'
-      );
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64String = reader.result as string;
+    try {
+      const compressed = await compressImage(file);
       if (isNew) {
-        setNewBanner(prev => ({ ...prev, image: base64String }));
+        setNewBanner(prev => ({ ...prev, image: compressed }));
       } else {
-        setEditingBanner(prev => prev ? { ...prev, image: base64String } : null);
+        setEditingBanner(prev => prev ? { ...prev, image: compressed } : null);
       }
-    };
-    reader.onerror = () => {
-      toast.error('Error reading file!');
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Banner image compression failed:", err);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        if (isNew) {
+          setNewBanner(prev => ({ ...prev, image: base64String }));
+        } else {
+          setEditingBanner(prev => prev ? { ...prev, image: base64String } : null);
+        }
+      };
+      reader.onerror = () => {
+        toast.error('Error reading file!');
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Pre-configured elegant gradients

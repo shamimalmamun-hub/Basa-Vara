@@ -1,6 +1,66 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import toast from 'react-hot-toast';
 import { User, Property, Tutor, Invoice, AdBanner } from '../types';
+import { db, auth } from '../lib/firebase';
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  getDoc,
+  getDocs, 
+  onSnapshot, 
+  updateDoc, 
+  deleteDoc 
+} from 'firebase/firestore';
+
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth?.currentUser?.uid || null,
+      email: auth?.currentUser?.email || null,
+      emailVerified: auth?.currentUser?.emailVerified || null,
+      isAnonymous: auth?.currentUser?.isAnonymous || null,
+      tenantId: auth?.currentUser?.tenantId || null,
+      providerInfo: auth?.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
+
 
 interface AppState {
   currentUser: User | null;
@@ -103,6 +163,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     return localStorage.getItem('basavara_selected_location');
   });
 
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('basavara_current_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
   const setSelectedLocation = (loc: string | null) => {
     setSelectedLocationState(loc);
     if (loc) {
@@ -112,47 +177,179 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
-  // Load from LocalStorage
+  // Setup Firestore synchronization
   useEffect(() => {
-    const savedData = localStorage.getItem('basavara_data');
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      if (!parsed.banners || parsed.banners.length === 0) {
-        parsed.banners = DEFAULT_BANNERS;
+    let active = true;
+
+    // Helper to seed database if empty
+    const seedIfEmpty = async () => {
+      try {
+        const usersSnap = await getDocs(collection(db, 'users')).catch(err => {
+          handleFirestoreError(err, OperationType.GET, 'users');
+          throw err;
+        });
+        if (usersSnap.empty) {
+          await setDoc(doc(db, 'users', MOCK_ADMIN.id), MOCK_ADMIN).catch(err => {
+            handleFirestoreError(err, OperationType.WRITE, `users/${MOCK_ADMIN.id}`);
+            throw err;
+          });
+        }
+        
+        const propertiesSnap = await getDocs(collection(db, 'properties')).catch(err => {
+          handleFirestoreError(err, OperationType.GET, 'properties');
+          throw err;
+        });
+        if (propertiesSnap.empty) {
+          for (const p of MOCK_PROPERTIES) {
+            await setDoc(doc(db, 'properties', p.id), p).catch(err => {
+              handleFirestoreError(err, OperationType.WRITE, `properties/${p.id}`);
+              throw err;
+            });
+          }
+        }
+
+        const tutorsSnap = await getDocs(collection(db, 'tutors')).catch(err => {
+          handleFirestoreError(err, OperationType.GET, 'tutors');
+          throw err;
+        });
+        if (tutorsSnap.empty) {
+          for (const t of MOCK_TUTORS) {
+            await setDoc(doc(db, 'tutors', t.id), t).catch(err => {
+              handleFirestoreError(err, OperationType.WRITE, `tutors/${t.id}`);
+              throw err;
+            });
+          }
+        }
+
+        const bannersSnap = await getDocs(collection(db, 'banners')).catch(err => {
+          handleFirestoreError(err, OperationType.GET, 'banners');
+          throw err;
+        });
+        if (bannersSnap.empty) {
+          for (const b of DEFAULT_BANNERS) {
+            await setDoc(doc(db, 'banners', b.id), b).catch(err => {
+              handleFirestoreError(err, OperationType.WRITE, `banners/${b.id}`);
+              throw err;
+            });
+          }
+        }
+
+        const settingsSnap = await getDoc(doc(db, 'settings', 'global')).catch(err => {
+          handleFirestoreError(err, OperationType.GET, 'settings/global');
+          throw err;
+        });
+        if (!settingsSnap.exists()) {
+          await setDoc(doc(db, 'settings', 'global'), { heroVideoUrl: DEFAULT_VIDEO_URL }).catch(err => {
+            handleFirestoreError(err, OperationType.WRITE, 'settings/global');
+            throw err;
+          });
+        }
+      } catch (err) {
+        console.error("Firestore seeding failed:", err);
       }
-      if (parsed.heroVideoUrl === undefined || 
-          parsed.heroVideoUrl === 'https://assets.mixkit.co/videos/preview/mixkit-modern-apartment-living-room-interior-31414-large.mp4' ||
-          parsed.heroVideoUrl === 'https://assets.mixkit.co/videos/preview/mixkit-realtor-showing-apartment-to-couple-40332-large.mp4') {
-        parsed.heroVideoUrl = DEFAULT_VIDEO_URL;
+    };
+
+    seedIfEmpty();
+
+    // Setup active listeners
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const usersList: User[] = [];
+      snapshot.forEach(doc => {
+        usersList.push(doc.data() as User);
+      });
+      if (active) {
+        setState(prev => ({ ...prev, users: usersList }));
       }
-      setState({ ...parsed, isLoading: false });
-    } else {
-      const initialState = {
-        ...defaultState,
-        users: [MOCK_ADMIN],
-        properties: MOCK_PROPERTIES,
-        tutors: MOCK_TUTORS,
-        banners: DEFAULT_BANNERS,
-        heroVideoUrl: DEFAULT_VIDEO_URL,
-        isLoading: false
-      };
-      setState(initialState);
-      localStorage.setItem('basavara_data', JSON.stringify(initialState));
-    }
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'users');
+    });
+
+    const unsubProperties = onSnapshot(collection(db, 'properties'), (snapshot) => {
+      const propertiesList: Property[] = [];
+      snapshot.forEach(doc => {
+        propertiesList.push(doc.data() as Property);
+      });
+      if (active) {
+        setState(prev => ({ ...prev, properties: propertiesList }));
+      }
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'properties');
+    });
+
+    const unsubTutors = onSnapshot(collection(db, 'tutors'), (snapshot) => {
+      const tutorsList: Tutor[] = [];
+      snapshot.forEach(doc => {
+        tutorsList.push(doc.data() as Tutor);
+      });
+      if (active) {
+        setState(prev => ({ ...prev, tutors: tutorsList }));
+      }
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'tutors');
+    });
+
+    const unsubInvoices = onSnapshot(collection(db, 'invoices'), (snapshot) => {
+      const invoicesList: Invoice[] = [];
+      snapshot.forEach(doc => {
+        invoicesList.push(doc.data() as Invoice);
+      });
+      if (active) {
+        setState(prev => ({ ...prev, invoices: invoicesList }));
+      }
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'invoices');
+    });
+
+    const unsubBanners = onSnapshot(collection(db, 'banners'), (snapshot) => {
+      const bannersList: AdBanner[] = [];
+      snapshot.forEach(doc => {
+        bannersList.push(doc.data() as AdBanner);
+      });
+      if (active) {
+        setState(prev => ({
+          ...prev,
+          banners: bannersList.length > 0 ? bannersList : DEFAULT_BANNERS
+        }));
+      }
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'banners');
+    });
+
+    const unsubSettings = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
+      if (docSnap.exists() && active) {
+        const data = docSnap.data();
+        setState(prev => ({ ...prev, heroVideoUrl: data.heroVideoUrl || DEFAULT_VIDEO_URL }));
+      }
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'settings/global');
+    });
+
+    setState(prev => ({ ...prev, isLoading: false }));
+
+    return () => {
+      active = false;
+      unsubUsers();
+      unsubProperties();
+      unsubTutors();
+      unsubInvoices();
+      unsubBanners();
+      unsubSettings();
+    };
   }, []);
 
-  // Save to LocalStorage whenever state changes (excluding isLoading)
+  // Update localStorage current user if its state is modified in state.users
   useEffect(() => {
-    if (!state.isLoading) {
-      localStorage.setItem('basavara_data', JSON.stringify({
-        ...state,
-        isLoading: false
-      }));
+    if (currentUser) {
+      const freshUser = state.users.find(u => u.id === currentUser.id);
+      if (freshUser && JSON.stringify(freshUser) !== JSON.stringify(currentUser)) {
+        setCurrentUser(freshUser);
+        localStorage.setItem('basavara_current_user', JSON.stringify(freshUser));
+      }
     }
-  }, [state]);
+  }, [state.users, currentUser]);
 
   const login = (email: string, password?: string, isAdminAttempt?: boolean) => {
-    const user = state.users.find(u => u.email === email);
+    const user = state.users.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim());
     if (user) {
       if (password && user.password && user.password !== password) {
          toast.error('ভুল পাসওয়ার্ড (Incorrect password)');
@@ -173,7 +370,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
          return false;
       }
       
-      setState(prev => ({ ...prev, currentUser: user }));
+      setCurrentUser(user);
+      localStorage.setItem('basavara_current_user', JSON.stringify(user));
       toast.success('Successfully logged in!');
       return true;
     } else {
@@ -183,116 +381,185 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   };
 
   const logout = () => {
-    setState(prev => ({ ...prev, currentUser: null }));
+    setCurrentUser(null);
+    localStorage.removeItem('basavara_current_user');
     toast.success('Logged out');
   };
 
-  const registerUser = (user: User) => {
-    const newUser = { ...user, isApproved: user.role === 'admin' ? true : false };
-    setState(prev => {
-      const isFirst = prev.users.length === 0;
-      if(isFirst && newUser.email === 'admin@basavara.com') {
+  const registerUser = async (user: User) => {
+    try {
+      const newUser = { ...user, isApproved: user.role === 'admin' ? true : false };
+      const isFirst = state.users.length === 0;
+      if (isFirst && newUser.email === 'admin@basavara.com') {
         newUser.role = 'admin';
         newUser.isApproved = true;
       }
-      return { ...prev, users: [...prev.users, newUser] };
-    });
-    
-    if (newUser.role === 'visitor') {
-      toast.success('ভিজিটর রেজিস্ট্রেশন সফল হয়েছে এবং অ্যাকাউন্টটি সিস্টেম এডমিন অনুমোদনের অপেক্ষায় রয়েছে!', { duration: 6000 });
-    } else {
-      toast.success('রেজিস্ট্রেশন এবং পেমেন্ট সম্পন্ন হয়েছে। এডমিন ড্যাশবোর্ড থেকে অনুমোদিত হওয়ার পর আপনি লগইন করতে পারবেন।', { duration: 6000 });
+      
+      await setDoc(doc(db, 'users', newUser.id), newUser);
+      
+      if (newUser.role === 'visitor') {
+        toast.success('ভিজিটর রেজিস্ট্রেশন সফল হয়েছে এবং অ্যাকাউন্টটি সিস্টেম এডমিন অনুমোদনের অপেক্ষায় রয়েছে!', { duration: 6000 });
+      } else {
+        toast.success('রেজিস্ট্রেশন এবং পেমেন্ট সম্পন্ন হয়েছে। এডমিন ড্যাশবোর্ড থেকে অনুমোদিত হওয়ার পর আপনি লগইন করতে পারবেন।', { duration: 6000 });
+      }
+    } catch (err) {
+      console.error("User registration failed:", err);
+      toast.error('রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
+      throw err;
     }
   };
 
-  const addProperty = (property: Property) => {
-    setState(prev => ({ ...prev, properties: [property, ...prev.properties] }));
-    toast.success('Property details added.');
-  };
-
-  const addTutor = (tutor: Tutor) => {
-    setState(prev => ({ ...prev, tutors: [tutor, ...prev.tutors] }));
-    toast.success('Tutor profile added.');
-  };
-
-  const addInvoice = (invoice: Invoice) => {
-    setState(prev => ({ ...prev, invoices: [...prev.invoices, invoice] }));
-    toast.success('Invoice submitted successfully.');
-  };
-
-  const updateUserNID = (userId: string, status: 'pending' | 'verified' | 'rejected') => {
-    setState(prev => ({
-      ...prev,
-      users: prev.users.map(u => u.id === userId ? { ...u, nidStatus: status, isApproved: status === 'verified' ? true : u.isApproved } : u)
-    }));
-    toast.success(status === 'verified' ? 'এনআইডি যাচাই ও অ্যাকাউন্ট অনুমোদিত হয়েছে!' : 'এনআইডি স্ট্যাটাস হালনাগাদ করা হয়েছে।');
-  };
-
-  const updateProfile = (userId: string, data: Partial<User>, showToast = true) => {
-    setState(prev => {
-      const updatedUsers = prev.users.map(u => u.id === userId ? { ...u, ...data } : u);
-      const updatedCurrentUser = prev.currentUser?.id === userId ? { ...prev.currentUser, ...data } : prev.currentUser;
-      return { ...prev, users: updatedUsers, currentUser: updatedCurrentUser };
-    });
-    if (showToast) {
-      toast.success('Profile updated successfully!');
+  const addProperty = async (property: Property) => {
+    try {
+      await setDoc(doc(db, 'properties', property.id), property);
+      toast.success('Property details added.');
+    } catch (err) {
+      console.error("Failed to add property:", err);
+      toast.error('প্রপার্টি যোগ করতে ব্যর্থ হয়েছে।');
     }
   };
 
-  const updateSubscription = (userId: string, type: string, endDate: string) => {
-    setState(prev => {
-      const updatedUsers = prev.users.map(u => u.id === userId ? { ...u, subscriptionType: type, subscriptionEnd: endDate } : u);
-      const updatedCurrentUser = prev.currentUser?.id === userId ? { ...prev.currentUser, subscriptionType: type, subscriptionEnd: endDate } : prev.currentUser;
-      return { ...prev, users: updatedUsers, currentUser: updatedCurrentUser };
-    });
+  const addTutor = async (tutor: Tutor) => {
+    try {
+      await setDoc(doc(db, 'tutors', tutor.id), tutor);
+      toast.success('Tutor profile added.');
+    } catch (err) {
+      console.error("Failed to add tutor:", err);
+      toast.error('টিউটর প্রোফাইল যোগ করতে ব্যর্থ হয়েছে।');
+    }
   };
 
-  const deleteUser = (userId: string) => {
-    setState(prev => ({
-      ...prev,
-      users: prev.users.filter(u => u.id !== userId)
-    }));
-    toast.success('ব্যবহারকারী মুচে ফেলা হয়েছে (User deleted).');
+  const addInvoice = async (invoice: Invoice) => {
+    try {
+      await setDoc(doc(db, 'invoices', invoice.id), invoice);
+      toast.success('Invoice submitted successfully.');
+    } catch (err) {
+      console.error("Failed to add invoice:", err);
+      toast.error('ইনভয়েস বা পেমেন্ট ট্রানজ্যাকশন যোগ করতে ব্যর্থ হয়েছে।');
+    }
   };
 
-  const updateBanner = (id: string, data: Partial<AdBanner>) => {
-    setState(prev => ({
-      ...prev,
-      banners: (prev.banners && prev.banners.length > 0 ? prev.banners : DEFAULT_BANNERS).map(b => b.id === id ? { ...b, ...data } : b)
-    }));
-    toast.success('বিজ্ঞাপন ব্যানার সফলভাবে আপডেট করা হয়েছে');
+  const updateUserNID = async (userId: string, status: 'pending' | 'verified' | 'rejected') => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const updates: Partial<User> = { nidStatus: status };
+      if (status === 'verified') {
+        updates.isApproved = true;
+      }
+      await updateDoc(userRef, updates);
+      toast.success(status === 'verified' ? 'এনআইডি যাচাই ও অ্যাকাউন্ট অনুমোদিত হয়েছে!' : 'এনআইডি স্ট্যাটাস হালনাগাদ করা হয়েছে।');
+    } catch (err) {
+      console.error("Failed to update user NID status:", err);
+      toast.error('ব্যবহারকারীর তথ্য হালনাগাদ করতে ব্যর্থ হয়েছে।');
+    }
   };
 
-  const addBanner = (banner: AdBanner) => {
-    setState(prev => ({
-      ...prev,
-      banners: [...(prev.banners && prev.banners.length > 0 ? prev.banners : DEFAULT_BANNERS), banner]
-    }));
-    toast.success('বিজ্ঞাপন ব্যানার সফলভাবে যোগ করা হয়েছে');
+  const updateProfile = async (userId: string, data: Partial<User>, showToast = true) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, data);
+      
+      if (currentUser?.id === userId) {
+        const updatedUser = { ...currentUser, ...data };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('basavara_current_user', JSON.stringify(updatedUser));
+      }
+      
+      if (showToast) {
+        toast.success('Profile updated successfully!');
+      }
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      toast.error('প্রোফাইল আপডেট ব্যর্থ হয়েছে।');
+    }
   };
 
-  const deleteBanner = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      banners: (prev.banners && prev.banners.length > 0 ? prev.banners : DEFAULT_BANNERS).filter(b => b.id !== id)
-    }));
-    toast.success('বিজ্ঞাপন ব্যানার সফলভাবে মুছে ফেলা হয়েছে');
+  const updateSubscription = async (userId: string, type: string, endDate: string) => {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const updates = { subscriptionType: type, subscriptionEnd: endDate };
+      await updateDoc(userRef, updates);
+      
+      if (currentUser?.id === userId) {
+        const updatedUser = { ...currentUser, ...updates };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('basavara_current_user', JSON.stringify(updatedUser));
+      }
+    } catch (err) {
+      console.error("Failed to update subscription:", err);
+    }
   };
 
-  const updateHeroVideoUrl = (url: string) => {
-    setState(prev => ({
-      ...prev,
-      heroVideoUrl: url
-    }));
-    toast.success('হোম পেইজ ব্যাকগ্রাউন্ড ভিডিও আপডেট করা হয়েছে');
+  const deleteUser = async (userId: string) => {
+    try {
+      await deleteDoc(doc(db, 'users', userId));
+      toast.success('ব্যবহারকারী মুচে ফেলা হয়েছে (User deleted).');
+    } catch (err) {
+      console.error("Failed to delete user:", err);
+      toast.error('ব্যবহারকারী মুছতে ব্যর্থ হয়েছে।');
+    }
+  };
+
+  const updateBanner = async (id: string, data: Partial<AdBanner>) => {
+    try {
+      await updateDoc(doc(db, 'banners', id), data);
+      toast.success('বিজ্ঞাপন ব্যানার সফলভাবে আপডেট করা হয়েছে');
+    } catch (err) {
+      console.error("Failed to update banner:", err);
+      toast.error('ব্যানার আপডেট ব্যর্থ হয়েছে।');
+    }
+  };
+
+  const addBanner = async (banner: AdBanner) => {
+    try {
+      await setDoc(doc(db, 'banners', banner.id), banner);
+      toast.success('বিজ্ঞাপন ব্যানার সফলভাবে যোগ করা হয়েছে');
+    } catch (err) {
+      console.error("Failed to add banner:", err);
+      toast.error('ব্যানার যোগ করতে ব্যর্থ হয়েছে।');
+    }
+  };
+
+  const deleteBanner = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'banners', id));
+      toast.success('বিজ্ঞাপন ব্যানার সফলভাবে মুছে ফেলা হয়েছে');
+    } catch (err) {
+      console.error("Failed to delete banner:", err);
+      toast.error('ব্যানার মুছতে ব্যর্থ হয়েছে।');
+    }
+  };
+
+  const updateHeroVideoUrl = async (url: string) => {
+    try {
+      await setDoc(doc(db, 'settings', 'global'), { heroVideoUrl: url }, { merge: true });
+      toast.success('হোম পেইজ ব্যাকগ্রاؤنড ভিডিও আপডেট করা হয়েছে');
+    } catch (err) {
+      console.error("Failed to update hero video URL:", err);
+      toast.error('ভিডিও আপডেট ব্যর্থ হয়েছে।');
+    }
   };
 
   return (
     <AppContext.Provider value={{
       ...state,
+      currentUser,
       selectedLocation,
       setSelectedLocation,
-      login, logout, registerUser, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, updateBanner, addBanner, deleteBanner, updateHeroVideoUrl
+      login, 
+      logout,
+      registerUser: registerUser as any, 
+      addProperty: addProperty as any, 
+      addTutor: addTutor as any, 
+      addInvoice: addInvoice as any, 
+      updateUserNID: updateUserNID as any, 
+      updateProfile: updateProfile as any, 
+      updateSubscription: updateSubscription as any, 
+      deleteUser: deleteUser as any, 
+      updateBanner: updateBanner as any, 
+      addBanner: addBanner as any, 
+      deleteBanner: deleteBanner as any, 
+      updateHeroVideoUrl: updateHeroVideoUrl as any
     }}>
       {children}
     </AppContext.Provider>

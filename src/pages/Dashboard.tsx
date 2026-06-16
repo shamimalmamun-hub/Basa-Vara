@@ -4,7 +4,7 @@ import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId } from '../lib/utils';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, compressImage } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
 import ManageBanners from '../components/ManageBanners';
 import ManageVideo from '../components/ManageVideo';
@@ -492,14 +492,20 @@ function ProfileSettings({ user, updateProfile }: { user: User, updateProfile: a
     avatar: user.avatar || ''
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({...prev, avatar: reader.result as string}));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setFormData(prev => ({...prev, avatar: compressed}));
+      } catch (err) {
+        console.error("Profile image compression failed:", err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFormData(prev => ({...prev, avatar: reader.result as string}));
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -562,7 +568,7 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
   const [formData, setFormData] = useState<any>({});
   const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -572,18 +578,18 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       return;
     }
 
-    const maxSizeBytes = 4 * 1024 * 1024; // 4MB limit
-    if (file.size > maxSizeBytes) {
-      alert('ছবিটি ৪ মেগাবাইটের চেয়ে ছোট হতে হবে!');
-      return;
+    try {
+      const compressed = await compressImage(file);
+      setFormData((prev: any) => ({ ...prev, image: compressed }));
+    } catch (err) {
+      console.error("Content image compression failed:", err);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        setFormData((prev: any) => ({ ...prev, image: base64String }));
+      };
+      reader.readAsDataURL(file);
     }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64String = reader.result as string;
-      setFormData((prev: any) => ({ ...prev, image: base64String }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const removeSelectedImage = () => {
