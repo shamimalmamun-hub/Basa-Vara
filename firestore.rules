@@ -1,54 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Catch-all default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // Helper: Is Valid ID
-    function isValidId(id) {
-      return id is string && id.size() <= 128;
-    }
-
-    // Users Collection
     match /users/{userId} {
-      // Anyone can read profiles to allow custom login checking
-      // Anyone can create their profile during registration
-      allow read, create: if isValidId(userId);
-      // Updating user details (like approval, NID validation)
-      allow update, delete: if isValidId(userId);
+      allow read, write: if true;
     }
-
-    // Properties Collection
     match /properties/{propertyId} {
-      allow read: if true;
-      allow create, update, delete: if isValidId(propertyId);
+      allow read, write: if true;
     }
-
-    // Tutors Collection
     match /tutors/{tutorId} {
-      allow read: if true;
-      allow create, update, delete: if isValidId(tutorId);
+      allow read, write: if true;
     }
-
-    // Invoices Collection
     match /invoices/{invoiceId} {
-      allow read: if true;
-      allow create, update: if isValidId(invoiceId);
+      allow read, write: if true;
     }
-
-    // Banners Collection
     match /banners/{bannerId} {
-      allow read: if true;
-      allow write: if isValidId(bannerId);
+      allow read, write: if true;
     }
-
-    // Settings Collection
-    match /settings/{settingId} {
-      allow read: if true;
-      allow write: if isValidId(settingId);
+    match /settings/{docId} {
+      allow read, write: if true;
     }
   }
 }

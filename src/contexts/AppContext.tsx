@@ -200,7 +200,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           throw err;
         });
         if (propertiesSnap.empty) {
-          for (const p of MOCK_PROPERTIES) {
+           const demoProperties = [
+             { id: 'p1', ownerId: 'u1', title: 'Modern 2BHK Flat', description: 'Very cozy and modern.', location: 'Mirpur 10', address: 'Mirpur 10', type: 'Flat', price: 15000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
+             { id: 'p2', ownerId: 'u1', title: 'Sunny Single Room', description: 'Great sunlight.', location: 'Dhanmondi', address: 'Dhanmondi', type: 'Single Room', price: 5000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
+             { id: 'p3', ownerId: 'u1', title: 'Student Mess Seat', description: 'Quiet environment.', location: 'Farmgate', address: 'Farmgate', type: 'Seat', price: 2000, images: ['https://images.unsplash.com/photo-15024428134df-7d4726027ece?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' }
+           ];
+          for (const p of demoProperties) {
             await setDoc(doc(db, 'properties', p.id), p).catch(err => {
               handleFirestoreError(err, OperationType.WRITE, `properties/${p.id}`);
               throw err;
@@ -213,7 +218,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           throw err;
         });
         if (tutorsSnap.empty) {
-          for (const t of MOCK_TUTORS) {
+          const demoTutors = [
+            { id: 't1', userId: 'u1', name: 'Rahim Ahmed', subjects: ['Math', 'English'], education: 'B.Sc in CSE', availableDays: ['Sun', 'Mon'], availableTime: 'Morning', location: 'Mirpur 10', salaryExpected: 3000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
+            { id: 't2', userId: 'u1', name: 'Fatima Islam', subjects: ['Physics', 'Chemistry'], education: 'B.Sc in Physics', availableDays: ['Tue', 'Wed'], availableTime: 'Evening', location: 'Dhanmondi', salaryExpected: 4000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
+            { id: 't3', userId: 'u1', name: 'Karim Ullah', subjects: ['Biology'], education: 'MBBS Student', availableDays: ['Fri'], availableTime: 'Afternoon', location: 'Farmgate', salaryExpected: 2500, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' }
+          ];
+          for (const t of demoTutors) {
             await setDoc(doc(db, 'tutors', t.id), t).catch(err => {
               handleFirestoreError(err, OperationType.WRITE, `tutors/${t.id}`);
               throw err;

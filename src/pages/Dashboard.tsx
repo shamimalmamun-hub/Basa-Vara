@@ -462,7 +462,32 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'manage-homepage' && isAdmin && (
-          <ManageHomepage />
+          <div className="space-y-4">
+             <div className="p-6 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm">
+                <h3 className="text-xl font-bold mb-4">ডেটা সিডার</h3>
+                <button
+                   onClick={() => {
+                     const demoProperties = [
+                       { id: generateId(), ownerId: currentUser.id, title: 'Modern 2BHK Flat', description: 'Very cozy and modern.', location: MAIN_LOCATIONS[0], address: 'Mirpur 10', type: 'Flat', price: 15000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
+                       { id: generateId(), ownerId: currentUser.id, title: 'Sunny Single Room', description: 'Great sunlight.', location: MAIN_LOCATIONS[0], address: 'Dhanmondi', type: 'Single Room', price: 5000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
+                       { id: generateId(), ownerId: currentUser.id, title: 'Student Mess Seat', description: 'Quiet environment.', location: MAIN_LOCATIONS[0], address: 'Farmgate', type: 'Seat', price: 2000, images: ['https://images.unsplash.com/photo-15024428134df-7d4726027ece?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' }
+                     ];
+                     const demoTutors = [
+                       { id: generateId(), userId: currentUser.id, name: 'Rahim Ahmed', subjects: ['Math', 'English'], education: 'B.Sc in CSE', availableDays: ['Sun', 'Mon'], availableTime: 'Morning', location: MAIN_LOCATIONS[0], salaryExpected: 3000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
+                       { id: generateId(), userId: currentUser.id, name: 'Fatima Islam', subjects: ['Physics', 'Chemistry'], education: 'B.Sc in Physics', availableDays: ['Tue', 'Wed'], availableTime: 'Evening', location: MAIN_LOCATIONS[0], salaryExpected: 4000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
+                       { id: generateId(), userId: currentUser.id, name: 'Karim Ullah', subjects: ['Biology'], education: 'MBBS Student', availableDays: ['Fri'], availableTime: 'Afternoon', location: MAIN_LOCATIONS[0], salaryExpected: 2500, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' }
+                     ];
+                     demoProperties.forEach(addProperty);
+                     demoTutors.forEach(addTutor);
+                     toast.success(' ৬টি ডেমো পোস্ট সফলভাবে যোগ করা হয়েছে!');
+                   }}
+                   className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700"
+                >
+                  ৬টি ডেমো পোস্ট যোগ করুন
+                </button>
+             </div>
+             <ManageHomepage />
+          </div>
         )}
 
         {activeTab === 'admin-add-content' && isAdmin && (
