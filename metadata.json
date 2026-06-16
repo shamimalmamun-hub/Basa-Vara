@@ -1,0 +1,6 @@
+{
+  "name": "বাসা ভাড়া ও হোম টিউটর",
+  "description": "A unified platform for finding house rentals, messes, and home tutors in Mymensingh & Madhupur, complete with NID verification, dark mode, and admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
