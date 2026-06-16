@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PropertyCard, TutorCard } from '../components/Cards';
-import { Home as HomeIcon, GraduationCap, CheckCircle2, MapPin, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
+import { Home as HomeIcon, GraduationCap, CheckCircle2, MapPin, ChevronRight, ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getYouTubeId } from '../lib/utils';
 
@@ -325,64 +325,37 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="button"
-                onClick={() => setSelectedLocation(null)}
-                className={`px-5 py-2.5 rounded-2xl text-xs font-extrabold transition-all cursor-pointer ${!selectedLocation ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
+          <div className="relative z-10 w-full max-w-sm mx-auto md:mx-0">
+            <label className="sr-only">Select Location</label>
+            <div className="relative">
+              <select
+                onChange={(e) => setSelectedLocation(e.target.value || null)}
+                value={selectedLocation || ""}
+                className="w-full appearance-none bg-indigo-600 border-2 border-indigo-500 rounded-3xl px-6 py-4 font-bold text-white cursor-pointer focus:ring-4 focus:ring-indigo-500/30 transition-all text-sm shadow-lg"
               >
-                {language === 'bn' ? 'সকল এলাকা (সব দেখুন)' : 'All Areas (View All)'}
-              </motion.button>
-              
-              {selectedLocation && (
-                <motion.span 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-2 px-4 py-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-950/50 text-emerald-700 dark:text-emerald-400"
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                  {language === 'bn' ? 'সক্রিয় ফিল্টার:' : 'Active filter:'} <strong>{LOCATION_NAMES[selectedLocation]?.[language] || selectedLocation}</strong>
-                </motion.span>
-              )}
+                 <option value="">{language === 'bn' ? 'সকল এলাকা (সব দেখুন)' : 'All Locations (View All)'}</option>
+                 {Object.entries(LOCATION_NAMES).map(([key, info]) => (
+                   <option key={key} value={key}>
+                     {info.icon} {language === 'bn' ? info.bn : info.en}
+                   </option>
+                 ))}
+              </select>
+              <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-white/70">
+                <ChevronDown className="w-5 h-5" />
+              </div>
             </div>
+            {selectedLocation && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-center md:justify-start gap-2"
+              >
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                {language === 'bn' ? 'সক্রিয় ফিল্টার:' : 'Active filter:'} <strong>{LOCATION_NAMES[selectedLocation]?.[language] || selectedLocation}</strong>
+              </motion.div>
+            )}
           </div>
-
-          {/* Staggered Area Cards Selection with motion */}
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 relative z-10"
-          >
-            {Object.entries(LOCATION_NAMES).map(([key, info]) => {
-              const isSelected = selectedLocation === key;
-              return (
-                <motion.button
-                  key={key}
-                  variants={itemVariants}
-                  whileHover={{ 
-                    scale: 1.05, 
-                    y: -5,
-                    boxShadow: '0 20px 25px -5px rgba(99, 102, 241, 0.08), 0 8px 10px -6px rgba(99, 102, 241, 0.08)' 
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  type="button"
-                  onClick={() => setSelectedLocation(key)}
-                  className={`group flex flex-col items-center justify-center p-5 rounded-3xl border transition-all duration-300 cursor-pointer ${isSelected ? 'bg-indigo-500/[0.04] dark:bg-indigo-950/20 border-indigo-500 shadow-xl shadow-indigo-500/5 ring-1 ring-indigo-500/20' : 'bg-slate-50/50 dark:bg-slate-950/60 border-slate-100/80 dark:border-slate-850 hover:border-slate-200 dark:hover:border-slate-750 hover:bg-white dark:hover:bg-slate-900/80'}`}
-                >
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-all duration-300 ${isSelected ? 'bg-indigo-600 text-white scale-110 shadow-lg shadow-indigo-650/20' : 'bg-white dark:bg-slate-850 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950/20 border border-slate-150/50 dark:border-slate-800'}`}>
-                    {info.icon}
-                  </div>
-                  <span className={`text-xs font-bold mt-3 transition-all text-center tracking-tight ${isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
-                    {language === 'bn' ? info.bn : info.en}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </motion.div>
+        </div>
         </motion.div>
       </section>
 
