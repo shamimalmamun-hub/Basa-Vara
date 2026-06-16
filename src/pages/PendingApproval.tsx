@@ -36,16 +36,16 @@ export default function PendingApproval() {
         </div>
 
         {/* Dynamic Typography and Content based on language context */}
-        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
+        <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
           {language === 'bn' ? 'রেজিস্ট্রেশন সফল হয়েছে!' : 'Registration Successful!'}
         </h2>
         
-        <p className="text-indigo-600 dark:text-indigo-400 font-bold text-sm mb-6 flex items-center justify-center gap-1 bg-indigo-50/50 dark:bg-indigo-950/20 py-2 px-4 rounded-full max-w-md mx-auto border border-indigo-100/30 dark:border-indigo-900/20">
+        <p className="text-indigo-600 dark:text-indigo-400 font-bold text-xs sm:text-sm mb-6 flex items-center justify-center gap-1 bg-indigo-50/50 dark:bg-indigo-950/20 py-2 px-4 rounded-full max-w-md mx-auto border border-indigo-100/30 dark:border-indigo-900/20">
           <ShieldAlert className="w-4 h-4 shrink-0" />
           <span>{language === 'bn' ? 'অ্যাকাউন্ট বর্তমানে অনুমোদনের অপেক্ষায় রয়েছে' : 'Your account is pending admin approval'}</span>
         </p>
 
-        <div className="space-y-4 text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-8 text-justify bg-slate-50/50 dark:bg-slate-950/30 p-5 rounded-2xl border border-slate-100 dark:border-transparent">
+        <div className="space-y-4 text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed mb-8 text-justify bg-slate-50/50 dark:bg-slate-950/30 p-5 rounded-2xl border border-slate-100 dark:border-transparent">
           {language === 'bn' ? (
             <>
               <p>
