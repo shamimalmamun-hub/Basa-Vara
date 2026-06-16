@@ -9,7 +9,7 @@ export default function PendingApproval() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen p-4 py-16 flex flex-col items-center selection:bg-indigo-500/30">
+    <div className="min-h-screen p-4 pt-6 sm:pt-12 pb-10 flex flex-col items-center selection:bg-indigo-500/30">
       <div className="relative backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 w-full max-w-lg p-8 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl shadow-indigo-500/5 dark:shadow-indigo-900/10 transition-all duration-500 text-center overflow-hidden">
         
         {/* Top Glow Decor */}
