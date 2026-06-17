@@ -350,6 +350,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       snapshot.forEach(doc => {
         bannersList.push(doc.data() as AdBanner);
       });
+      console.log('DEBUG: Loaded banners, count:', bannersList.length);
       if (active) {
         setState(prev => ({
           ...prev,
@@ -357,6 +358,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         }));
       }
     }, (err) => {
+      console.error('DEBUG: Error loading banners', err);
       handleFirestoreError(err, OperationType.GET, 'banners');
     });
 

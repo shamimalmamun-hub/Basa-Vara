@@ -324,24 +324,22 @@ export default function Home() {
           viewport={{ once: true, margin: '-50px' }}
           className="grid grid-cols-1 gap-6"
         >
-          {(banners && banners.length > 0 ? [banners[0]] : []).map((banner, index) => {
+          {(banners && banners[0] ? [banners[0]] : []).map((banner, index) => {
             const hasImage = !!banner.image;
             const badge = language === 'bn' ? banner.badgeBn : banner.badgeEn;
             const title = language === 'bn' ? banner.titleBn : banner.titleEn;
             const desc = language === 'bn' ? banner.descBn : banner.descEn;
             const btnText = language === 'bn' ? banner.buttonTextBn : banner.buttonTextEn;
-            const iconEmoji = banner.iconEmoji || (index === 0 ? '🏡' : '🎓');
-            const secEmoji = banner.secondaryEmoji || (index === 0 ? '⚡' : '🎯');
+            const iconEmoji = banner.iconEmoji || '🏡';
+            const secEmoji = banner.secondaryEmoji || '⚡';
 
             // Fallback gradients
             let gradientClass = 'bg-gradient-to-r from-slate-750 to-slate-950';
             if (!hasImage) {
               if (banner.gradientFrom && banner.gradientTo) {
                 gradientClass = `bg-gradient-to-r from-${banner.gradientFrom} to-${banner.gradientTo}`;
-              } else if (index === 0) {
-                gradientClass = 'bg-gradient-to-r from-teal-500 to-emerald-600 shadow-xl shadow-teal-500/10';
               } else {
-                gradientClass = 'bg-gradient-to-r from-rose-500 to-pink-600 shadow-xl shadow-rose-550/10';
+                gradientClass = 'bg-gradient-to-r from-teal-500 to-emerald-600 shadow-xl shadow-teal-500/10';
               }
             }
 
