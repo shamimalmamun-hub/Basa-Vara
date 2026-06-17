@@ -846,7 +846,7 @@ export default function Home() {
                   </li>
                   {t('planOwnerFeature4') && (
                     <li className="flex items-center text-sm text-slate-755 dark:text-slate-300 font-medium">
-                      <CheckCircle2 className="w-5 h-5 text-indigo-550 mr-2.5 shrink-0" /> {t('planOwnerFeature4')}
+                      <CheckCircle2 className="w-5 h-5 text-indigo-500 mr-2.5 shrink-0" /> {t('planOwnerFeature4')}
                     </li>
                   )}
                 </ul>
