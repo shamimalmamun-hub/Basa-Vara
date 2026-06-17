@@ -131,8 +131,8 @@ export default function Home() {
   }, [heroVideoUrl]);
   
   // Filter core lists by selected area to fulfill "সেই লোকেশনের বাসা/মেস, টিটোর লিস্ট আসবে"
-  const filteredProperties = properties.filter(p => !selectedLocation || p.location === selectedLocation);
-  const filteredTutors = tutors.filter(t => !selectedLocation || t.location === selectedLocation);
+  const filteredProperties = properties.filter(p => !selectedLocation || selectedLocation === "" || p.location === selectedLocation);
+  const filteredTutors = tutors.filter(t => !selectedLocation || selectedLocation === "" || t.location === selectedLocation);
 
   const featuredProperties = filteredProperties.slice(0, 6);
   const featuredTutors = filteredTutors.slice(0, 6);
