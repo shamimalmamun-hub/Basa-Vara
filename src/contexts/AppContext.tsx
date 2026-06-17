@@ -105,7 +105,7 @@ const defaultState: AppState = {
   isLoading: true,
 };
 
-const DEFAULT_BANNERS: AdBanner[] = [
+export const DEFAULT_BANNERS: AdBanner[] = [
   {
     id: 'banner1',
     badgeBn: 'নিরাপদ ফ্ল্যাট বুকিং',

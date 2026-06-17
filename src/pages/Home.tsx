@@ -6,6 +6,7 @@ import { PropertyCard, TutorCard } from '../components/Cards';
 import { Home as HomeIcon, GraduationCap, CheckCircle2, MapPin, ChevronRight, ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getYouTubeId } from '../lib/utils';
+import { DEFAULT_BANNERS } from '../contexts/AppContext';
 
 const LOCATION_NAMES: Record<string, { bn: string, en: string, icon: string }> = {
   'Mymensingh Sadar': { bn: 'ময়মনসিংহ সদর', en: 'Mymensingh Sadar', icon: '🏛️' },
@@ -324,7 +325,7 @@ export default function Home() {
           viewport={{ once: true, margin: '-50px' }}
           className="grid grid-cols-1 gap-6"
         >
-          {(banners && banners[0] ? [banners[0]] : []).map((banner, index) => {
+          {(banners && banners.length > 0 ? [banners[0]] : DEFAULT_BANNERS.slice(0, 1)).map((banner, index) => {
             const hasImage = !!banner.image;
             const badge = language === 'bn' ? banner.badgeBn : banner.badgeEn;
             const title = language === 'bn' ? banner.titleBn : banner.titleEn;
