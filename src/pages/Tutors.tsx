@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { TutorCard } from '../components/Cards';
@@ -6,15 +6,14 @@ import { MAIN_LOCATIONS } from '../lib/utils';
 import { SlidersHorizontal } from 'lucide-react';
 
 export default function Tutors() {
-  const { tutors, selectedLocation } = useApp();
+  const { tutors, selectedLocation, setSelectedLocation } = useApp();
   const { language, t } = useLanguage();
-  const [filterLoc, setFilterLoc] = useState<string>(selectedLocation || 'All');
   const [filterSubj, setFilterSubj] = useState<string>('All');
 
   const allSubjects = Array.from(new Set(tutors.flatMap(t => t.subjects))) as string[];
 
   const filtered = tutors.filter(t => 
-    (filterLoc === 'All' || t.location === filterLoc) &&
+    (selectedLocation === null || (t.location || '').toLowerCase().trim() === selectedLocation.toLowerCase().trim()) &&
     (filterSubj === 'All' || t.subjects.includes(filterSubj))
   );
 
@@ -48,8 +47,8 @@ export default function Tutors() {
           </div>
           <select 
             className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-sm cursor-pointer"
-            value={filterLoc} 
-            onChange={e => setFilterLoc(e.target.value)}
+            value={selectedLocation || 'All'} 
+            onChange={e => setSelectedLocation(e.target.value === 'All' ? null : e.target.value)}
           >
             <option value="All">{language === 'bn' ? 'সকল এলাকা' : 'All Areas'}</option>
             {MAIN_LOCATIONS.map(l => {

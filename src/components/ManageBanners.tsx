@@ -141,13 +141,15 @@ export default function ManageBanners() {
           </p>
         </div>
         
-        <button
-          onClick={() => setShowAddNew(!showAddNew)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-indigo-700 active:scale-95 transition-all w-fit cursor-pointer"
-        >
-          {showAddNew ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          {showAddNew ? (language === 'bn' ? 'বন্ধ করুন' : 'Cancel') : (language === 'bn' ? 'নতুন ব্যানার যোগ করুন' : 'Add New Banner')}
-        </button>
+        {(banners?.length || 0) < 1 && (
+          <button
+            onClick={() => setShowAddNew(!showAddNew)}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-indigo-700 active:scale-95 transition-all w-fit cursor-pointer"
+          >
+            {showAddNew ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {showAddNew ? (language === 'bn' ? 'বন্ধ করুন' : 'Cancel') : (language === 'bn' ? 'নতুন ব্যানার যোগ করুন' : 'Add New Banner')}
+          </button>
+        )}
       </div>
 
       {/* New Banner Form */}
@@ -377,7 +379,7 @@ export default function ManageBanners() {
         </h3>
 
         <div className="grid grid-cols-1 gap-8">
-          {(banners && banners.length > 0 ? banners : []).map((banner, index) => {
+          {(banners && banners.length > 0 ? [banners[0]] : []).map((banner, index) => {
             const isEditing = editingId === banner.id;
             const currentEditingData = isEditing && editingBanner ? editingBanner : banner;
             const hasImage = !!currentEditingData.image;

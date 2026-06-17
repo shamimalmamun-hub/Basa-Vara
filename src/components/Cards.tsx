@@ -20,9 +20,17 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
     return language === 'bn' ? 'মেস' : 'Mess';
   };
 
-  const locationLabel = property.location === 'Mymensingh Sadar' 
-    ? (language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar') 
-    : (language === 'bn' ? 'মধুপুর' : 'Madhupur');
+  const getLocationLabel = (loc: string) => {
+    if (loc === 'Mymensingh Sadar') return language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar';
+    if (loc === 'Madhupur') return language === 'bn' ? 'মধুপুর' : 'Madhupur';
+    if (loc === 'Muktagacha') return language === 'bn' ? 'মুক্তাগাছা' : 'Muktagacha';
+    if (loc === 'Bhaluka') return language === 'bn' ? 'ভালুকা' : 'Bhaluka';
+    if (loc === 'Trishal') return language === 'bn' ? 'ত্রিশাল' : 'Trishal';
+    if (loc === 'Dhaka') return language === 'bn' ? 'ঢাকা' : 'Dhaka';
+    return loc;
+  };
+
+  const locationLabel = getLocationLabel(property.location);
 
   return (
     <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group">
@@ -108,9 +116,17 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
     return daysDict[day] || day;
   };
 
-  const locationLabel = tutor.location === 'Mymensingh Sadar' 
-    ? (language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar') 
-    : (language === 'bn' ? 'মধুপুর' : 'Madhupur');
+  const getLocationLabel = (loc: string) => {
+    if (loc === 'Mymensingh Sadar') return language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar';
+    if (loc === 'Madhupur') return language === 'bn' ? 'মধুপুর' : 'Madhupur';
+    if (loc === 'Muktagacha') return language === 'bn' ? 'মুক্তাগাছা' : 'Muktagacha';
+    if (loc === 'Bhaluka') return language === 'bn' ? 'ভালুকা' : 'Bhaluka';
+    if (loc === 'Trishal') return language === 'bn' ? 'ত্রিশাল' : 'Trishal';
+    if (loc === 'Dhaka') return language === 'bn' ? 'ঢাকা' : 'Dhaka';
+    return loc;
+  };
+
+  const locationLabel = getLocationLabel(tutor.location);
 
   return (
     <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-6 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden">

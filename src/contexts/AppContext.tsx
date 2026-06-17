@@ -160,7 +160,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [state, setState] = useState<AppState>(defaultState);
 
   const [selectedLocation, setSelectedLocationState] = useState<string | null>(() => {
-    return localStorage.getItem('basavara_selected_location');
+    const saved = localStorage.getItem('basavara_selected_location');
+    return saved === 'null' ? null : saved;
   });
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
@@ -201,9 +202,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         });
         if (propertiesSnap.empty) {
            const demoProperties = [
-             { id: 'p1', ownerId: 'u1', title: 'Modern 2BHK Flat', description: 'Very cozy and modern.', location: 'Mirpur 10', address: 'Mirpur 10', type: 'Flat', price: 15000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
-             { id: 'p2', ownerId: 'u1', title: 'Sunny Single Room', description: 'Great sunlight.', location: 'Dhanmondi', address: 'Dhanmondi', type: 'Single Room', price: 5000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
-             { id: 'p3', ownerId: 'u1', title: 'Student Mess Seat', description: 'Quiet environment.', location: 'Farmgate', address: 'Farmgate', type: 'Seat', price: 2000, images: ['https://images.unsplash.com/photo-15024428134df-7d4726027ece?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' }
+             { id: 'p1', ownerId: 'u1', title: 'Modern 2BHK Flat', description: 'Very cozy and modern.', location: 'Dhaka', address: 'Mirpur 10', type: 'Flat', price: 15000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
+             { id: 'p2', ownerId: 'u1', title: 'Sunny Single Room', description: 'Great sunlight.', location: 'Mymensingh Sadar', address: 'Dhanmondi', type: 'Single Room', price: 5000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' },
+             { id: 'p3', ownerId: 'u1', title: 'Student Mess Seat', description: 'Quiet environment.', location: 'Madhupur', address: 'Farmgate', type: 'Seat', price: 2000, images: ['https://images.unsplash.com/photo-15024428134df-7d4726027ece?w=400'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '01700000000' }
            ];
           for (const p of demoProperties) {
             await setDoc(doc(db, 'properties', p.id), p).catch(err => {
@@ -211,6 +212,20 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
               throw err;
             });
           }
+        } else {
+          // Sync existing legacy data to match dropdown locations
+          propertiesSnap.forEach(async (docSnap) => {
+            const data = docSnap.data();
+            let changed = false;
+            let newLoc = data.location;
+            if (newLoc === 'Mirpur 10') { newLoc = 'Dhaka'; changed = true; }
+            else if (newLoc === 'Dhanmondi') { newLoc = 'Mymensingh Sadar'; changed = true; }
+            else if (newLoc === 'Farmgate') { newLoc = 'Madhupur'; changed = true; }
+
+            if (changed) {
+              await setDoc(doc(db, 'properties', docSnap.id), { ...data, location: newLoc }, { merge: true });
+            }
+          });
         }
 
         const tutorsSnap = await getDocs(collection(db, 'tutors')).catch(err => {
@@ -219,9 +234,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         });
         if (tutorsSnap.empty) {
           const demoTutors = [
-            { id: 't1', userId: 'u1', name: 'Rahim Ahmed', subjects: ['Math', 'English'], education: 'B.Sc in CSE', availableDays: ['Sun', 'Mon'], availableTime: 'Morning', location: 'Mirpur 10', salaryExpected: 3000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
-            { id: 't2', userId: 'u1', name: 'Fatima Islam', subjects: ['Physics', 'Chemistry'], education: 'B.Sc in Physics', availableDays: ['Tue', 'Wed'], availableTime: 'Evening', location: 'Dhanmondi', salaryExpected: 4000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
-            { id: 't3', userId: 'u1', name: 'Karim Ullah', subjects: ['Biology'], education: 'MBBS Student', availableDays: ['Fri'], availableTime: 'Afternoon', location: 'Farmgate', salaryExpected: 2500, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' }
+            { id: 't1', userId: 'u1', name: 'Rahim Ahmed', subjects: ['Math', 'English'], education: 'B.Sc in CSE', availableDays: ['Sun', 'Mon'], availableTime: 'Morning', location: 'Dhaka', salaryExpected: 3000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
+            { id: 't2', userId: 'u1', name: 'Fatima Islam', subjects: ['Physics', 'Chemistry'], education: 'B.Sc in Physics', availableDays: ['Tue', 'Wed'], availableTime: 'Evening', location: 'Mymensingh Sadar', salaryExpected: 4000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' },
+            { id: 't3', userId: 'u1', name: 'Karim Ullah', subjects: ['Biology'], education: 'MBBS Student', availableDays: ['Fri'], availableTime: 'Afternoon', location: 'Madhupur', salaryExpected: 2500, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200', isVerified: true, contactNumber: '01800000000' }
           ];
           for (const t of demoTutors) {
             await setDoc(doc(db, 'tutors', t.id), t).catch(err => {
@@ -229,6 +244,20 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
               throw err;
             });
           }
+        } else {
+          // Sync existing legacy data to match dropdown locations
+          tutorsSnap.forEach(async (docSnap) => {
+            const data = docSnap.data();
+            let changed = false;
+            let newLoc = data.location;
+            if (newLoc === 'Mirpur 10') { newLoc = 'Dhaka'; changed = true; }
+            else if (newLoc === 'Dhanmondi') { newLoc = 'Mymensingh Sadar'; changed = true; }
+            else if (newLoc === 'Farmgate') { newLoc = 'Madhupur'; changed = true; }
+
+            if (changed) {
+              await setDoc(doc(db, 'tutors', docSnap.id), { ...data, location: newLoc }, { merge: true });
+            }
+          });
         }
 
         const bannersSnap = await getDocs(collection(db, 'banners')).catch(err => {

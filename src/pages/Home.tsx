@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -79,7 +79,7 @@ const listCardVariants = {
 };
 
 export default function Home() {
-  const { currentUser, properties, tutors, selectedLocation, setSelectedLocation, banners, heroVideoUrl } = useApp();
+  const { currentUser, properties, tutors, selectedLocation, setSelectedLocation, banners, heroVideoUrl, isLoading } = useApp();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -87,6 +87,12 @@ export default function Home() {
 
   // Robust, progressive instant autoplay for background video on load
   useEffect(() => {
+    // Debug: Log all unique property locations to help diagnose filter issues
+    const uniqueLocations = Array.from(new Set(properties.map(p => p.location)));
+    console.log("Unique property locations:", uniqueLocations);
+    const uniqueTutorLocations = Array.from(new Set(tutors.map(t => t.location)));
+    console.log("Unique tutor locations:", uniqueTutorLocations);
+
     const playVideoImmediately = () => {
       // 1. Send play command to YouTube iframe if it is mounted
       if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -129,10 +135,38 @@ export default function Home() {
       document.removeEventListener('scroll', playVideoImmediately);
     };
   }, [heroVideoUrl]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 text-white">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+          className="rounded-full h-14 w-14 border-[3px] border-t-indigo-500 border-indigo-600/30"
+        />
+        <p className="text-sm font-semibold tracking-wider text-indigo-200">
+          {language === 'bn' ? 'লোড হচ্ছে...' : 'Loading...'}
+        </p>
+      </div>
+    );
+  }
   
   // Filter core lists by selected area to fulfill "সেই লোকেশনের বাসা/মেস, টিটোর লিস্ট আসবে"
-  const filteredProperties = properties.filter(p => !selectedLocation || selectedLocation === "" || p.location === selectedLocation);
-  const filteredTutors = tutors.filter(t => !selectedLocation || selectedLocation === "" || t.location === selectedLocation);
+  const filteredProperties = properties.filter(p => {
+    if (!selectedLocation) return true;
+    const propLoc = (p.location || '').toLowerCase().trim();
+    const selLoc = selectedLocation.toLowerCase().trim();
+    if (propLoc !== selLoc) return false;
+    return true;
+  });
+  const filteredTutors = tutors.filter(t => {
+    if (!selectedLocation) return true;
+    const tutorLoc = (t.location || '').toLowerCase().trim();
+    const selLoc = selectedLocation.toLowerCase().trim();
+    if (tutorLoc !== selLoc) return false;
+    return true;
+  });
 
   const featuredProperties = filteredProperties.slice(0, 6);
   const featuredTutors = filteredTutors.slice(0, 6);
@@ -224,24 +258,7 @@ export default function Home() {
           animate="visible"
           className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10 w-full"
         >
-          {selectedLocation && (
-            <motion.div 
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center space-x-2 bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-500/30 backdrop-blur-md px-4 py-2 rounded-2xl mb-8 cursor-pointer select-none group transition-all" 
-              onClick={() => setSelectedLocation(null)}
-            >
-              <MapPin className="w-3.5 h-3.5 text-indigo-300 animate-bounce" />
-              <span className="text-white text-xs font-bold font-sans">
-                {language === 'bn' ? 'বর্তমান লোকেশন:' : 'Current Location:'} {LOCATION_NAMES[selectedLocation]?.[language] || selectedLocation}
-              </span>
-              <span className="text-[10px] text-indigo-400 font-bold underline pl-1.5 group-hover:text-indigo-300">
-                ({language === 'bn' ? 'পরিবর্তন করুন' : 'Change'})
-              </span>
-            </motion.div>
-          )}
-
+          {/* Header Badge */}
           {!selectedLocation && (
             <motion.div 
               variants={itemVariants}
@@ -298,67 +315,6 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* 2nd Section: Location Selection */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 md:-mt-14 relative z-20">
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ type: 'spring', stiffness: 60, damping: 15 }}
-          className="backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-800/80 rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-2xl shadow-indigo-500/5 relative overflow-hidden"
-        >
-          {/* Subtle colored spot */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-          
-          <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 border-b border-slate-100 dark:border-slate-800 pb-6">
-            <div>
-              <span className="text-[10px] uppercase font-black tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-3.5 py-1.5 rounded-xl mb-2 inline-block">
-                📍 {language === 'bn' ? 'সার্ভিস এরিয়া' : 'Service Areas'}
-              </span>
-              <h2 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                {language === 'bn' ? 'আপনার অবস্থান নির্বাচন করুন' : 'Select Your Location'}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">
-                {language === 'bn' 
-                  ? 'আপনার এলাকার সেরা বাসা ভাড়ার বিজ্ঞাপন ও ভেরিফাইড হোম টিউটরগুলোর তালিকা দেখতে একটি অবস্থান সিলেক্ট করুন।' 
-                  : 'Please select a location to filter homes, messes, and verified home tutors available in that area.'}
-              </p>
-            </div>
-
-          <div className="relative z-10 w-full max-w-sm mx-auto md:mx-0">
-            <label className="sr-only">Select Location</label>
-            <div className="relative">
-              <select
-                onChange={(e) => setSelectedLocation(e.target.value || null)}
-                value={selectedLocation || ""}
-                className="w-full appearance-none bg-indigo-600 border-2 border-indigo-500 rounded-3xl px-6 py-4 font-bold text-white cursor-pointer focus:ring-4 focus:ring-indigo-500/30 transition-all text-sm shadow-lg"
-              >
-                 <option value="">{language === 'bn' ? 'সকল এলাকা (সব দেখুন)' : 'All Locations (View All)'}</option>
-                 {Object.entries(LOCATION_NAMES).map(([key, info]) => (
-                   <option key={key} value={key}>
-                     {info.icon} {language === 'bn' ? info.bn : info.en}
-                   </option>
-                 ))}
-              </select>
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-white/70">
-                <ChevronDown className="w-5 h-5" />
-              </div>
-            </div>
-            {selectedLocation && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-center md:justify-start gap-2"
-              >
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                {language === 'bn' ? 'সক্রিয় ফিল্টার:' : 'Active filter:'} <strong>{LOCATION_NAMES[selectedLocation]?.[language] || selectedLocation}</strong>
-              </motion.div>
-            )}
-          </div>
-        </div>
-        </motion.div>
-      </section>
-
       {/* Banner Ad Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
         <motion.div 
@@ -366,9 +322,9 @@ export default function Home() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          className="grid grid-cols-1 gap-6"
         >
-          {(banners && banners.length > 0 ? banners : []).map((banner, index) => {
+          {(banners && banners.length > 0 ? [banners[0]] : []).map((banner, index) => {
             const hasImage = !!banner.image;
             const badge = language === 'bn' ? banner.badgeBn : banner.badgeEn;
             const title = language === 'bn' ? banner.titleBn : banner.titleEn;
