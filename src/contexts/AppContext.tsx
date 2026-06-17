@@ -296,10 +296,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       snapshot.forEach(doc => {
         usersList.push(doc.data() as User);
       });
+      console.log('DEBUG: Loaded users', usersList.length);
       if (active) {
         setState(prev => ({ ...prev, users: usersList }));
       }
     }, (err) => {
+      console.error('DEBUG: Error loading users', err);
       handleFirestoreError(err, OperationType.GET, 'users');
     });
 
@@ -308,10 +310,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       snapshot.forEach(doc => {
         propertiesList.push(doc.data() as Property);
       });
+      console.log('DEBUG: Loaded properties', propertiesList.length);
       if (active) {
         setState(prev => ({ ...prev, properties: propertiesList }));
       }
     }, (err) => {
+      console.error('DEBUG: Error loading properties', err);
       handleFirestoreError(err, OperationType.GET, 'properties');
     });
 
@@ -320,10 +324,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       snapshot.forEach(doc => {
         tutorsList.push(doc.data() as Tutor);
       });
+      console.log('DEBUG: Loaded tutors', tutorsList.length);
       if (active) {
         setState(prev => ({ ...prev, tutors: tutorsList }));
       }
     }, (err) => {
+      console.error('DEBUG: Error loading tutors', err);
       handleFirestoreError(err, OperationType.GET, 'tutors');
     });
 
