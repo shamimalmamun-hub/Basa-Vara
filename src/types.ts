@@ -16,6 +16,7 @@ export interface User {
   dob?: string;
   subscriptionEnd?: string;
   subscriptionType?: string;
+  subscriptionExpiryNotified?: boolean;
   isApproved?: boolean;
   paymentMethod?: string;
 }

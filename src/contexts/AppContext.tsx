@@ -395,6 +395,54 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   }, [state.users, currentUser]);
 
+  // Check for expired subscriptions and send email notification
+  useEffect(() => {
+    if (!state.users || state.users.length === 0) return;
+
+    const checkExpirations = async () => {
+      const now = new Date();
+      for (const u of state.users) {
+        if (
+          u.subscriptionEnd &&
+          new Date(u.subscriptionEnd) < now &&
+          !u.subscriptionExpiryNotified &&
+          u.role !== 'admin'
+        ) {
+          console.log(`[Subscription Check] Expiry detected for ${u.name} (${u.email}) on ${u.subscriptionEnd}. Sending alert...`);
+          try {
+            await updateDoc(doc(db, 'users', u.id), { subscriptionExpiryNotified: true });
+            
+            sendEmailHelper({
+              to: u.email,
+              subject: 'বাসাভাড়া ও টিউটর প্ল্যাটফর্মে আপনার প্যাকেজের মেয়াদ শেষ হয়েছে (Subscription Expired)',
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ef4444; border-radius: 8px;">
+                  <h2 style="color: #ef4444; text-align: center;">প্যাকেজের মেয়াদ শেষ হয়েছে</h2>
+                  <p>প্রিয় ${u.name},</p>
+                  <p>আপনার বাসাভাড়া ও টিউটর প্ল্যাটফর্মের (Basavara) প্রিমিয়াম প্যাকেজের মেয়াদ শেষ হয়ে গিয়েছে।</p>
+                  <p>আপনার ড্যাশবোর্ডে প্রিমিয়াম সুযোগ-সুবিধাসমূহ এবং বিজ্ঞাপনসমূহ সচল রাখতে দয়া করে আপনার একাউন্ট প্যানেল থেকে পুনরায় সাবস্ক্রিপশনটি নবায়ন করুন।</p>
+                  <div style="text-align: center; margin: 25px 0;">
+                    <a href="${window.location.origin}/dashboard" style="background-color: #4f46e5; color: white; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 6px; display: inline-block;">সাবস্ক্রিপশন নবায়ন করুন</a>
+                  </div>
+                  <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+                  <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+                </div>
+              `
+            });
+          } catch (err) {
+            console.error('Error handling subscription expiry email update:', err);
+          }
+        }
+      }
+    };
+
+    const timer = setTimeout(() => {
+      checkExpirations();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [state.users]);
+
   const login = (email: string, password?: string, isAdminAttempt?: boolean) => {
     const user = state.users.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim());
     if (user) {
@@ -432,6 +480,25 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     localStorage.removeItem('basavara_current_user');
     toast.success('Logged out');
   };
+  
+  const sendEmailHelper = async (payload: { to?: string; subject: string; html: string; text?: string; notifyAdmin?: boolean }) => {
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        console.warn('Email API returned non-200 status:', await response.text());
+      } else {
+        console.log(`[Email Notification] Successfully requested send for "${payload.subject}"`);
+      }
+    } catch (err) {
+      console.error('[Email Notification] Connection error sending email:', err);
+    }
+  };
 
   const registerUser = async (user: User) => {
     try {
@@ -449,6 +516,63 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       } else {
         toast.success('রেজিস্ট্রেশন এবং পেমেন্ট সম্পন্ন হয়েছে। এডমিন ড্যাশবোর্ড থেকে অনুমোদিত হওয়ার পর আপনি লগইন করতে পারবেন।', { duration: 6000 });
       }
+
+      // ✉️ Send welcome email to user
+      sendEmailHelper({
+        to: newUser.email,
+        subject: 'বাসাভাড়া ও টিউটর প্ল্যাটফর্মে স্বাগতম! (Welcome to Basavara)',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h2 style="color: #4f46e5; text-align: center;">বাসাভাড়া ও টিউটর প্ল্যাটফর্মে আপনাকে স্বাগতম!</h2>
+            <p>প্রিয় ${newUser.name},</p>
+            <p>আমাদের প্ল্যাটফর্মে সফলভাবে রেজিস্ট্রেশন করার জন্য ধন্যবাদ। আপনার অ্যাকাউন্টের বিবরণ নিচে দেওয়া হলো:</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">নাম:</td>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7;">${newUser.name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">ইমেইল:</td>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7;">${newUser.email}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">ভূমিকা (Role):</td>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7; text-transform: capitalize;">${newUser.role}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">স্ট্যাটাস (Status):</td>
+                <td style="padding: 8px; border-bottom: 1px solid #edf2f7; color: #d97706; font-weight: bold;">
+                  ${newUser.isApproved ? 'অনুমোদিত (Approved)' : 'অনুমোদনের অপেক্ষায় (Pending Admin Approval)'}
+                </td>
+              </tr>
+            </table>
+            <p>আমাদের টিম আপনার ট্রানজ্যাকশন আইডি এবং এনআইডি কপিসমূহ যাচাই করার কাজ শুরু করেছে। অ্যাকাউন্ট অনুমোদিত হওয়ার পর আপনি ইমেইল নোটিফিকেশন পাবেন ও লগইন করতে পারবেন।</p>
+            <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+            <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+          </div>
+        `
+      });
+
+      // ✉️ Send alert email to Admin
+      sendEmailHelper({
+        notifyAdmin: true,
+        subject: `New Signup Alerts: ${newUser.name} (${newUser.role}) Registration`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h2 style="color: #4f46e5; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">New Pending User Registration</h2>
+            <p>Hello System Admin,</p>
+            <p>A new user has just registered on the Basavara platform and is pending approval:</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <tr><td style="padding: 8px; font-weight: bold;">User Name:</td><td style="padding: 8px;">${newUser.name}</td></tr>
+              <tr><td style="padding: 8px; font-weight: bold;">User Email:</td><td style="padding: 8px;">${newUser.email}</td></tr>
+              <tr><td style="padding: 8px; font-weight: bold;">Account Role:</td><td style="padding: 8px;">${newUser.role}</td></tr>
+              <tr><td style="padding: 8px; font-weight: bold;">Transaction ID:</td><td style="padding: 8px;">${newUser.transactionId || 'None Provided'}</td></tr>
+            </table>
+            <p>Please log into your Admin Dashboard Portal to review resources/payments and approve this account.</p>
+          </div>
+        `
+      });
+
     } catch (err) {
       console.error("User registration failed:", err);
       toast.error('রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।');
@@ -460,6 +584,30 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     try {
       await setDoc(doc(db, 'properties', property.id), property);
       toast.success('Property details added.');
+
+      // ✉️ Send notification copy to owner
+      const owner = state.users.find(u => u.id === property.ownerId);
+      if (owner) {
+        sendEmailHelper({
+          to: owner.email,
+          subject: `আপনার প্রপার্টি বিজ্ঞাপনটি যুক্ত হয়েছে (Property Added: ${property.title})`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h2 style="color: #4f46e5; text-align: center;">আপনার প্রপার্টি বিজ্ঞাপন সফলভাবে যুক্ত হয়েছে!</h2>
+              <p>প্রিয় ${owner.name},</p>
+              <p>আপনার বাসা বা ফ্ল্যাট বিজ্ঞাপনটি বাসাভাড়া প্লাটফর্মে সফলভাবে তালিকাভুক্ত করা হয়েছে:</p>
+              <blockquote style="background-color: #f8fafc; border-left: 4px solid #4f46e5; padding: 12px 20px; margin: 20px 0; font-style: italic;">
+                <strong>${property.title}</strong><br/>
+                💵 মূল্য/ভাড়া: ৳${property.price}<br/>
+                📍 ঠিকানা: ${property.address}, ${property.location}
+              </blockquote>
+              <p>আগ্রহী গ্রাহকগণ এখন বাসাভাড়া খোঁজার তালিকায় এটি দেখতে পাবেন এবং সরাসরি আপনার সাথে যোগাযোগ করতে পারবেন।</p>
+              <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+              <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+            </div>
+          `
+        });
+      }
     } catch (err) {
       console.error("Failed to add property:", err);
       toast.error('প্রপার্টি যোগ করতে ব্যর্থ হয়েছে।');
@@ -470,6 +618,31 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     try {
       await setDoc(doc(db, 'tutors', tutor.id), tutor);
       toast.success('Tutor profile added.');
+
+      // ✉️ Send notification to tutor
+      const tutorUser = state.users.find(u => u.id === tutor.userId);
+      if (tutorUser) {
+        sendEmailHelper({
+          to: tutorUser.email,
+          subject: 'আপনার টিউটর প্রোফাইলটি তৈরি হয়েছে (Tutor Profile Configured)',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h2 style="color: #4f46e5; text-align: center;">আপনার টিউটর প্রোফাইল সফলভাবে তৈরি হয়েছে!</h2>
+              <p>প্রিয় ${tutor.name},</p>
+              <p>আপনার টিউটর প্রোফাইলটি সফলভাবে তালিকাভুক্ত করা হয়েছে:</p>
+              <ul>
+                <li><strong>শিক্ষা/প্রতিষ্ঠান:</strong> ${tutor.education}</li>
+                <li><strong>বিষয়সমূহ:</strong> ${tutor.subjects.join(', ')}</li>
+                <li><strong>প্রত্যাশিত বেতন:</strong> ৳${tutor.salaryExpected}</li>
+                <li><strong>কাঙ্ক্ষিত লোকেশন:</strong> ${tutor.location}</li>
+              </ul>
+              <p>অভিভাবকরা এবং শিক্ষার্থীরা এখন হোম টিউটর খোঁজার পেইজ থেকে সরাসরি আপনার ঠিকানায় বা মোবাইলে যোগাযোগ করতে পারবেন।</p>
+              <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+              <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+            </div>
+          `
+        });
+      }
     } catch (err) {
       console.error("Failed to add tutor:", err);
       toast.error('টিউটর প্রোফাইল যোগ করতে ব্যর্থ হয়েছে।');
@@ -480,6 +653,43 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     try {
       await setDoc(doc(db, 'invoices', invoice.id), invoice);
       toast.success('Invoice submitted successfully.');
+
+      // ✉️ Send invoice submission confirmation to payer
+      const payer = state.users.find(u => u.id === invoice.userId);
+      if (payer) {
+        sendEmailHelper({
+          to: payer.email,
+          subject: 'আপনার পেমেন্ট রিকোয়েস্ট জমা হয়েছে (Payment Invoice Submitted)',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <h2 style="color: #4f46e5; text-align: center;">পেমেন্ট জমা দেওয়ার রিসিট</h2>
+              <p>প্রিয় ${payer.name},</p>
+              <p>আমরা সফলভাবে আপনার পেমেন্ট ভেরিফিকেশন আবেদনটি ড্যাশবোর্ড থেকে গ্রহণ করেছি:</p>
+              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">টাকার পরিমাণ (Amount):</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7;">৳${invoice.amount}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">মেথড (Method):</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; text-transform: uppercase;">${invoice.method}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">ট্রানজ্যাকশন আইডি (TrxID):</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-family: monospace;">${invoice.trxId}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">স্ট্যাটাস (Status):</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; color: #d97706; font-weight: bold;">যাচাইধীন (Pending Approval)</td>
+                </tr>
+              </table>
+              <p>অ্যাডমিন যাচাই করার পর আপনার অ্যাকাউন্টটি সক্রিয় হয়ে যাবে। সাধারণত এটি ১০ থেকে ৩০ মিনিট সময় নিয়ে থাকে।</p>
+              <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+              <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+            </div>
+          `
+        });
+      }
     } catch (err) {
       console.error("Failed to add invoice:", err);
       toast.error('ইনভয়েস বা পেমেন্ট ট্রানজ্যাকশন যোগ করতে ব্যর্থ হয়েছে।');
@@ -495,6 +705,43 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }
       await updateDoc(userRef, updates);
       toast.success(status === 'verified' ? 'এনআইডি যাচাই ও অ্যাকাউন্ট অনুমোদিত হয়েছে!' : 'এনআইডি স্ট্যাটাস হালনাগাদ করা হয়েছে।');
+
+      // ✉️ Send NID and account approval notifications
+      const userSnap = await getDoc(userRef).catch(() => null);
+      if (userSnap && userSnap.exists()) {
+        const userData = userSnap.data() as User;
+        if (status === 'verified') {
+          sendEmailHelper({
+            to: userData.email,
+            subject: 'আপনার এনআইডি যাচাই ও অ্যাকাউন্ট অনুমোদিত হয়েছে! (NID Approved)',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <h2 style="color: #10b981; text-align: center;">অভিনন্দন! আপনার অ্যাকাউন্টটি অনুমোদিত হয়েছে।</h2>
+                <p>প্রিয় ${userData.name},</p>
+                <p>আমরা আনন্দের সাথে জানাচ্ছি যে আপনার বাসাভাড়া ও টিউটর অ্যাকাউন্ট এবং এনআইডি ডকুমেন্ট সফলভাবে ভেরিফাই ও অনুমোদিত হয়েছে।</p>
+                <p>আপনি এখন আপনার ইমেইল ও পাসওয়ার্ড দিয়ে ড্যাশবোর্ডে লগইন করে আপনার সকল কাঙ্ক্ষিত সেবা উপভোগ করতে পারবেন।</p>
+                <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+                <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+              </div>
+            `
+          });
+        } else if (status === 'rejected') {
+          sendEmailHelper({
+            to: userData.email,
+            subject: 'আপনার এনআইডি যাচাই বাতিল করা হয়েছে (NID Rejected)',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <h2 style="color: #ef4444; text-align: center;">এনআইডি যাচাই সম্পন্ন করা সম্ভব হয়নি</h2>
+                <p>প্রিয় ${userData.name},</p>
+                <p>আপনার প্রেরিত এনআইডি ডকুমেন্টসমূহ আমাদের নির্দেশিকার সাথে সামঞ্জস্যপূর্ণ না হওয়ায় তা বাতিল করা হয়েছে।</p>
+                <p>অনুগ্রহ করে আপনার অ্যাকাউন্ট ড্যাশবোর্ডে পুনরায় লগইন করে সঠিক ও স্পষ্ট এনআইডি কপিসমূহ পুনরায় আপলোড করুন।</p>
+                <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+                <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+              </div>
+            `
+          });
+        }
+      }
     } catch (err) {
       console.error("Failed to update user NID status:", err);
       toast.error('ব্যবহারকারীর তথ্য হালনাগাদ করতে ব্যর্থ হয়েছে।');
@@ -504,16 +751,42 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const updateProfile = async (userId: string, data: Partial<User>, showToast = true) => {
     try {
       const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, data);
+      const updates = { ...data };
+      if (updates.subscriptionEnd) {
+        updates.subscriptionExpiryNotified = false;
+      }
+      await updateDoc(userRef, updates);
       
       if (currentUser?.id === userId) {
-        const updatedUser = { ...currentUser, ...data };
+        const updatedUser = { ...currentUser, ...updates };
         setCurrentUser(updatedUser);
         localStorage.setItem('basavara_current_user', JSON.stringify(updatedUser));
       }
       
       if (showToast) {
         toast.success('Profile updated successfully!');
+      }
+
+      // ✉️ Send approval email notification if approved
+      if (data.isApproved === true) {
+        const userSnap = await getDoc(userRef).catch(() => null);
+        if (userSnap && userSnap.exists()) {
+          const userData = userSnap.data() as User;
+          sendEmailHelper({
+            to: userData.email,
+            subject: 'আপনার অ্যাকাউন্টটি অনুমোদিত হয়েছে! (Your account is approved!)',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <h2 style="color: #10b981; text-align: center;">অভিনন্দন! আপনার অ্যাকাউন্টটি অনুমোদিত হয়েছে।</h2>
+                <p>প্রিয় ${userData.name},</p>
+                <p>আমরা আনন্দের সাথে জানাচ্ছি যে আপনার বাসাভাড়া ও টিউটর অ্যাকাউন্টটি সফলভাবে অনুমোদিত এবং সচল হয়েছে।</p>
+                <p>আপনি এখন আপনার অ্যাকাউন্ট ড্যাশবোর্ডে সম্পূর্ণ অ্যাক্সেস উপভোগ করতে পারবেন।</p>
+                <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+                <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+              </div>
+            `
+          });
+        }
       }
     } catch (err) {
       console.error("Failed to update profile:", err);
@@ -524,7 +797,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const updateSubscription = async (userId: string, type: string, endDate: string) => {
     try {
       const userRef = doc(db, 'users', userId);
-      const updates = { subscriptionType: type, subscriptionEnd: endDate };
+      const updates = { subscriptionType: type, subscriptionEnd: endDate, subscriptionExpiryNotified: false };
       await updateDoc(userRef, updates);
       
       if (currentUser?.id === userId) {
@@ -539,8 +812,26 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const deleteUser = async (userId: string) => {
     try {
+      const u = state.users.find(user => user.id === userId);
       await deleteDoc(doc(db, 'users', userId));
       toast.success('ব্যবহারকারী মুচে ফেলা হয়েছে (User deleted).');
+      
+      if (u && u.email) {
+        sendEmailHelper({
+          to: u.email,
+          subject: 'আপনার অ্যাকাউন্টটি মুছে ফেলা হয়েছে (Account Deleted - Basavara)',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ef4444; border-radius: 8px;">
+              <h2 style="color: #ef4444; text-align: center;">অ্যাকাউন্ট মুছে ফেলা হয়েছে</h2>
+              <p>প্রিয় ${u.name},</p>
+              <p>আপনার বাসাভাড়া ও টিউটর প্ল্যাটফর্ম (Basavara) অ্যাকাউন্টটি সিস্টেম বা অ্যাডমিন কর্তৃক মুছে ফেলা হয়েছে।</p>
+              <p>যদি এটি ভুলবশত হয়ে থাকে অথবা আপনার কোনো জিজ্ঞাসা বা মতামত থাকে, অনুগ্রহ করে সরাসরি আমাদের সাপোর্ট টিমে ইমেইলে যোগাযোগ করুন।</p>
+              <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
+              <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+            </div>
+          `
+        });
+      }
     } catch (err) {
       console.error("Failed to delete user:", err);
       toast.error('ব্যবহারকারী মুছতে ব্যর্থ হয়েছে।');

@@ -1,0 +1,87 @@
+import express from "express";
+import path from "path";
+import { Resend } from "resend";
+import { fileURLToPath } from 'url';
+
+const app = express();
+const PORT = 3000;
+const SENDER_EMAIL = process.env.SENDER_EMAIL || "onboarding@resend.dev";
+const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || "hellothereshamim@gmail.com";
+
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
+
+app.use(express.json());
+
+// API routes
+app.post("/api/send-email", async (req, res) => {
+  try {
+    const { to, subject, html, text, notifyAdmin } = req.body;
+    if (!to && !notifyAdmin) {
+      return res.status(400).json({ error: "Missing recipient" });
+    }
+    if (!subject || (!html && !text)) {
+      return res.status(400).json({ error: "Missing required template fields" });
+    }
+
+    const recipient = notifyAdmin ? ADMIN_NOTIFICATION_EMAIL : (to || ADMIN_NOTIFICATION_EMAIL);
+
+    console.log(`[Email Service] Attempting to send email to ${recipient}. Subject: "${subject}"`);
+
+    if (!resend) {
+      console.warn("[Email Service] Resend API key is not configured. Email payload logged to console instead:");
+      console.log({
+        from: SENDER_EMAIL,
+        to: recipient,
+        subject,
+        text,
+        html: html ? `${html.substring(0, 100)}...` : undefined,
+      });
+      return res.json({ 
+        success: true, 
+        mocked: true, 
+        message: "Email logged to server console because RESEND_API_KEY is not configured.",
+        recipient 
+      });
+    }
+
+    const data = await resend.emails.send({
+      from: `Basavara <${SENDER_EMAIL}>`,
+      to: recipient,
+      subject,
+      text: text || "This is a notification from Basavara.",
+      html: html,
+    });
+
+    res.json({ data, success: true });
+  } catch (error: any) {
+    console.error("[Email Service] Error sending email:", error);
+    res.status(500).json({ error: error?.message || "Failed to send email" });
+  }
+});
+
+async function start() {
+  // Vite middleware for development
+  if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+    app.get('*all', (req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  }
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+start().catch(err => {
+  console.error("Failed to start server", err);
+});
