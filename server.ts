@@ -15,6 +15,7 @@ if (!process.env.RESEND_API_KEY) {
 const app = express();
 const PORT = 3000;
 const SENDER_EMAIL = process.env.VITE_RESEND_FROM || process.env.SENDER_EMAIL || "onboarding@resend.dev";
+console.log("[DEBUG] Sender Email:", SENDER_EMAIL);
 const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || "hellothereshamim@gmail.com";
 
 const resendApiKey = process.env.RESEND_API_KEY;

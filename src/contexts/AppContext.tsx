@@ -71,7 +71,12 @@ const sendEmailHelper = async (payload: {
   attachments?: { filename: string; content: string }[];
 }): Promise<boolean> => {
   try {
-    const res = await fetch('/api/send-email', {
+    const workerUrl = (import.meta as any).env.VITE_EMAIL_WORKER_URL;
+    const endpoint = (workerUrl && workerUrl.trim() !== '') ? workerUrl.trim() : '/api/send-email';
+    
+    console.log('[Email Client] Sending email via endpoint:', endpoint);
+    
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
