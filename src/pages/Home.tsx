@@ -536,7 +536,7 @@ export default function Home() {
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="inline-block">
               <Link 
                 to="/rentals" 
-                className="inline-flex items-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-all shadow-xl shadow-indigo-600/15 cursor-pointer hover:shadow-2xl hover:shadow-indigo-605/20"
+                className="inline-flex items-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-all shadow-xl shadow-indigo-600/15 cursor-pointer hover:shadow-2xl hover:shadow-indigo-600/20"
               >
                 {language === 'bn' ? 'সবগুলো বাসা ভাড়া দেখুন' : 'See All House Rentals'} <ArrowRight className="w-4 h-4 animate-pulse" />
               </Link>
@@ -673,7 +673,7 @@ export default function Home() {
             <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="inline-block">
               <Link 
                 to="/tutors" 
-                className="inline-flex items-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-all shadow-xl shadow-indigo-600/15 cursor-pointer hover:shadow-2xl hover:shadow-indigo-605/20"
+                className="inline-flex items-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-all shadow-xl shadow-indigo-600/15 cursor-pointer hover:shadow-2xl hover:shadow-indigo-600/20"
               >
                 {language === 'bn' ? 'সবগুলো হোম টিউটর দেখুন' : 'See All Home Tutors'} <ArrowRight className="w-4 h-4 animate-pulse" />
               </Link>
@@ -721,7 +721,7 @@ export default function Home() {
                   {language === 'bn' ? 'শুধুমাত্র তথ্য খোঁজা ও যোগাযোগ করা' : 'Browse listings & contact numbers'}
                 </p>
                 
-                <div className="text-4xl font-black text-indigo-605 dark:text-indigo-400 mb-6 relative z-10 flex items-baseline">
+                <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400 mb-6 relative z-10 flex items-baseline">
                   {language === 'bn' ? '৳২৫' : '৳25'}
                   <span className="text-xs font-bold text-slate-550 dark:text-slate-400 ml-1.5">/ {language === 'bn' ? 'মাস' : 'Month'}</span>
                 </div>
@@ -780,7 +780,7 @@ export default function Home() {
                 <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 relative z-10">{t('planTutorTitle')}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 relative z-10 font-medium font-sans">{t('planTutorSubtitle')}</p>
                 
-                <div className="text-4xl font-black text-indigo-605 dark:text-indigo-400 mb-6 relative z-10 flex items-baseline">
+                <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400 mb-6 relative z-10 flex items-baseline">
                   {t('planTutorPrice')}
                   <span className="text-xs font-bold text-slate-550 dark:text-slate-400 ml-1.5">{t('planTutorPeriod')}</span>
                 </div>

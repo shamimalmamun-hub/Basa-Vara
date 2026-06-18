@@ -3,9 +3,10 @@ import { useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
-import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send } from 'lucide-react';
+import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Download } from 'lucide-react';
 import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, compressImage } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
+import { generateInvoicePDF } from '../lib/invoicePdf';
 import ManageBanners from '../components/ManageBanners';
 import ManageVideo from '../components/ManageVideo';
 import ManageHomepage from '../components/ManageHomepage';
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const { language } = useLanguage();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
+  const [userFilter, setUserFilter] = useState<'all' | 'pending-renew' | 'pending-nid' | 'pending-approval' | 'user' | 'tutor' | 'visitor'>('all');
   const [deleteConfirmUserId, setDeleteConfirmUserId] = useState<string | null>(null);
   const [inputApiUrl, setInputApiUrl] = useState('');
 
@@ -302,9 +304,56 @@ export default function Dashboard() {
 
         {activeTab === 'manage-users' && isAdmin && (
           <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">ব্যবহারকারী ম্যানেজমেন্ট</h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">ব্যবহারকারী ম্যানেজমেন্ট</h2>
+              <div className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                মোট ব্যবহারকারী: {users.length} | অপেক্ষমাণ রিনিউয়াল: {users.filter(u => u.pendingRenewStatus === 'pending').length}
+              </div>
+            </div>
+
+            {/* User Filters Pills Bar */}
+            <div className="flex flex-wrap gap-2 mb-6 p-2 bg-slate-50 dark:bg-slate-950/40 border border-slate-155 dark:border-slate-800 rounded-2xl">
+              {[
+                { id: 'all', label: 'সব ব্যবহারকারী', count: users.length },
+                { id: 'pending-renew', label: 'অপেক্ষমাণ রিনিউয়াল', count: users.filter(u => u.pendingRenewStatus === 'pending').length, highlight: true },
+                { id: 'pending-nid', label: 'অপেক্ষমাণ এনআইডি', count: users.filter(u => u.nidStatus === 'pending').length },
+                { id: 'pending-approval', label: 'অপেক্ষমাণ সাইনআপ', count: users.filter(u => !u.isApproved && u.role !== 'admin').length },
+                { id: 'user', label: 'প্রপার্টি মালিক', count: users.filter(u => u.role === 'user').length },
+                { id: 'tutor', label: 'টিউটর', count: users.filter(u => u.role === 'tutor').length },
+                { id: 'visitor', label: 'ভিজিটর', count: users.filter(u => u.role === 'visitor').length }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setUserFilter(tab.id as any)}
+                  className={`px-3-5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                    userFilter === tab.id
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/10 scale-[1.01]'
+                      : tab.highlight && tab.count > 0
+                      ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-400 border border-amber-300 dark:border-amber-800 font-extrabold animate-pulse'
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-150 dark:border-slate-800'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${userFilter === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
             <div className="space-y-4">
-              {users.map(user => (
+              {users
+                .filter(user => {
+                  if (userFilter === 'all') return true;
+                  if (userFilter === 'pending-renew') return user.pendingRenewStatus === 'pending';
+                  if (userFilter === 'pending-nid') return user.nidStatus === 'pending';
+                  if (userFilter === 'pending-approval') return !user.isApproved && user.role !== 'admin';
+                  if (userFilter === 'user') return user.role === 'user';
+                  if (userFilter === 'tutor') return user.role === 'tutor';
+                  if (userFilter === 'visitor') return user.role === 'visitor';
+                  return true;
+                })
+                .map(user => (
                 <div key={user.id} className="flex flex-col md:flex-row justify-between md:items-start gap-4 p-5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm">
                   <div className="flex-1">
                     <h4 className="font-bold text-slate-900 dark:text-white flex items-center flex-wrap gap-2 text-lg">
@@ -312,33 +361,42 @@ export default function Dashboard() {
                       <span className="text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-full capitalize">{user.role === 'user' ? 'প্রপার্টি মালিক' : user.role === 'tutor' ? 'টিউটর' : user.role === 'visitor' ? 'সাধারণ ভিজিটর' : 'এডমিন'}</span>
                     </h4>
                     
-                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-slate-600 dark:text-slate-300">
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-slate-600 dark:text-slate-300">
                       <p><span className="font-extrabold text-slate-950 dark:text-white">ইমেইল:</span> {user.email}</p>
-                      <p><span className="font-extrabold text-slate-950 dark:text-white">পাসওয়ার্ড:</span> {user.password || 'N/A'}</p>
+                      <p><span className="font-extrabold text-slate-950 dark:text-white">পাসওয়ার্ড:</span> <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs text-slate-700 dark:text-slate-300">{user.password || 'N/A'}</span></p>
                       {user.role !== 'admin' && (
-                        <p><span className="font-extrabold text-slate-950 dark:text-white">ট্রানজ্যাকশন আইডি:</span> {user.transactionId || 'N/A'}</p>
+                        <p>
+                          <span className="font-extrabold text-slate-950 dark:text-white">ট্রানজ্যাকশন আইডি:</span>{' '}
+                          <span className="font-mono font-bold bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded select-all shadow-sm">
+                            {user.transactionId || 'N/A'}
+                          </span>
+                        </p>
                       )}
                       {user.role !== 'admin' && (
                         <p>
                           <span className="font-extrabold text-slate-950 dark:text-white">পেমেন্ট মাধ্যম:</span>{' '}
                           {user.paymentMethod ? (
-                            <span className="capitalize font-extrabold text-pink-600 dark:text-pink-400">
+                            <span className="capitalize font-extrabold text-pink-650 bg-pink-50 dark:bg-pink-950/20 px-2 py-0.5 rounded shadow-sm border border-pink-100/35">
                               {user.paymentMethod === 'bkash' ? 'বিকাশ (bKash)' : user.paymentMethod === 'nagad' ? 'নগদ (Nagad)' : 'রকেট (Rocket)'}
                             </span>
                           ) : <span className="text-slate-400 italic">N/A</span>}
                         </p>
                       )}
                       {user.role !== 'admin' && (
-                        <>
-                          <p className="whitespace-normal break-words overflow-visible block">
-                            <span className="font-extrabold text-slate-950 dark:text-white">সাবস্ক্রিপশন প্যাকেজ:</span>{' '}
-                            <span className="text-indigo-600 dark:text-indigo-400 font-bold whitespace-normal break-words overflow-visible">{user.subscriptionType || 'কোনো সচল প্ল্যান নেই'}</span>
-                            <span className="font-extrabold text-slate-950 dark:text-white">সাবস্ক্রিপশন ও লগইন অনুমোদন:</span> 
-                            <span className={`font-extrabold px-2.5 py-1 rounded-full text-xs ${user.isApproved ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-450 animate-pulse'}`}>
-                              {user.isApproved ? '✓ অনুমোদিত (Approved / Active)' : '⏳ এডমিন অনুমোদনের অপেক্ষমাণ (Pending)'}
-                            </span>
-                          </p>
-                        </>
+                        <p>
+                          <span className="font-extrabold text-slate-950 dark:text-white">সাবস্ক্রিপশন প্যাকেজ:</span>{' '}
+                          <span className="text-indigo-650 dark:text-indigo-400 font-extrabold bg-indigo-50 dark:bg-indigo-950/20 px-2.5 py-0.5 rounded shadow-sm border border-indigo-100/30">
+                            {user.subscriptionType || 'কোনো সচল প্ল্যান নেই'}
+                          </span>
+                        </p>
+                      )}
+                      {user.role !== 'admin' && (
+                        <p className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-extrabold text-slate-950 dark:text-white">অনুমোদন স্ট্যাটাস:</span>{' '}
+                          <span className={`font-black px-2.5 py-1 rounded-full text-xs shadow-sm ${user.isApproved ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-450 animate-pulse'}`}>
+                            {user.isApproved ? '✓ অনুমোদিত (Approved / Active)' : '⏳ এডমিন অনুমোদনের অপেক্ষমাণ (Pending)'}
+                          </span>
+                        </p>
                       )}
                     </div>
 
@@ -358,7 +416,7 @@ export default function Dashboard() {
                             <div className="flex-1 text-center scale-95 hover:scale-100 transition-all">
                               <span className="text-[10px] text-slate-500 font-semibold block mb-1">পেছনের পৃষ্ঠা</span>
                               <img src={user.nidBackBase64} alt="NID Back" className="h-16 w-full object-cover rounded border border-slate-300 dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => window.open(user.nidBackBase64, '_blank')} />
-                              <a href={user.nidBackBase64} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-650 dark:text-indigo-400 font-semibold hover:underline mt-1 inline-block">পূর্ণাঙ্গ ভিউ (Back)</a>
+                              <a href={user.nidBackBase64} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline mt-1 inline-block">পূর্ণাঙ্গ ভিউ (Back)</a>
                             </div>
                           )}
                         </div>
@@ -366,26 +424,46 @@ export default function Dashboard() {
                     )}
 
                     {user.role !== 'admin' && user.pendingRenewStatus === 'pending' && (
-                      <div className="mt-4 p-4 bg-amber-500/10 dark:bg-amber-500/5 border-2 border-amber-500/20 dark:border-amber-500/10 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                          <p className="font-extrabold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 text-sm">
-                            <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-ping"></span>
-                            ⏳ অপেক্ষমান সাবস্ক্রিপশন নবায়ন অনুরোধ:
+                      <div className="mt-4 p-5 bg-amber-50/70 dark:bg-amber-950/25 border-2 border-amber-500/30 dark:border-amber-500/20 rounded-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 shadow-sm">
+                        <div className="space-y-2">
+                          <p className="font-black text-amber-850 dark:text-amber-300 flex items-center gap-1.5 text-sm">
+                            <span className="relative flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                            </span>
+                            ⏳ অপেক্ষমান সাবস্ক্রিপশন নবায়ন অনুরোধ (Pending Renewal Request):
                           </p>
-                          <div className="text-xs text-slate-700 dark:text-slate-350 mt-1.5 space-y-1 font-semibold">
-                            <p className="flex items-center gap-1">প্যাকেজ: <span className="font-extrabold text-indigo-600 dark:text-indigo-400">{user.pendingRenewPackage}</span></p>
-                            <p className="flex items-center gap-1">পেমেন্ট মাধ্যম: <span className="font-black uppercase text-pink-600 dark:text-pink-400">{user.pendingRenewMethod}</span> &bull; TrxID: <span className="font-black text-indigo-605 dark:text-indigo-350 select-all underline decoration-pink-500 decoration-2">{user.pendingRenewTrxId}</span> &bull; অ্যামাউন্ট: <span className="font-extrabold text-emerald-600 dark:text-emerald-450">৳{user.pendingRenewAmount}</span></p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs font-semibold text-slate-705 dark:text-slate-300 mt-2">
+                            <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
+                              <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">প্যাকেজ (Package)</p>
+                              <p className="font-black text-indigo-600 dark:text-indigo-400">{user.pendingRenewPackage}</p>
+                            </div>
+                            <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
+                              <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">পেমেন্ট মাধ্যম (Gateway)</p>
+                              <p className="font-black uppercase text-pink-600 dark:text-pink-400">{user.pendingRenewMethod}</p>
+                            </div>
+                            <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
+                              <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">পরিমাণ (Amount)</p>
+                              <p className="font-black text-emerald-600 dark:text-emerald-400">৳{user.pendingRenewAmount}</p>
+                            </div>
+                          </div>
+                          <div className="pt-2 flex flex-wrap gap-x-6 gap-y-1.5 items-center text-xs text-slate-700 dark:text-slate-300">
+                            <p className="font-bold">
+                              TrxID: <span className="font-mono bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded select-all font-black border border-indigo-100/30 underline decoration-pink-500 decoration-2">{user.pendingRenewTrxId}</span>
+                            </p>
                             {user.pendingRenewSubmittedAt && (
-                              <p className="text-[10px] text-slate-500">অনুরোধের সময়: {new Date(user.pendingRenewSubmittedAt).toLocaleString('bn-BD')}</p>
+                              <p className="text-[10px] text-slate-500 font-bold">
+                                অনুরোধের সময়: {new Date(user.pendingRenewSubmittedAt).toLocaleString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </p>
                             )}
                           </div>
                         </div>
-                        <div className="flex gap-2.5 shrink-0 self-end sm:self-auto w-full sm:w-auto">
+                        <div className="flex gap-2 shrink-0 w-full lg:w-auto">
                           <button
                             onClick={async () => {
                               await approveSubscriptionRenewal(user.id);
                             }}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1"
+                            className="flex-1 lg:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                           >
                             <Check className="w-3.5 h-3.5" />
                             <span>নবায়ন এপ্রুভ করুন</span>
@@ -394,7 +472,7 @@ export default function Dashboard() {
                             onClick={async () => {
                               await rejectSubscriptionRenewal(user.id);
                             }}
-                            className="flex-1 sm:flex-none px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/20 dark:text-rose-450 rounded-xl text-xs font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1"
+                            className="flex-1 lg:flex-none px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/20 dark:text-rose-450 rounded-xl text-xs font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                           >
                             <XCircle className="w-3.5 h-3.5" />
                             <span>বাতিল</span>
@@ -987,7 +1065,7 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
               </div>
             )}
 
-            <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-5 rounded-2xl text-xs text-indigo-900 dark:text-indigo-305 leading-relaxed font-semibold border border-indigo-100 dark:border-indigo-900/30">
+            <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-5 rounded-2xl text-xs text-indigo-900 dark:text-indigo-300 leading-relaxed font-semibold border border-indigo-100 dark:border-indigo-900/30">
               <p className="font-bold text-slate-900 dark:text-white mb-2 text-sm">👇 {language === 'bn' ? 'ফি পরিশোধের সহজ নির্দেশিকা:' : 'Payment Guide:'}</p>
               <ul className="list-disc list-inside space-y-1.5 text-slate-700 dark:text-slate-300">
                 <li>{language === 'bn' ? <>বিকাশ/নগদ/রকেট (Personal) নাম্বারঃ <strong className="text-pink-600 dark:text-pink-400 text-sm font-extrabold selection:bg-pink-100">01401996674</strong> এ সেন্ড মানি (Send Money) করুন।</> : <>Send money to (Personal Number): <strong className="text-pink-600 dark:text-pink-400 font-mono">01401996674</strong> via bKash/Nagad/Rocket.</>}</li>
@@ -1036,7 +1114,34 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
               </div>
               <div className="text-right">
                 <p className="font-extrabold text-slate-900 dark:text-white">৳{inv.amount}</p>
-                <span className="text-xs text-emerald-600 dark:text-emerald-450 px-2.5 py-0.5 bg-emerald-100/50 dark:bg-emerald-950/20 font-bold rounded-full">Approved</span>
+                <div className="flex flex-col items-end gap-1.5 mt-1">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-450 px-2.5 py-0.5 bg-emerald-100/50 dark:bg-emerald-950/20 font-bold rounded-full">Approved</span>
+                  <button
+                    onClick={() => {
+                      try {
+                        const pdf = generateInvoicePDF({
+                          id: inv.id,
+                          date: inv.date,
+                          amount: inv.amount,
+                          method: inv.method,
+                          trxId: inv.trxId,
+                          userEmail: user.email,
+                          userName: user.name,
+                          packageName: user.subscriptionType || (user.role === 'visitor' ? 'Visitor Package (৳২৫/মাস)' : user.role === 'tutor' ? 'Tutor Package (৳৫০/মাস)' : 'Owner Package (৳৫০/মাস)')
+                        });
+                        pdf.save(`invoice-${inv.id.toUpperCase()}.pdf`);
+                        toast.success(language === 'bn' ? 'ইনভয়েস ডাউনলোড সফল হয়েছে!' : 'Invoice download successful!');
+                      } catch (err) {
+                        console.error("PDF download failed:", err);
+                        toast.error(language === 'bn' ? 'ডাউনলোড ব্যর্থ হয়েছে।' : 'Download failed.');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors bg-white dark:bg-slate-850 hover:bg-slate-50 border border-slate-100 dark:border-slate-750 rounded-lg shadow-sm cursor-pointer"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>{language === 'bn' ? 'ডাউনলোড' : 'Download'}</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}

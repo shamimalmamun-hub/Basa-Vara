@@ -3,8 +3,8 @@ import toast from 'react-hot-toast';
 import { User, Property, Tutor, Invoice, AdBanner } from '../types';
 import { db, auth } from '../lib/firebase';
 import { generateId } from '../lib/utils';
-import { 
-  collection, 
+import { generateInvoicePDF } from '../lib/invoicePdf';
+import {   collection, 
   doc, 
   setDoc, 
   getDoc,
@@ -494,7 +494,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     toast.success('Logged out');
   };
   
-  const sendEmailHelper = async (payload: { to?: string; subject: string; html: string; text?: string; notifyAdmin?: boolean }) => {
+  const sendEmailHelper = async (payload: { to?: string; subject: string; html: string; text?: string; notifyAdmin?: boolean; attachments?: { filename: string; content: string }[] }) => {
     try {
       const emailWorkerUrl = (import.meta as any).env?.VITE_EMAIL_WORKER_URL || '';
       const apiBase = state.apiUrl || (import.meta as any).env?.VITE_API_URL || '';
@@ -666,15 +666,20 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       const type = u.pendingRenewPackage || (u.role === 'visitor' ? 'সাধারণ ভিজিটর প্ল্যান' : u.role === 'tutor' ? 'টিউটর প্ল্যান' : 'প্রপার্টি মালিক প্ল্যান');
       const amount = u.pendingRenewAmount || (u.role === 'visitor' ? 25 : 50);
       const trxId = u.pendingRenewTrxId || 'N/A';
-      const method = u.pendingRenewMethod || 'N/A';
+      
+      const rawMethodVal = (u.pendingRenewMethod || 'bkash').toLowerCase();
+      const method = (rawMethodVal === 'bkash' || rawMethodVal === 'nagad' || rawMethodVal === 'rocket' ? rawMethodVal : 'bkash') as 'bkash' | 'nagad' | 'rocket';
+      
+      const invoiceId = generateId();
+      const invoiceDate = new Date().toISOString();
 
       // 1. Add permanent approved invoice
-      addInvoice({
-        id: generateId(), 
+      await addInvoice({
+        id: invoiceId, 
         userId: u.id, 
         amount, 
         status: 'paid', 
-        date: new Date().toISOString(), 
+        date: invoiceDate, 
         trxId, 
         method
       });
@@ -700,7 +705,20 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
       toast.success('সাবস্ক্রিপশন নবায়ন সফলভাবে অনুমোদিত হয়েছে!');
 
-      // Send confirmation email
+      // Generate Invoice PDF
+      const pdfDoc = generateInvoicePDF({
+        id: invoiceId,
+        date: invoiceDate,
+        amount,
+        method,
+        trxId,
+        userEmail: u.email,
+        userName: u.name,
+        packageName: type
+      });
+      const pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+
+      // Send confirmation email with PDF Attachment
       sendEmailHelper({
         to: u.email,
         subject: 'আপনার সাবস্ক্রিপশন নবায়ন সফলভাবে অনুমোদিত হয়েছে! (Subscription Renewed - Basavara)',
@@ -721,6 +739,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
               <p style="margin: 6px 0; font-size: 14px;"><strong>পেমেন্ট মাধ্যম:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #ec4899;">${method}</span></p>
             </div>
             
+            <p style="color: #6366f1; font-weight: bold;">মেসেজের সাথে আপনার পেইড বিল রসিদ (Invoice PDF) সংযুক্ত করে দেওয়া হলো। ডাউনলোড করে অফিশিয়াল কপিটি সংরক্ষণ করতে পারবেন।</p>
             <p>আপনার বিজ্ঞাপন এবং কন্টেন্ট প্ল্যাটফর্মে সচরাচর ভিজিবল রয়েছে। ধন্যবাদ আমাদের সাথে থাকার জন্য!</p>
             
             <p style="margin-top: 25px; text-align: center;">
@@ -730,7 +749,13 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
             <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara (বাসাভাড়া ও টিউটর প্ল্যাটফর্ম)। সর্বস্বত্ব সংরক্ষিত।</p>
           </div>
-        `
+        `,
+        attachments: [
+          {
+            filename: `invoice-${invoiceId.toUpperCase()}.pdf`,
+            content: pdfBase64
+          }
+        ]
       });
 
       return true;
@@ -1049,6 +1074,19 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (updates.subscriptionEnd) {
         updates.subscriptionExpiryNotified = false;
       }
+
+      // Check if registration approval transitions from unapproved to approved
+      let becameApprovedNow = false;
+      if (data.isApproved === true) {
+        const uSnap = await getDoc(userRef).catch(() => null);
+        if (uSnap && uSnap.exists()) {
+          const uData = uSnap.data() as User;
+          if (!uData.isApproved) {
+            becameApprovedNow = true;
+          }
+        }
+      }
+
       await updateDoc(userRef, updates);
       
       if (currentUser?.id === userId) {
@@ -1062,23 +1100,82 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }
 
       // ✉️ Send approval email notification if approved
-      if (data.isApproved === true) {
+      if (becameApprovedNow) {
         const userSnap = await getDoc(userRef).catch(() => null);
         if (userSnap && userSnap.exists()) {
           const userData = userSnap.data() as User;
+          
+          const fee = userData.role === 'visitor' ? 25 : 50;
+          const pkgName = userData.subscriptionType || (userData.role === 'visitor' ? 'Visitor Package (৳২৫/মাস)' : userData.role === 'tutor' ? 'Tutor Package (৳৫০/মাস)' : 'Owner Package (৳৫০/মাস)');
+          const trxId = userData.transactionId || 'N/A';
+          
+          const rawMethodVal = (userData.paymentMethod || 'bkash').toLowerCase();
+          const method = (rawMethodVal === 'bkash' || rawMethodVal === 'nagad' || rawMethodVal === 'rocket' ? rawMethodVal : 'bkash') as 'bkash' | 'nagad' | 'rocket';
+          
+          const invoiceId = generateId();
+          const invoiceDate = new Date().toISOString();
+
+          // Save invoice to database for client downloads list
+          await addInvoice({
+            id: invoiceId,
+            userId: userData.id,
+            amount: fee,
+            status: 'paid',
+            date: invoiceDate,
+            trxId,
+            method
+          });
+
+          // Generate signup invoice PDF
+          const pdfDoc = generateInvoicePDF({
+            id: invoiceId,
+            date: invoiceDate,
+            amount: fee,
+            method,
+            trxId,
+            userEmail: userData.email,
+            userName: userData.name,
+            packageName: pkgName
+          });
+          const pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
+
           sendEmailHelper({
             to: userData.email,
-            subject: 'আপনার অ্যাকাউন্টটি অনুমোদিত হয়েছে! (Your account is approved!)',
+            subject: 'আপনার অ্যাকাউন্ট ও সাবস্ক্রিপশন অনুমোদিত হয়েছে! (Account Approved - Basavara)',
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                <h2 style="color: #10b981; text-align: center;">অভিনন্দন! আপনার অ্যাকাউন্টটি অনুমোদিত হয়েছে।</h2>
-                <p>প্রিয় ${userData.name},</p>
-                <p>আমরা আনন্দের সাথে জানাচ্ছি যে আপনার বাসাভাড়া ও টিউটর অ্যাকাউন্টটি সফলভাবে অনুমোদিত এবং সচল হয়েছে।</p>
-                <p>আপনি এখন আপনার অ্যাকাউন্ট ড্যাশবোর্ডে সম্পূর্ণ অ্যাক্সেস উপভোগ করতে পারবেন।</p>
-                <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
-                <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
+              <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
+                <div style="text-align: center; margin-bottom: 25px;">
+                  <h2 style="color: #10b981; margin: 0; font-size: 24px;">অভিনন্দন! আপনার অ্যাকাউন্ট ও সাবস্ক্রিপশন অনুমোদিত হয়েছে।</h2>
+                  <p style="color: #64748b; font-size: 14px; margin-top: 5px;">প্রিমিয়াম এবং বিজ্ঞাপন সেবাগুলো সচল করা হয়েছে</p>
+                </div>
+                
+                <p>প্রিয় <strong>${userData.name}</strong>,</p>
+                <p>আমরা অত্যন্ত আনন্দের সাথে জানাচ্ছি যে আপনার পেমেন্ট ট্রানজ্যাকশন আইডি (TrxID: <strong>${trxId}</strong>) মিলিয়ে আমাদের সিস্টেম অ্যাডমিন আপনার বাসাভাড়া ও টিউটর একাউন্ট ও সাবস্ক্রিপশনটি সফলভাবে অনুমোদন করেছেন।</p>
+                
+                <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                  <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">অ্যাক্টিভেটেড সাবস্ক্রিপশন বিবরণ:</h4>
+                  <p style="margin: 6px 0; font-size: 14px;"><strong>ব্যবহারকারীর নাম:</strong> ${userData.name}</p>
+                  <p style="margin: 6px 0; font-size: 14px;"><strong>সাবস্ক্রিপশন টাইপ:</strong> ${pkgName}</p>
+                  <p style="margin: 6px 0; font-size: 14px;"><strong>পেমেন্ট মাধ্যম:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #ec4899;">${method}</span></p>
+                </div>
+                
+                <p style="color: #6366f1; font-weight: bold;">মেসেজের সাথে আপনার পেইড বিল রসিদ (Invoice PDF) সংযুক্ত করে দেওয়া হলো। ডাউনলোড করে অফিশিয়াল কপিটি সংরক্ষণ করতে পারবেন।</p>
+                <p>আপনি এখন আপনার অ্যাকাউন্ট ড্যাশবোর্ডে সম্পূর্ণ অ্যাক্সেস উপভোগ করতে পারবেন। ধন্যবাদ আমাদের সাথে থাকার জন্য!</p>
+                
+                <p style="margin-top: 25px; text-align: center;">
+                  <a href="${window.location.origin}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);">ড্যাশবোর্ডে প্রবেশ করুন</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
+                <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
               </div>
-            `
+            `,
+            attachments: [
+              {
+                filename: `invoice-${invoiceId.toUpperCase()}.pdf`,
+                content: pdfBase64
+              }
+            ]
           });
         }
       }

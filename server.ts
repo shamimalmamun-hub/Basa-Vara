@@ -36,7 +36,7 @@ app.use((req, res, next) => {
 // API routes
 app.post("/api/send-email", async (req, res) => {
   try {
-    const { to, subject, html, text, notifyAdmin, from } = req.body;
+    const { to, subject, html, text, notifyAdmin, from, attachments } = req.body;
     if (!to && !notifyAdmin) {
       return res.status(400).json({ error: "Missing recipient" });
     }
@@ -47,7 +47,14 @@ app.post("/api/send-email", async (req, res) => {
     const recipient = notifyAdmin ? ADMIN_NOTIFICATION_EMAIL : (to || ADMIN_NOTIFICATION_EMAIL);
     const resolvedFrom = from || `Basa(vara)-Tutor <${SENDER_EMAIL}>`;
 
-    console.log(`[Email Service] Attempting to send email to ${recipient}. Subject: "${subject}". From: "${resolvedFrom}"`);
+    const resolvedAttachments = attachments && Array.isArray(attachments)
+      ? attachments.map((att: any) => ({
+          filename: att.filename,
+          content: Buffer.from(att.content, 'base64'),
+        }))
+      : undefined;
+
+    console.log(`[Email Service] Attempting to send email to ${recipient}. Subject: "${subject}". From: "${resolvedFrom}". Attachments check: ${attachments ? attachments.length : 0}`);
 
     if (!resend) {
       console.warn("[Email Service] Resend API key is not configured. Email payload logged to console instead:");
@@ -57,6 +64,7 @@ app.post("/api/send-email", async (req, res) => {
         subject,
         text,
         html: html ? `${html.substring(0, 100)}...` : undefined,
+        hasAttachments: !!resolvedAttachments,
       });
       return res.json({ 
           success: true, 
@@ -72,6 +80,7 @@ app.post("/api/send-email", async (req, res) => {
       subject,
       text: text || "This is a notification from Basa(vara)-Tutor.",
       html: html,
+      attachments: resolvedAttachments,
     });
 
     if (error) {
