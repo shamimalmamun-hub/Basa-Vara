@@ -483,7 +483,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   
   const sendEmailHelper = async (payload: { to?: string; subject: string; html: string; text?: string; notifyAdmin?: boolean }) => {
     try {
-      const response = await fetch('/api/send-email', {
+      const apiBase = (import.meta as any).env?.VITE_API_URL || '';
+      const response = await fetch(`${apiBase}/api/send-email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
