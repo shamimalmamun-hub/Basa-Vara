@@ -502,7 +502,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         },
         body: JSON.stringify({
           ...payload,
-          from: `Basa(vara) - Tutor <${senderFromEmail}>`
+          from: `Basa(vara)-Tutor <${senderFromEmail}>`
         }),
       });
       if (!response.ok) {

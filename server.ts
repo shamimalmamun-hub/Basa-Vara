@@ -45,7 +45,7 @@ app.post("/api/send-email", async (req, res) => {
     }
 
     const recipient = notifyAdmin ? ADMIN_NOTIFICATION_EMAIL : (to || ADMIN_NOTIFICATION_EMAIL);
-    const resolvedFrom = from || `Basa(vara) - Tutor <${SENDER_EMAIL}>`;
+    const resolvedFrom = from || `Basa(vara)-Tutor <${SENDER_EMAIL}>`;
 
     console.log(`[Email Service] Attempting to send email to ${recipient}. Subject: "${subject}". From: "${resolvedFrom}"`);
 
@@ -59,10 +59,10 @@ app.post("/api/send-email", async (req, res) => {
         html: html ? `${html.substring(0, 100)}...` : undefined,
       });
       return res.json({ 
-        success: true, 
-        mocked: true, 
-        message: "Email logged to server console because RESEND_API_KEY is not configured.",
-        recipient 
+          success: true, 
+          mocked: true, 
+          message: "Email logged to server console because RESEND_API_KEY is not configured.",
+          recipient 
       });
     }
 
@@ -70,7 +70,7 @@ app.post("/api/send-email", async (req, res) => {
       from: resolvedFrom,
       to: recipient,
       subject,
-      text: text || "This is a notification from Basa(vara) - Tutor.",
+      text: text || "This is a notification from Basa(vara)-Tutor.",
       html: html,
     });
 
