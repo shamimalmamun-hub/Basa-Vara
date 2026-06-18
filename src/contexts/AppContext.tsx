@@ -162,10 +162,7 @@ const MOCK_ADMIN: User = { id: 'admin1', name: 'System Admin', email: 'admin@bas
 export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [state, setState] = useState<AppState>(defaultState);
 
-  const [selectedLocation, setSelectedLocationState] = useState<string | null>(() => {
-    const saved = localStorage.getItem('basavara_selected_location');
-    return saved === 'null' ? null : saved;
-  });
+  const [selectedLocation, setSelectedLocationState] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('basavara_current_user');
@@ -174,11 +171,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const setSelectedLocation = (loc: string | null) => {
     setSelectedLocationState(loc);
-    if (loc) {
-      localStorage.setItem('basavara_selected_location', loc);
-    } else {
-      localStorage.removeItem('basavara_selected_location');
-    }
   };
 
   // Setup Firestore synchronization

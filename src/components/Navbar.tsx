@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
-  const { currentUser, logout } = useApp();
+  const { currentUser, logout, setSelectedLocation } = useApp();
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -18,7 +18,7 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/70 dark:bg-[#0A0F1C]/70 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-indigo-900/10 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center space-x-2.5">
+          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2.5">
             {t('customLogoImage') ? (
               <img src={t('customLogoImage')} alt="Logo" className="w-8 h-8 object-contain rounded-lg shadow-sm" referrerPolicy="no-referrer" />
             ) : (
@@ -37,10 +37,18 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/rentals" className="text-sm font-semibold text-slate-750 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+            <Link 
+              to="/" 
+              onClick={() => setSelectedLocation(null)}
+              className="text-sm font-semibold text-slate-750 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
               {t('navProperties')}
             </Link>
-            <Link to="/tutors" className="text-sm font-semibold text-slate-750 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+            <Link 
+              to="/" 
+              onClick={() => setSelectedLocation(null)}
+              className="text-sm font-semibold text-slate-750 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            >
               {t('navTutors')}
             </Link>
             
@@ -152,10 +160,24 @@ export default function Navbar() {
             transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-5 space-y-2.5 overflow-hidden"
           >
-            <Link to="/rentals" onClick={() => setIsMenuOpen(false)} className="block px-4 py-3 rounded-2xl text-base font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+            <Link 
+              to="/" 
+              onClick={() => {
+                setSelectedLocation(null);
+                setIsMenuOpen(false);
+              }} 
+              className="block px-4 py-3 rounded-2xl text-base font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            >
               {t('navProperties')}
             </Link>
-            <Link to="/tutors" onClick={() => setIsMenuOpen(false)} className="block px-4 py-3 rounded-2xl text-base font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+            <Link 
+              to="/" 
+              onClick={() => {
+                setSelectedLocation(null);
+                setIsMenuOpen(false);
+              }} 
+              className="block px-4 py-3 rounded-2xl text-base font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+            >
               {t('navTutors')}
             </Link>
             {currentUser ? (
