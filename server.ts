@@ -2,10 +2,19 @@ import express from "express";
 import path from "path";
 import { Resend } from "resend";
 import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+
+// Load environment variables from .env
+dotenv.config();
+
+// Fallback to .env.example if the API key is not in process.env
+if (!process.env.RESEND_API_KEY) {
+  dotenv.config({ path: path.join(process.cwd(), '.env.example') });
+}
 
 const app = express();
 const PORT = 3000;
-const SENDER_EMAIL = process.env.SENDER_EMAIL || "onboarding@resend.dev";
+const SENDER_EMAIL = process.env.VITE_RESEND_FROM || process.env.SENDER_EMAIL || "onboarding@resend.dev";
 const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || "hellothereshamim@gmail.com";
 
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -56,7 +65,7 @@ app.post("/api/send-email", async (req, res) => {
       });
     }
 
-    const data = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: `Basavara <${SENDER_EMAIL}>`,
       to: recipient,
       subject,
@@ -64,6 +73,19 @@ app.post("/api/send-email", async (req, res) => {
       html: html,
     });
 
+    if (error) {
+      console.error("[Email Service] Resend API error response:", error);
+      return res.status(400).json({ 
+        success: false, 
+        error: error.message || "Resend API returned an error", 
+        details: error,
+        note: SENDER_EMAIL.includes("onboarding@resend.dev") 
+          ? "You are using onboarding@resend.dev. Resend only allows sending to your registered account email (hellothereshamim@gmail.com) in sandbox mode. To send to any recipient, verify a domain in Resend and set SENDER_EMAIL in your Env variables."
+          : "Verify your RESEND_API_KEY and SENDER_EMAIL config."
+      });
+    }
+
+    console.log(`[Email Service] Resend API call successful. Email ID: ${data?.id}`);
     res.json({ data, success: true });
   } catch (error: any) {
     console.error("[Email Service] Error sending email:", error);
@@ -83,7 +105,7 @@ async function start() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
+    app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

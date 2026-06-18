@@ -70,6 +70,7 @@ interface AppState {
   invoices: Invoice[];
   banners: AdBanner[];
   heroVideoUrl: string;
+  apiUrl: string;
   isLoading: boolean;
 }
 
@@ -90,6 +91,7 @@ interface AppContextType extends AppState {
   addBanner: (banner: AdBanner) => void;
   deleteBanner: (id: string) => void;
   updateHeroVideoUrl: (url: string) => void;
+  updateApiUrl: (url: string) => void;
 }
 
 const DEFAULT_VIDEO_URL = 'https://www.youtube.com/watch?v=c0yFdX4VRKI&t=127s';
@@ -102,6 +104,7 @@ const defaultState: AppState = {
   invoices: [],
   banners: [],
   heroVideoUrl: DEFAULT_VIDEO_URL,
+  apiUrl: '',
   isLoading: true,
 };
 
@@ -365,7 +368,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const unsubSettings = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
       if (docSnap.exists() && active) {
         const data = docSnap.data();
-        setState(prev => ({ ...prev, heroVideoUrl: data.heroVideoUrl || DEFAULT_VIDEO_URL }));
+        setState(prev => ({ 
+          ...prev, 
+          heroVideoUrl: data.heroVideoUrl || DEFAULT_VIDEO_URL,
+          apiUrl: data.apiUrl || ''
+        }));
       }
     }, (err) => {
       handleFirestoreError(err, OperationType.GET, 'settings/global');
@@ -483,8 +490,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   
   const sendEmailHelper = async (payload: { to?: string; subject: string; html: string; text?: string; notifyAdmin?: boolean }) => {
     try {
-      const apiBase = (import.meta as any).env?.VITE_API_URL || '';
-      const response = await fetch(`${apiBase}/api/send-email`, {
+      const emailWorkerUrl = (import.meta as any).env?.VITE_EMAIL_WORKER_URL || '';
+      const apiBase = state.apiUrl || (import.meta as any).env?.VITE_API_URL || '';
+      const url = emailWorkerUrl ? emailWorkerUrl : `${apiBase}/api/send-email`;
+      
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -879,6 +889,16 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
+  const updateApiUrl = async (url: string) => {
+    try {
+      await setDoc(doc(db, 'settings', 'global'), { apiUrl: url }, { merge: true });
+      toast.success('এপিআই ইউআরএল সফলভাবে আপডেট করা হয়েছে');
+    } catch (err) {
+      console.error("Failed to update API URL:", err);
+      toast.error('এপিআই ইউআরএল আপডেট করতে ব্যর্থ হয়েছে।');
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       ...state,
@@ -898,7 +918,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       updateBanner: updateBanner as any, 
       addBanner: addBanner as any, 
       deleteBanner: deleteBanner as any, 
-      updateHeroVideoUrl: updateHeroVideoUrl as any
+      updateHeroVideoUrl: updateHeroVideoUrl as any,
+      updateApiUrl: updateApiUrl as any
     }}>
       {children}
     </AppContext.Provider>

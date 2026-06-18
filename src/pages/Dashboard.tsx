@@ -11,11 +11,18 @@ import ManageVideo from '../components/ManageVideo';
 import ManageHomepage from '../components/ManageHomepage';
 
 export default function Dashboard() {
-  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser } = useApp();
+  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl } = useApp();
   const { language } = useLanguage();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
   const [deleteConfirmUserId, setDeleteConfirmUserId] = useState<string | null>(null);
+  const [inputApiUrl, setInputApiUrl] = useState('');
+
+  useEffect(() => {
+    if (apiUrl) {
+      setInputApiUrl(apiUrl);
+    }
+  }, [apiUrl]);
 
   useEffect(() => {
     if (location.state?.tab) {
@@ -326,43 +333,6 @@ export default function Dashboard() {
                           <p className="whitespace-normal break-words overflow-visible block">
                             <span className="font-extrabold text-slate-950 dark:text-white">সাবস্ক্রিপশন প্যাকেজ:</span>{' '}
                             <span className="text-indigo-600 dark:text-indigo-400 font-bold whitespace-normal break-words overflow-visible">{user.subscriptionType || 'কোনো সচল প্ল্যান নেই'}</span>
-                          </p>
-                          <p className="whitespace-normal break-words overflow-visible block p-0 m-0">
-                            <span className="font-extrabold text-slate-950 dark:text-white">মেয়াদ শেষ হওয়ার তারিখ:</span>{' '}
-                            {user.subscriptionEnd ? (
-                              <span className="inline-flex items-center gap-1 flex-wrap whitespace-normal break-words overflow-visible">
-                                <span className="font-semibold text-slate-800 dark:text-indigo-200 bg-slate-100 dark:bg-indigo-950/40 px-2 py-0.5 rounded text-xs select-all">
-                                  {new Date(user.subscriptionEnd).toLocaleDateString('bn-BD', {
-                                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                                  })}
-                                </span>
-                                {new Date(user.subscriptionEnd) > new Date() ? (
-                                  <span className="text-xs text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded font-extrabold">
-                                    ● সচল
-                                  </span>
-                                ) : (
-                                  <span className="text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/20 px-1.5 py-0.5 rounded font-extrabold animate-pulse">
-                                    ● মেয়াদ শেষ (Expired)
-                                  </span>
-                                )}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 italic">N/A</span>
-                            )}
-                          </p>
-                        </>
-                      )}
-                      
-                      {user.role !== 'admin' && (
-                        <>
-                          <p className="sm:col-span-2 flex items-center gap-1.5 flex-wrap whitespace-normal break-words overflow-visible">
-                            <span className="font-extrabold text-slate-950 dark:text-white">এনআইডি যাচাই স্ট্যাটাস:</span> 
-                            <span className={`font-bold px-2.5 py-0.5 rounded-full text-xs ${user.nidStatus === 'verified' ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400' : user.nidStatus === 'pending' ? 'bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-950/30 text-red-600'}`}>
-                              {user.nidStatus === 'verified' ? 'যাচাইকৃত' : user.nidStatus === 'pending' ? 'অপেক্ষমাণ' : user.nidStatus === 'rejected' ? 'বাতিল' : 'জমা দেওয়া হয়নি'}
-                            </span>
-                          </p>
-                          
-                          <p className="sm:col-span-2 flex items-center gap-1.5 flex-wrap whitespace-normal break-words overflow-visible">
                             <span className="font-extrabold text-slate-950 dark:text-white">সাবস্ক্রিপশন ও লগইন অনুমোদন:</span> 
                             <span className={`font-extrabold px-2.5 py-1 rounded-full text-xs ${user.isApproved ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-450 animate-pulse'}`}>
                               {user.isApproved ? '✓ অনুমোদিত (Approved / Active)' : '⏳ এডমিন অনুমোদনের অপেক্ষমাণ (Pending)'}
@@ -414,7 +384,7 @@ export default function Dashboard() {
                                 deleteUser(user.id);
                                 toast.success('ব্যবহারকারী বাতিল ও সফলভাবে মুছে ফেলা হয়েছে।');
                               }}
-                              className="px-4 py-2 bg-rose-605 lg:bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-sm hover:shadow-rose-600/10 transition-all cursor-pointer"
+                              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-sm hover:shadow-rose-600/10 transition-all cursor-pointer"
                             >
                               বাতিল করুন
                             </button>
@@ -422,7 +392,7 @@ export default function Dashboard() {
                         ) : (
                           <>
                             {deleteConfirmUserId === user.id ? (
-                              <div className="flex items-center gap-1.5 border border-red-250 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20 px-2.5 py-1.5 rounded-xl">
+                              <div className="flex items-center gap-1.5 border border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20 px-2.5 py-1.5 rounded-xl">
                                 <span className="text-xs text-red-600 dark:text-red-400 font-bold">মুছে ফেলবেন?</span>
                                 <button
                                   onClick={() => {
@@ -435,13 +405,13 @@ export default function Dashboard() {
                                 </button>
                                 <button
                                   onClick={() => setDeleteConfirmUserId(null)}
-                                  className="px-2 py-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded text-xs font-medium hover:bg-slate-305 transition-colors"
+                                  className="px-2 py-1 bg-slate-200 dark:bg-slate-705 text-slate-750 dark:text-slate-300 rounded text-xs font-medium hover:bg-slate-300 transition-colors"
                                 >
                                   না
                                 </button>
                               </div>
                             ) : (
-                              <button onClick={() => setDeleteConfirmUserId(user.id)} className="px-3.5 py-2 bg-red-100 hover:bg-red-205 text-red-700 rounded-xl font-semibold transition-all cursor-pointer">মুছে ফেলুন</button>
+                              <button onClick={() => setDeleteConfirmUserId(user.id)} className="px-3.5 py-2 bg-red-105 hover:bg-red-200 text-red-700 rounded-xl font-semibold transition-all cursor-pointer">মুছে ফেলুন</button>
                             )}
                           </>
                         )}
