@@ -11,7 +11,7 @@ import ManageVideo from '../components/ManageVideo';
 import ManageHomepage from '../components/ManageHomepage';
 
 export default function Dashboard() {
-  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl } = useApp();
+  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual } = useApp();
   const { language } = useLanguage();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
@@ -368,6 +368,16 @@ export default function Dashboard() {
 
                   {user.id !== currentUser.id && (
                     <div className="flex flex-wrap gap-2 text-sm mt-4 md:mt-0 shrink-0">
+                        {user.role !== 'admin' && (
+                          <button
+                            onClick={async () => {
+                              await sendRenewalEmailManual(user.id);
+                            }}
+                            className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/80 dark:text-indigo-350 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                          >
+                            <span>📧 রিনিউ ইমেইল পাঠান</span>
+                          </button>
+                        )}
                         {!user.isApproved ? (
                           <>
                             <button

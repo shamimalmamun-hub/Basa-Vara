@@ -92,6 +92,7 @@ interface AppContextType extends AppState {
   deleteBanner: (id: string) => void;
   updateHeroVideoUrl: (url: string) => void;
   updateApiUrl: (url: string) => void;
+  sendRenewalEmailManual: (userId: string) => Promise<boolean>;
 }
 
 const DEFAULT_VIDEO_URL = 'https://www.youtube.com/watch?v=c0yFdX4VRKI&t=127s';
@@ -172,6 +173,15 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const setSelectedLocation = (loc: string | null) => {
     setSelectedLocationState(loc);
   };
+
+  const hasAutoCheckedRef = React.useRef(false);
+
+  useEffect(() => {
+    if (state.users.length > 0 && !hasAutoCheckedRef.current) {
+      hasAutoCheckedRef.current = true;
+      checkAndAutoNotifyExpiringSubscriptions(state.users);
+    }
+  }, [state.users]);
 
   // Setup Firestore synchronization
   useEffect(() => {
@@ -504,6 +514,129 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }
     } catch (err) {
       console.error('[Email Notification] Connection error sending email:', err);
+    }
+  };
+
+  const checkAndAutoNotifyExpiringSubscriptions = async (usersList: User[]) => {
+    const today = new Date();
+    for (const u of usersList) {
+      if (u.role === 'admin') continue;
+      if (!u.subscriptionEnd) continue;
+      if (u.subscriptionExpiryNotified) continue;
+
+      const end = new Date(u.subscriptionEnd);
+      const diffMs = end.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+      // Auto notify 3 days before expiry
+      if (diffDays > 0 && diffDays <= 3) {
+        try {
+          await updateDoc(doc(db, 'users', u.id), { subscriptionExpiryNotified: true });
+        } catch (err) {
+          console.error("Failed to mark subscriptionExpiryNotified in Firestore:", err);
+          continue;
+        }
+
+        const amount = u.role === 'visitor' ? 25 : 50;
+
+        await sendEmailHelper({
+          to: u.email,
+          subject: 'আপনার সাবস্ক্রিপশন মেয়াদ শেষ হচ্ছে রিনিউ করুন (Subscription Expiring Soon - Renew - Basavara)',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
+              <div style="text-align: center; margin-bottom: 25px;">
+                <h2 style="color: #4f46e5; margin: 0; font-size: 24px;">সাবস্ক্রিপশন মেয়াদ শেষ হচ্ছে!</h2>
+                <p style="color: #64748b; font-size: 14px; margin-top: 5px;">অ্যাকাউন্ট ভেরিফিকেশন ও প্রিমিয়াম সার্ভিস সচল রাখুন</p>
+              </div>
+              
+              <p>প্রিয় <strong>${u.name}</strong>,</p>
+              <p>আপনার বাসাভাড়া ও টিউটর প্ল্যাটফর্ম অ্যাকাউন্টটির সাবস্ক্রিপশন মেয়াদ আগামী <strong>${diffDays} দিনের মধ্যে</strong> শেষ হতে যাচ্ছে। নিরবচ্ছিন্নভাবে বিজ্ঞাপন বা টিউটর প্রোফাইল অ্যাক্টিভ রাখতে অনুগ্রহ করে সাবস্ক্রিপশনটি রিনিউ করুন।</p>
+              
+              <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">সাবস্ক্রিপশন বিবরণ:</h4>
+                <p style="margin: 6px 0; font-size: 14px;"><strong>ব্যবহারকারীর নাম:</strong> ${u.name}</p>
+                <p style="margin: 6px 0; font-size: 14px;"><strong>অ্যাকাউন্ট টাইপ:</strong> <span style="text-transform: capitalize;">${u.role === 'user' ? 'প্রপার্টি মালিক' : u.role === 'tutor' ? 'টিউটর' : 'সাধারণ ভিজিটর'}</span></p>
+                <p style="margin: 6px 0; font-size: 14px;"><strong>মেয়াদ উত্তীর্ণের তারিখ:</strong> ${new Date(u.subscriptionEnd).toLocaleDateString('bn-BD')}</p>
+                <p style="margin: 6px 0; font-size: 14px;"><strong>নবায়ন ফি (Renew Fee):</strong> ৳${amount} টাকা (১ মাস / ৩০ দিন)</p>
+              </div>
+              
+              <h4 style="color: #4f46e5; margin-bottom: 12px;">কিভাবে রিনিউ বা ফি পরিশোধ করবেন?</h4>
+              <ol style="margin-left: 0; padding-left: 20px; font-size: 14px; color: #334155;">
+                <li style="margin-bottom: 8px;">আপনার পছন্দের পেমেন্ট গেটওয়ে (বিকাশ/নগদ/রকেট) পার্সোনাল নাম্বারে <strong>৳${amount} টাকা</strong> সেন্ড মানি করুন।</li>
+                <li style="margin-bottom: 8px;">বাসাভাড়া প্ল্যাটফর্মে আপনার অ্যাকাউন্টে লগইন করুন।</li>
+                <li style="margin-bottom: 8px;">ড্যাশবোর্ড এর <strong>"সাবস্ক্রিপশন"</strong> সেকশনে গিয়ে পেমেন্ট মাধ্যম সিলেক্ট করে টাকা পাঠানোর <strong>ট্রানজ্যাকশন আইডি (Transaction ID)</strong> সাবমিট করুন।</li>
+              </ol>
+              
+              <p style="margin-top: 25px; text-align: center;">
+                <a href="${window.location.origin}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);">ড্যাশবোর্ডে প্রবেশ করুন</a>
+              </p>
+              
+              <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
+              <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara (বাসাভাড়া ও টিউটর প্ল্যাটফর্ম)। সর্বস্বত্ব সংরক্ষিত।</p>
+            </div>
+          `
+        });
+      }
+    }
+  };
+
+  const sendRenewalEmailManual = async (userId: string): Promise<boolean> => {
+    try {
+      const u = state.users.find(user => user.id === userId);
+      if (!u) {
+        toast.error('ব্যবহারকারী খুঁজে পাওয়া যায়নি!');
+        return false;
+      }
+      
+      const amount = u.role === 'visitor' ? 25 : 50;
+      
+      // Mark as notified so auto-check doesn't double notify
+      await updateDoc(doc(db, 'users', u.id), { subscriptionExpiryNotified: true });
+
+      await sendEmailHelper({
+        to: u.email,
+        subject: 'বাসাভাড়া প্ল্যাটফর্ম সাবস্ক্রিপশন রিনিউ করার অনুরোধ (Action Required: Subscription Renewal Request - Basavara)',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
+            <div style="text-align: center; margin-bottom: 25px;">
+              <h2 style="color: #4f46e5; margin: 0; font-size: 24px;">সাবস্ক্রিপশন রিনিউ করুন</h2>
+              <p style="color: #64748b; font-size: 14px; margin-top: 5px;">অ্যাডমিন প্যানেল থেকে পাঠানো সাবস্ক্রিপশন নবায়নের অফিশিয়াল অনুরোধ</p>
+            </div>
+            
+            <p>প্রিয় <strong>${u.name}</strong>,</p>
+            <p>আমাদের বাসাভাড়া ও টিউটর প্ল্যাটফর্মে আপনার সাবস্ক্রিপশন রিনিউ বা নবায়ন করার অনুরোধ করা হচ্ছে। আপনার বিজ্ঞাপন ও প্রিমিয়াম সুযোগ-সুবিধা সচল রাখতে অনুগ্রহ করে সাবস্ক্রিপশনটি দ্রুত রিনিউ করুন।</p>
+            
+            <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">সাবস্ক্রিপশন নবায়ন তথ্য:</h4>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>ব্যবহারকারীর নাম:</strong> ${u.name}</p>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>অ্যাকাউন্ট টাইপ:</strong> <span style="text-transform: capitalize;">${u.role === 'user' ? 'প্রপার্টি মালিক' : u.role === 'tutor' ? 'টিউটর' : 'সাধারণ ভিজিটর'}</span></p>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>সাবস্ক্রিপশন শেষ মেয়াদ:</strong> ${u.subscriptionEnd ? new Date(u.subscriptionEnd).toLocaleDateString('bn-BD') : 'রিনিউ করা প্রয়োজন'}</p>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>রিনিউয়াল ফি (Renew Fee):</strong> ৳${amount} টাকা (১ মাস / ৩০ দিন)</p>
+            </div>
+            
+            <h4 style="color: #4f46e5; margin-bottom: 12px;">কিভাবে রিনিউ বা ফি পরিশোধ করবেন?</h4>
+            <ol style="margin-left: 0; padding-left: 20px; font-size: 14px; color: #334155;">
+              <li style="margin-bottom: 8px;">আপনার যেকোনো অনলাইন পেমেন্ট অ্যাপ (বিকাশ/নগদ/রকেট) পার্সোনাল নাম্বারে <strong>৳${amount} টাকা</strong> সেন্ড মানি করুন।</li>
+              <li style="margin-bottom: 8px;">বাসাভাড়া প্ল্যাটফর্মে আপনার অ্যাকাউন্টে লগইন করুন।</li>
+              <li style="margin-bottom: 8px;">ড্যাশবোর্ড এর <strong>"সাবস্ক্রিপশন"</strong> সেকশনে গিয়ে পেমেন্ট মাধ্যম সিলেক্ট করে টাকা পাঠানোর <strong>ট্রানজ্যাকশন আইডি (Transaction ID)</strong> সাবমিট করে ভেরিফাই করুন।</li>
+            </ol>
+            
+            <p style="margin-top: 25px; text-align: center;">
+              <a href="${window.location.origin}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);">রিনিউ করতে ড্যাশবোর্ডে প্রবেশ করুন</a>
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
+            <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara (বাসাভাড়া ও টিউটর প্ল্যাটফর্ম)। সর্বস্বত্ব সংরক্ষিত।</p>
+          </div>
+        `
+      });
+      
+      toast.success('সাবস্ক্রিপশন রিনিউ করার অনুরোধ ইমেইলটি সফলভাবে পাঠানো হয়েছে!');
+      return true;
+    } catch (err) {
+      console.error("Failed manually sending subscription renew email:", err);
+      toast.error('ইমেইল পাঠাতে ব্যর্থ হয়েছে।');
+      return false;
     }
   };
 
@@ -915,7 +1048,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       addBanner: addBanner as any, 
       deleteBanner: deleteBanner as any, 
       updateHeroVideoUrl: updateHeroVideoUrl as any,
-      updateApiUrl: updateApiUrl as any
+      updateApiUrl: updateApiUrl as any,
+      sendRenewalEmailManual: sendRenewalEmailManual as any
     }}>
       {children}
     </AppContext.Provider>
