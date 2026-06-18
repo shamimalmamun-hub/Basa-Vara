@@ -16,6 +16,16 @@ export default function WhatsAppWidget() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Automatically hide the WhatsApp tooltip message after 5 seconds of being shown
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        setShowTooltip(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible]);
+
   const whatsappNumber = '8801329246833'; // Bangladesh number without prefix or '+'
   const message = language === 'bn' 
     ? 'হ্যালো, আমি একটি ব্যাপারে কথা বলতে চাই।' 
