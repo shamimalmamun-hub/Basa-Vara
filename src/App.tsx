@@ -12,6 +12,7 @@ import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
 import Dashboard from './pages/Dashboard';
 import PendingApproval from './pages/PendingApproval';
+import WhatsAppWidget from './components/WhatsAppWidget';
 
 function ProtectedRoute({ children, roleRequired }: { children: React.ReactNode, roleRequired?: string[] }) {
   const { currentUser, isLoading } = useApp();
@@ -59,6 +60,7 @@ export default function App() {
           </Routes>
         </main>
         <Footer />
+        <WhatsAppWidget />
       </div>
     </div>
   );
