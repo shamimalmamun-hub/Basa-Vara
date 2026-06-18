@@ -1000,9 +1000,9 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
               <div>
                 <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">{language === 'bn' ? 'পেমেন্ট মাধ্যম সিলেক্ট করুন' : 'Select Gateway Method'}</label>
                 <select value={method} onChange={(e) => setMethod(e.target.value as any)} className="w-full px-4 py-2.5 rounded-xl border border-slate-205 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                  <option value="bkash">বিকাশ / bKash (Personal - 01401996674)</option>
-                  <option value="nagad">নগদ / Nagad (Personal - 01401996674)</option>
-                  <option value="rocket">রকেট / Rocket (Personal - 01401996674)</option>
+                  <option value="bkash">বিকাশ / bKash</option>
+                  <option value="nagad">নগদ / Nagad</option>
+                  <option value="rocket">রকেট / Rocket</option>
                 </select>
               </div>
 
@@ -1018,7 +1018,7 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
 
               <button type="submit" className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2">
                 <RefreshCw className="w-4 h-4" />
-                {language === 'bn' ? 'সাবস্ক্রিপশন নবায়নের অনুরোধ পাঠান' : 'Submit Subscription Renewal Request'}
+                {language === 'bn' ? 'নবায়নের অনুরোধ পাঠান' : 'Submit Renewal Request'}
               </button>
             </form>
           </div>
