@@ -493,13 +493,17 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       const emailWorkerUrl = (import.meta as any).env?.VITE_EMAIL_WORKER_URL || '';
       const apiBase = state.apiUrl || (import.meta as any).env?.VITE_API_URL || '';
       const url = emailWorkerUrl ? emailWorkerUrl : `${apiBase}/api/send-email`;
+      const senderFromEmail = (import.meta as any).env?.VITE_RESEND_FROM || 'noreply@mssalumni.org';
       
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...payload,
+          from: `Basa(vara) - Tutor <${senderFromEmail}>`
+        }),
       });
       if (!response.ok) {
         console.warn('Email API returned non-200 status:', await response.text());

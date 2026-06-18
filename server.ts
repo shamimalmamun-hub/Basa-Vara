@@ -36,7 +36,7 @@ app.use((req, res, next) => {
 // API routes
 app.post("/api/send-email", async (req, res) => {
   try {
-    const { to, subject, html, text, notifyAdmin } = req.body;
+    const { to, subject, html, text, notifyAdmin, from } = req.body;
     if (!to && !notifyAdmin) {
       return res.status(400).json({ error: "Missing recipient" });
     }
@@ -45,13 +45,14 @@ app.post("/api/send-email", async (req, res) => {
     }
 
     const recipient = notifyAdmin ? ADMIN_NOTIFICATION_EMAIL : (to || ADMIN_NOTIFICATION_EMAIL);
+    const resolvedFrom = from || `Basa(vara) - Tutor <${SENDER_EMAIL}>`;
 
-    console.log(`[Email Service] Attempting to send email to ${recipient}. Subject: "${subject}"`);
+    console.log(`[Email Service] Attempting to send email to ${recipient}. Subject: "${subject}". From: "${resolvedFrom}"`);
 
     if (!resend) {
       console.warn("[Email Service] Resend API key is not configured. Email payload logged to console instead:");
       console.log({
-        from: SENDER_EMAIL,
+        from: resolvedFrom,
         to: recipient,
         subject,
         text,
@@ -66,10 +67,10 @@ app.post("/api/send-email", async (req, res) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: `Basavara <${SENDER_EMAIL}>`,
+      from: resolvedFrom,
       to: recipient,
       subject,
-      text: text || "This is a notification from Basavara.",
+      text: text || "This is a notification from Basa(vara) - Tutor.",
       html: html,
     });
 
