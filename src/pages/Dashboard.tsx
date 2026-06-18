@@ -3,10 +3,9 @@ import { useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
-import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Download } from 'lucide-react';
+import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send } from 'lucide-react';
 import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, compressImage } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
-import { generateInvoicePDF } from '../lib/invoicePdf';
 import ManageBanners from '../components/ManageBanners';
 import ManageVideo from '../components/ManageVideo';
 import ManageHomepage from '../components/ManageHomepage';
@@ -1115,32 +1114,15 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
               <div className="text-right">
                 <p className="font-extrabold text-slate-900 dark:text-white">৳{inv.amount}</p>
                 <div className="flex flex-col items-end gap-1.5 mt-1">
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-450 px-2.5 py-0.5 bg-emerald-100/50 dark:bg-emerald-950/20 font-bold rounded-full">Approved</span>
-                  <button
-                    onClick={() => {
-                      try {
-                        const pdf = generateInvoicePDF({
-                          id: inv.id,
-                          date: inv.date,
-                          amount: inv.amount,
-                          method: inv.method,
-                          trxId: inv.trxId,
-                          userEmail: user.email,
-                          userName: user.name,
-                          packageName: user.subscriptionType || (user.role === 'visitor' ? 'Visitor Package (৳২৫/মাস)' : user.role === 'tutor' ? 'Tutor Package (৳৫০/মাস)' : 'Owner Package (৳৫০/মাস)')
-                        });
-                        pdf.save(`invoice-${inv.id.toUpperCase()}.pdf`);
-                        toast.success(language === 'bn' ? 'ইনভয়েস ডাউনলোড সফল হয়েছে!' : 'Invoice download successful!');
-                      } catch (err) {
-                        console.error("PDF download failed:", err);
-                        toast.error(language === 'bn' ? 'ডাউনলোড ব্যর্থ হয়েছে।' : 'Download failed.');
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-2 py-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors bg-white dark:bg-slate-850 hover:bg-slate-50 border border-slate-100 dark:border-slate-750 rounded-lg shadow-sm cursor-pointer"
-                  >
-                    <Download className="w-3 h-3" />
-                    <span>{language === 'bn' ? 'ডাউনলোড' : 'Download'}</span>
-                  </button>
+                  <span className={`text-[10px] px-2.5 py-0.5 font-bold rounded-full ${
+                    inv.status === 'paid'
+                      ? 'text-emerald-600 dark:text-emerald-450 bg-emerald-100/50 dark:bg-emerald-950/20'
+                      : 'text-amber-600 dark:text-amber-450 bg-amber-100/50 dark:bg-amber-950/20'
+                  }`}>
+                    {inv.status === 'paid'
+                      ? (language === 'bn' ? 'এপ্রুভ' : 'Approved')
+                      : (language === 'bn' ? 'যাচাইধীন' : 'Pending')}
+                  </span>
                 </div>
               </div>
             </div>

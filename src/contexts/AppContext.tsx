@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import { User, Property, Tutor, Invoice, AdBanner } from '../types';
 import { db, auth } from '../lib/firebase';
 import { generateId } from '../lib/utils';
-import { generateInvoicePDF } from '../lib/invoicePdf';
 import {   collection, 
   doc, 
   setDoc, 
@@ -63,6 +62,29 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
 }
 
 
+
+const sendEmailHelper = async (payload: {
+  to?: string;
+  subject: string;
+  html: string;
+  notifyAdmin?: boolean;
+  attachments?: { filename: string; content: string }[];
+}): Promise<boolean> => {
+  try {
+    const res = await fetch('/api/send-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    return !!data?.success;
+  } catch (err) {
+    console.error('Failed to send email:', err);
+    return false;
+  }
+};
 
 interface AppState {
   currentUser: User | null;
@@ -491,34 +513,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem('basavara_current_user');
-    toast.success('Logged out');
-  };
-  
-  const sendEmailHelper = async (payload: { to?: string; subject: string; html: string; text?: string; notifyAdmin?: boolean; attachments?: { filename: string; content: string }[] }) => {
-    try {
-      const emailWorkerUrl = (import.meta as any).env?.VITE_EMAIL_WORKER_URL || '';
-      const apiBase = state.apiUrl || (import.meta as any).env?.VITE_API_URL || '';
-      const url = emailWorkerUrl ? emailWorkerUrl : `${apiBase}/api/send-email`;
-      const senderFromEmail = (import.meta as any).env?.VITE_RESEND_FROM || 'noreply@mssalumni.org';
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...payload,
-          from: `Basa(vara)-Tutor <${senderFromEmail}>`
-        }),
-      });
-      if (!response.ok) {
-        console.warn('Email API returned non-200 status:', await response.text());
-      } else {
-        console.log(`[Email Notification] Successfully requested send for "${payload.subject}"`);
-      }
-    } catch (err) {
-      console.error('[Email Notification] Connection error sending email:', err);
-    }
+    toast.success('সফলভাবে লগআউট করা হয়েছে।');
   };
 
   const checkAndAutoNotifyExpiringSubscriptions = async (usersList: User[]) => {
@@ -591,42 +586,38 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         toast.error('ব্যবহারকারী খুঁজে পাওয়া যায়নি!');
         return false;
       }
-      
+
       const amount = u.role === 'visitor' ? 25 : 50;
-      
-      // Mark as notified so auto-check doesn't double notify
-      await updateDoc(doc(db, 'users', u.id), { subscriptionExpiryNotified: true });
 
       await sendEmailHelper({
         to: u.email,
-        subject: 'বাসাভাড়া প্ল্যাটফর্ম সাবস্ক্রিপশন রিনিউ করার অনুরোধ (Action Required: Subscription Renewal Request - Basavara)',
+        subject: 'নবায়ন অনুরোধ - সাবস্ক্রিপশন রিনিউ করুন (Subscription Expiry Alert - Basavara)',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
             <div style="text-align: center; margin-bottom: 25px;">
-              <h2 style="color: #4f46e5; margin: 0; font-size: 24px;">সাবস্ক্রিপশন রিনিউ করুন</h2>
-              <p style="color: #64748b; font-size: 14px; margin-top: 5px;">অ্যাডমিন প্যানেল থেকে পাঠানো সাবস্ক্রিপশন নবায়নের অফিশিয়াল অনুরোধ</p>
+              <h2 style="color: #4f46e5; margin: 0; font-size: 24px;">সাবস্ক্রিপশন মেয়াদ শেষ!</h2>
+              <p style="color: #64748b; font-size: 14px; margin-top: 5px;">অ্যাকাউন্ট সচল রাখতে অনুগ্রহ করে সাবস্ক্রিপশনটি রিনিউ করুন</p>
             </div>
             
             <p>প্রিয় <strong>${u.name}</strong>,</p>
-            <p>আমাদের বাসাভাড়া ও টিউটর প্ল্যাটফর্মে আপনার সাবস্ক্রিপশন রিনিউ বা নবায়ন করার অনুরোধ করা হচ্ছে। আপনার বিজ্ঞাপন ও প্রিমিয়াম সুযোগ-সুবিধা সচল রাখতে অনুগ্রহ করে সাবস্ক্রিপশনটি দ্রুত রিনিউ করুন।</p>
+            <p>আপনার বাসাভাড়া ও টিউটর প্ল্যাটফর্ম অ্যাকাউন্টটির সাবস্ক্রিপশন মেয়াদ অতিবাহিত হয়েছে। আপনার বিজ্ঞাপন বা টিউটর প্রোফাইল এবং কন্টাক্ট নম্বরসমূহ পুনরায় সচল করতে নিচের ধাপগুলো অনুসরণ করে রিনিউ সম্পন্ন করুন:</p>
             
             <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
-              <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">সাবস্ক্রিপশন নবায়ন তথ্য:</h4>
+              <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">সাবস্ক্রিপশন বিবরণ (Subscription Details):</h4>
               <p style="margin: 6px 0; font-size: 14px;"><strong>ব্যবহারকারীর নাম:</strong> ${u.name}</p>
               <p style="margin: 6px 0; font-size: 14px;"><strong>অ্যাকাউন্ট টাইপ:</strong> <span style="text-transform: capitalize;">${u.role === 'user' ? 'প্রপার্টি মালিক' : u.role === 'tutor' ? 'টিউটর' : 'সাধারণ ভিজিটর'}</span></p>
-              <p style="margin: 6px 0; font-size: 14px;"><strong>সাবস্ক্রিপশন শেষ মেয়াদ:</strong> ${u.subscriptionEnd ? new Date(u.subscriptionEnd).toLocaleDateString('bn-BD') : 'রিনিউ করা প্রয়োজন'}</p>
-              <p style="margin: 6px 0; font-size: 14px;"><strong>রিনিউয়াল ফি (Renew Fee):</strong> ৳${amount} টাকা (১ মাস / ৩০ দিন)</p>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>নবায়ন ফি (Renew Fee):</strong> ৳${amount} টাকা (১ মাস / ৩০ দিন)</p>
             </div>
             
             <h4 style="color: #4f46e5; margin-bottom: 12px;">কিভাবে রিনিউ বা ফি পরিশোধ করবেন?</h4>
             <ol style="margin-left: 0; padding-left: 20px; font-size: 14px; color: #334155;">
-              <li style="margin-bottom: 8px;">আপনার যেকোনো অনলাইন পেমেন্ট অ্যাপ (বিকাশ/নগদ/রকেট) পার্সোনাল নাম্বারে <strong>৳${amount} টাকা</strong> সেন্ড মানি করুন।</li>
+              <li style="margin-bottom: 8px;">আপনার পছন্দের পেমেন্ট গেটওয়ে (বিকাশ/নগদ/রকেট) পার্সোনাল নাম্বারে <strong>৳${amount} টাকা</strong> সেন্ড মানি করুন।</li>
               <li style="margin-bottom: 8px;">বাসাভাড়া প্ল্যাটফর্মে আপনার অ্যাকাউন্টে লগইন করুন।</li>
-              <li style="margin-bottom: 8px;">ড্যাশবোর্ড এর <strong>"সাবস্ক্রিপশন"</strong> সেকশনে গিয়ে পেমেন্ট মাধ্যম সিলেক্ট করে টাকা পাঠানোর <strong>ট্রানজ্যাকশন আইডি (Transaction ID)</strong> সাবমিট করে ভেরিফাই করুন।</li>
+              <li style="margin-bottom: 8px;">ড্যাশবোর্ড এর <strong>"সাবস্ক্রিপশন"</strong> সেকশনে গিয়ে পেমেন্ট মাধ্যম সিলেক্ট করে টাকা পাঠানোর <strong>ট্রানজ্যাকশন আইডি (Transaction ID)</strong> সাবমিট করুন।</li>
             </ol>
             
             <p style="margin-top: 25px; text-align: center;">
-              <a href="${window.location.origin}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);">রিনিউ করতে ড্যাশবোর্ডে প্রবেশ করুন</a>
+              <a href="${window.location.origin}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);">ড্যাশবোর্ডে প্রবেশ করুন</a>
             </p>
             
             <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
@@ -634,12 +625,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           </div>
         `
       });
-      
-      toast.success('সাবস্ক্রিপশন রিনিউ করার অনুরোধ ইমেইলটি সফলভাবে পাঠানো হয়েছে!');
+
       return true;
     } catch (err) {
-      console.error("Failed manually sending subscription renew email:", err);
-      toast.error('ইমেইল পাঠাতে ব্যর্থ হয়েছে।');
+      console.error("Failed to send renewal request manually:", err);
+      toast.error('অনুরোধ পাঠানো ব্যর্থ হয়েছে।');
       return false;
     }
   };
@@ -652,19 +642,13 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         return false;
       }
 
-      // Calculate new end date: 
-      // If current subscription is active, extend it by 30 days. Otherwise, 30 days from now.
-      const currentEnd = u.subscriptionEnd ? new Date(u.subscriptionEnd) : null;
-      let newEndDateString: string;
-      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-      if (currentEnd && currentEnd > new Date()) {
-        newEndDateString = new Date(currentEnd.getTime() + thirtyDays).toISOString();
-      } else {
-        newEndDateString = new Date(Date.now() + thirtyDays).toISOString();
-      }
-
-      const type = u.pendingRenewPackage || (u.role === 'visitor' ? 'সাধারণ ভিজিটর প্ল্যান' : u.role === 'tutor' ? 'টিউটর প্ল্যান' : 'প্রপার্টি মালিক প্ল্যান');
+      const type = u.pendingRenewPackage || (u.role === 'visitor' ? 'Visitor Package (৳২৫/মাস)' : u.role === 'tutor' ? 'Tutor Package (৳৫০/মাস)' : 'Owner Package (৳৫০/মাস)');
       const amount = u.pendingRenewAmount || (u.role === 'visitor' ? 25 : 50);
+
+      const currentEnd = u.subscriptionEnd ? new Date(u.subscriptionEnd) : new Date();
+      const baseDate = currentEnd.getTime() > Date.now() ? currentEnd : new Date();
+      baseDate.setDate(baseDate.getDate() + 30);
+      const newEndDateString = baseDate.toISOString();
       const trxId = u.pendingRenewTrxId || 'N/A';
       
       const rawMethodVal = (u.pendingRenewMethod || 'bkash').toLowerCase();
@@ -705,28 +689,15 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
       toast.success('সাবস্ক্রিপশন নবায়ন সফলভাবে অনুমোদিত হয়েছে!');
 
-      // Generate Invoice PDF
-      const pdfDoc = generateInvoicePDF({
-        id: invoiceId,
-        date: invoiceDate,
-        amount,
-        method,
-        trxId,
-        userEmail: u.email,
-        userName: u.name,
-        packageName: type
-      });
-      const pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
-
-      // Send confirmation email with PDF Attachment
+      // Send confirmation email
       sendEmailHelper({
         to: u.email,
         subject: 'আপনার সাবস্ক্রিপশন নবায়ন সফলভাবে অনুমোদিত হয়েছে! (Subscription Renewed - Basavara)',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
             <div style="text-align: center; margin-bottom: 25px;">
-              <h2 style="color: #10b981; margin: 0; font-size: 24px;">সাবস্ক্রিপশন নবায়ন সফল হয়েছে!</h2>
-              <p style="color: #64748b; font-size: 14px; margin-top: 5px;">প্রিমিয়াম এবং বিজ্ঞাপন সেবাগুলো সচল করা হয়েছে</p>
+              <h2 style="color: #10b981; margin: 0; font-size: 24px;">সাবস্ক্রিপশন নবায়ন সফল হয়েছে!</h2>
+              <p style="color: #64748b; font-size: 14px; margin-top: 5px;">প্রিমিয়ার এবং বিজ্ঞাপন সেবাগুলো সচল করা হয়েছে</p>
             </div>
             
             <p>প্রিয় <strong>${u.name}</strong>,</p>
@@ -739,7 +710,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
               <p style="margin: 6px 0; font-size: 14px;"><strong>পেমেন্ট মাধ্যম:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #ec4899;">${method}</span></p>
             </div>
             
-            <p style="color: #6366f1; font-weight: bold;">মেসেজের সাথে আপনার পেইড বিল রসিদ (Invoice PDF) সংযুক্ত করে দেওয়া হলো। ডাউনলোড করে অফিশিয়াল কপিটি সংরক্ষণ করতে পারবেন।</p>
             <p>আপনার বিজ্ঞাপন এবং কন্টেন্ট প্ল্যাটফর্মে সচরাচর ভিজিবল রয়েছে। ধন্যবাদ আমাদের সাথে থাকার জন্য!</p>
             
             <p style="margin-top: 25px; text-align: center;">
@@ -749,13 +719,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
             <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara (বাসাভাড়া ও টিউটর প্ল্যাটফর্ম)। সর্বস্বত্ব সংরক্ষিত।</p>
           </div>
-        `,
-        attachments: [
-          {
-            filename: `invoice-${invoiceId.toUpperCase()}.pdf`,
-            content: pdfBase64
-          }
-        ]
+        `
       });
 
       return true;
@@ -948,14 +912,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
               <h2 style="color: #4f46e5; text-align: center;">আপনার টিউটর প্রোফাইল সফলভাবে তৈরি হয়েছে!</h2>
               <p>প্রিয় ${tutor.name},</p>
-              <p>আপনার টিউটর প্রোফাইলটি সফলভাবে তালিকাভুক্ত করা হয়েছে:</p>
-              <ul>
-                <li><strong>শিক্ষা/প্রতিষ্ঠান:</strong> ${tutor.education}</li>
-                <li><strong>বিষয়সমূহ:</strong> ${tutor.subjects.join(', ')}</li>
-                <li><strong>প্রত্যাশিত বেতন:</strong> ৳${tutor.salaryExpected}</li>
-                <li><strong>কাঙ্ক্ষিত লোকেশন:</strong> ${tutor.location}</li>
-              </ul>
-              <p>অভিভাবকরা এবং শিক্ষার্থীরা এখন হোম টিউটর খোঁজার পেইজ থেকে সরাসরি আপনার ঠিকানায় বা মোবাইলে যোগাযোগ করতে পারবেন।</p>
+              <p>আপনার টিউটর প্রোফাইলটি সফলভাবে তালিকাভুক্ত করা হয়েছে।</p>
+              <p>অভিভাবকগণ এখন টিউটর প্যানেল থেকে আপনার বিবরণ দেখে আপনার সাথে সরাসরি যোগাযোগ করতে পারবেন। ধন্যবাদ!</p>
               <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
               <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
             </div>
@@ -971,44 +929,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const addInvoice = async (invoice: Invoice) => {
     try {
       await setDoc(doc(db, 'invoices', invoice.id), invoice);
-      toast.success('Invoice submitted successfully.');
-
-      // ✉️ Send invoice submission confirmation to payer
-      const payer = state.users.find(u => u.id === invoice.userId);
-      if (payer) {
-        sendEmailHelper({
-          to: payer.email,
-          subject: 'আপনার পেমেন্ট রিকোয়েস্ট জমা হয়েছে (Payment Invoice Submitted)',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-              <h2 style="color: #4f46e5; text-align: center;">পেমেন্ট জমা দেওয়ার রিসিট</h2>
-              <p>প্রিয় ${payer.name},</p>
-              <p>আমরা সফলভাবে আপনার পেমেন্ট ভেরিফিকেশন আবেদনটি ড্যাশবোর্ড থেকে গ্রহণ করেছি:</p>
-              <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">টাকার পরিমাণ (Amount):</td>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7;">৳${invoice.amount}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">মেথড (Method):</td>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; text-transform: uppercase;">${invoice.method}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">ট্রানজ্যাকশন আইডি (TrxID):</td>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-family: monospace;">${invoice.trxId}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; font-weight: bold;">স্ট্যাটাস (Status):</td>
-                  <td style="padding: 8px; border-bottom: 1px solid #edf2f7; color: #d97706; font-weight: bold;">যাচাইধীন (Pending Approval)</td>
-                </tr>
-              </table>
-              <p>অ্যাডমিন যাচাই করার পর আপনার অ্যাকাউন্টটি সক্রিয় হয়ে যাবে। সাধারণত এটি ১০ থেকে ৩০ মিনিট সময় নিয়ে থাকে।</p>
-              <hr style="border: none; border-top: 1px solid #edf2f7; margin: 20px 0;" />
-              <p style="text-align: center; font-size: 12px; color: #718096;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
-            </div>
-          `
-        });
-      }
     } catch (err) {
       console.error("Failed to add invoice:", err);
       toast.error('ইনভয়েস বা পেমেন্ট ট্রানজ্যাকশন যোগ করতে ব্যর্থ হয়েছে।');
@@ -1126,19 +1046,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             method
           });
 
-          // Generate signup invoice PDF
-          const pdfDoc = generateInvoicePDF({
-            id: invoiceId,
-            date: invoiceDate,
-            amount: fee,
-            method,
-            trxId,
-            userEmail: userData.email,
-            userName: userData.name,
-            packageName: pkgName
-          });
-          const pdfBase64 = pdfDoc.output('datauristring').split(',')[1];
-
+          // Send approval email notification
           sendEmailHelper({
             to: userData.email,
             subject: 'আপনার অ্যাকাউন্ট ও সাবস্ক্রিপশন অনুমোদিত হয়েছে! (Account Approved - Basavara)',
@@ -1146,7 +1054,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
               <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
                 <div style="text-align: center; margin-bottom: 25px;">
                   <h2 style="color: #10b981; margin: 0; font-size: 24px;">অভিনন্দন! আপনার অ্যাকাউন্ট ও সাবস্ক্রিপশন অনুমোদিত হয়েছে।</h2>
-                  <p style="color: #64748b; font-size: 14px; margin-top: 5px;">প্রিমিয়াম এবং বিজ্ঞাপন সেবাগুলো সচল করা হয়েছে</p>
+                  <p style="color: #64748b; font-size: 14px; margin-top: 5px;">প্রিমিয়ার এবং বিজ্ঞাপন সেবাগুলো সচল করা হয়েছে</p>
                 </div>
                 
                 <p>প্রিয় <strong>${userData.name}</strong>,</p>
@@ -1159,7 +1067,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
                   <p style="margin: 6px 0; font-size: 14px;"><strong>পেমেন্ট মাধ্যম:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #ec4899;">${method}</span></p>
                 </div>
                 
-                <p style="color: #6366f1; font-weight: bold;">মেসেজের সাথে আপনার পেইড বিল রসিদ (Invoice PDF) সংযুক্ত করে দেওয়া হলো। ডাউনলোড করে অফিশিয়াল কপিটি সংরক্ষণ করতে পারবেন।</p>
                 <p>আপনি এখন আপনার অ্যাকাউন্ট ড্যাশবোর্ডে সম্পূর্ণ অ্যাক্সেস উপভোগ করতে পারবেন। ধন্যবাদ আমাদের সাথে থাকার জন্য!</p>
                 
                 <p style="margin-top: 25px; text-align: center;">
@@ -1169,13 +1076,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
                 <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
                 <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara. All rights reserved.</p>
               </div>
-            `,
-            attachments: [
-              {
-                filename: `invoice-${invoiceId.toUpperCase()}.pdf`,
-                content: pdfBase64
-              }
-            ]
+            `
           });
         }
       }
