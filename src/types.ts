@@ -19,6 +19,12 @@ export interface User {
   subscriptionExpiryNotified?: boolean;
   isApproved?: boolean;
   paymentMethod?: string;
+  pendingRenewStatus?: 'pending' | 'approved' | 'rejected' | null;
+  pendingRenewTrxId?: string;
+  pendingRenewMethod?: string;
+  pendingRenewPackage?: string;
+  pendingRenewAmount?: number;
+  pendingRenewSubmittedAt?: string;
 }
 
 export interface Property {

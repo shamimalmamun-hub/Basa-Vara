@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import toast from 'react-hot-toast';
 import { User, Property, Tutor, Invoice, AdBanner } from '../types';
 import { db, auth } from '../lib/firebase';
+import { generateId } from '../lib/utils';
 import { 
   collection, 
   doc, 
@@ -10,7 +11,8 @@ import {
   getDocs, 
   onSnapshot, 
   updateDoc, 
-  deleteDoc 
+  deleteDoc,
+  deleteField
 } from 'firebase/firestore';
 
 export enum OperationType {
@@ -93,6 +95,8 @@ interface AppContextType extends AppState {
   updateHeroVideoUrl: (url: string) => void;
   updateApiUrl: (url: string) => void;
   sendRenewalEmailManual: (userId: string) => Promise<boolean>;
+  approveSubscriptionRenewal: (userId: string) => Promise<boolean>;
+  rejectSubscriptionRenewal: (userId: string) => Promise<boolean>;
 }
 
 const DEFAULT_VIDEO_URL = 'https://www.youtube.com/watch?v=c0yFdX4VRKI&t=127s';
@@ -640,6 +644,156 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
+  const approveSubscriptionRenewal = async (userId: string): Promise<boolean> => {
+    try {
+      const u = state.users.find(user => user.id === userId);
+      if (!u) {
+        toast.error('ব্যবহারকারী খুঁজে পাওয়া যায়নি!');
+        return false;
+      }
+
+      // Calculate new end date: 
+      // If current subscription is active, extend it by 30 days. Otherwise, 30 days from now.
+      const currentEnd = u.subscriptionEnd ? new Date(u.subscriptionEnd) : null;
+      let newEndDateString: string;
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+      if (currentEnd && currentEnd > new Date()) {
+        newEndDateString = new Date(currentEnd.getTime() + thirtyDays).toISOString();
+      } else {
+        newEndDateString = new Date(Date.now() + thirtyDays).toISOString();
+      }
+
+      const type = u.pendingRenewPackage || (u.role === 'visitor' ? 'সাধারণ ভিজিটর প্ল্যান' : u.role === 'tutor' ? 'টিউটর প্ল্যান' : 'প্রপার্টি মালিক প্ল্যান');
+      const amount = u.pendingRenewAmount || (u.role === 'visitor' ? 25 : 50);
+      const trxId = u.pendingRenewTrxId || 'N/A';
+      const method = u.pendingRenewMethod || 'N/A';
+
+      // 1. Add permanent approved invoice
+      addInvoice({
+        id: generateId(), 
+        userId: u.id, 
+        amount, 
+        status: 'paid', 
+        date: new Date().toISOString(), 
+        trxId, 
+        method
+      });
+
+      // 2. Update user profile to set active subscription and clear pending renewal
+      const userRef = doc(db, 'users', u.id);
+      const updates = { 
+        subscriptionType: type, 
+        subscriptionEnd: newEndDateString, 
+        subscriptionExpiryNotified: false,
+        isApproved: true,
+        transactionId: trxId,
+        paymentMethod: method,
+        pendingRenewStatus: 'approved',
+        pendingRenewTrxId: deleteField(),
+        pendingRenewMethod: deleteField(),
+        pendingRenewPackage: deleteField(),
+        pendingRenewAmount: deleteField(),
+        pendingRenewSubmittedAt: deleteField()
+      };
+
+      await updateDoc(userRef, updates);
+
+      toast.success('সাবস্ক্রিপশন নবায়ন সফলভাবে অনুমোদিত হয়েছে!');
+
+      // Send confirmation email
+      sendEmailHelper({
+        to: u.email,
+        subject: 'আপনার সাবস্ক্রিপশন নবায়ন সফলভাবে অনুমোদিত হয়েছে! (Subscription Renewed - Basavara)',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
+            <div style="text-align: center; margin-bottom: 25px;">
+              <h2 style="color: #10b981; margin: 0; font-size: 24px;">সাবস্ক্রিপশন নবায়ন সফল হয়েছে!</h2>
+              <p style="color: #64748b; font-size: 14px; margin-top: 5px;">প্রিমিয়াম এবং বিজ্ঞাপন সেবাগুলো সচল করা হয়েছে</p>
+            </div>
+            
+            <p>প্রিয় <strong>${u.name}</strong>,</p>
+            <p>আমরা অত্যন্ত আনন্দের সাথে জানাচ্ছি যে আপনার পেমেন্ট ট্রানজ্যাকশন আইডি (TrxID: <strong>${trxId}</strong>) মিলিয়ে আমাদের সিস্টেম অ্যাডমিন আপনার সাবস্ক্রিপশন নবায়ন আবেদনটি অনুমোদন করেছেন।</p>
+            
+            <div style="background-color: #f8fafc; border: 1px solid #f1f5f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <h4 style="margin-top: 0; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">নবায়নকৃত সাবস্ক্রিপশন বিবরণ:</h4>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>ব্যবহারকারীর নাম:</strong> ${u.name}</p>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>নতুন মেয়াদ উত্তীর্ণের তারিখ:</strong> ${new Date(newEndDateString).toLocaleDateString('bn-BD')}</p>
+              <p style="margin: 6px 0; font-size: 14px;"><strong>পেমেন্ট মাধ্যম:</strong> <span style="text-transform: uppercase; font-weight: bold; color: #ec4899;">${method}</span></p>
+            </div>
+            
+            <p>আপনার বিজ্ঞাপন এবং কন্টেন্ট প্ল্যাটফর্মে সচরাচর ভিজিবল রয়েছে। ধন্যবাদ আমাদের সাথে থাকার জন্য!</p>
+            
+            <p style="margin-top: 25px; text-align: center;">
+              <a href="${window.location.origin}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);">ড্যাশবোর্ডে প্রবেশ করুন</a>
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
+            <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara (বাসাভাড়া ও টিউটর প্ল্যাটফর্ম)। সর্বস্বত্ব সংরক্ষিত।</p>
+          </div>
+        `
+      });
+
+      return true;
+    } catch (err) {
+      console.error("Failed to approve renewal:", err);
+      toast.error('অনুমোদন ব্যর্থ হয়েছে।');
+      return false;
+    }
+  };
+
+  const rejectSubscriptionRenewal = async (userId: string): Promise<boolean> => {
+    try {
+      const u = state.users.find(user => user.id === userId);
+      if (!u) {
+        toast.error('ব্যবহারকারী খুঁজে পাওয়া যায়নি!');
+        return false;
+      }
+
+      const userRef = doc(db, 'users', u.id);
+      await updateDoc(userRef, {
+        pendingRenewStatus: 'rejected',
+        pendingRenewTrxId: deleteField(),
+        pendingRenewMethod: deleteField(),
+        pendingRenewPackage: deleteField(),
+        pendingRenewAmount: deleteField(),
+        pendingRenewSubmittedAt: deleteField()
+      });
+
+      toast.success('সাবস্ক্রিপশন নবায়ন বাতিল করা হয়েছে!');
+
+      sendEmailHelper({
+        to: u.email,
+        subject: 'আপনার সাবস্ক্রিপশন রি-সাবমিশন বাতিল করা হয়েছে (Subscription Renewal Rejected - Basavara)',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #1e293b; line-height: 1.6;">
+            <div style="text-align: center; margin-bottom: 25px;">
+              <h2 style="color: #ef4444; margin: 0; font-size: 24px;">সাবস্ক্রিপশন নবায়ন ডিক্লাইন বা বাতিল করা হয়েছে</h2>
+              <p style="color: #64748b; font-size: 14px; margin-top: 5px;">প্রদত্ত ট্রানজ্যাকশন আইডি ও তথ্য সঠিক পাওয়া যায়নি</p>
+            </div>
+            
+            <p>প্রিয় <strong>${u.name}</strong>,</p>
+            <p>আপনার সাবস্ক্রিপশন নবায়ন করার জন্য প্রদত্ত ট্রানজ্যাকশন আইডি (TrxID) মিলিয়ে আমাদের সিস্টেম অ্যাডমিন কোনো সঠিক সেন্ট পেমেন্ট খুঁজে পানি। এই কারণে আপনার নবায়ন আবেদনটি সাময়িকভাবে বাতিল করা হয়েছে।</p>
+            
+            <p>অনুগ্রহ করে আপনার পেমেন্ট অ্যাপ চেক করে সঠিক ট্রানজ্যাকশন আইডি বসিয়ে ড্যাশবোর্ড থেকে আবারো সাবমিট করুন।</p>
+            
+            <p style="margin-top: 25px; text-align: center;">
+              <a href="${window.location.origin}/dashboard" style="display: inline-block; padding: 12px 24px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.4);">পুনরায় ড্যাশবোর্ড থেকে সাবমিট করুন</a>
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #edf2f7; margin: 25px 0;" />
+            <p style="text-align: center; font-size: 12px; color: #64748b; margin: 0;">© ${new Date().getFullYear()} Basavara (বাসাভাড়া ও টিউটর প্ল্যাটফর্ম)। সর্বস্বত্ব সংরক্ষিত।</p>
+          </div>
+        `
+      });
+
+      return true;
+    } catch (err) {
+      console.error("Failed to reject renewal:", err);
+      toast.error('বাতিল করতে ব্যর্থ হয়েছে।');
+      return false;
+    }
+  };
+
   const registerUser = async (user: User) => {
     try {
       const newUser = { ...user, isApproved: user.role === 'admin' ? true : false };
@@ -1049,7 +1203,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       deleteBanner: deleteBanner as any, 
       updateHeroVideoUrl: updateHeroVideoUrl as any,
       updateApiUrl: updateApiUrl as any,
-      sendRenewalEmailManual: sendRenewalEmailManual as any
+      sendRenewalEmailManual: sendRenewalEmailManual as any,
+      approveSubscriptionRenewal: approveSubscriptionRenewal as any,
+      rejectSubscriptionRenewal: rejectSubscriptionRenewal as any
     }}>
       {children}
     </AppContext.Provider>

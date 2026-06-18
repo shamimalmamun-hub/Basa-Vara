@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
-import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send } from 'lucide-react';
 import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, compressImage } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
 import ManageBanners from '../components/ManageBanners';
@@ -11,7 +11,7 @@ import ManageVideo from '../components/ManageVideo';
 import ManageHomepage from '../components/ManageHomepage';
 
 export default function Dashboard() {
-  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual } = useApp();
+  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual, approveSubscriptionRenewal, rejectSubscriptionRenewal } = useApp();
   const { language } = useLanguage();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
@@ -364,6 +364,44 @@ export default function Dashboard() {
                         </div>
                       </div>
                     )}
+
+                    {user.role !== 'admin' && user.pendingRenewStatus === 'pending' && (
+                      <div className="mt-4 p-4 bg-amber-500/10 dark:bg-amber-500/5 border-2 border-amber-500/20 dark:border-amber-500/10 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                          <p className="font-extrabold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 text-sm">
+                            <span className="h-2.5 w-2.5 rounded-full bg-amber-500 animate-ping"></span>
+                            ⏳ অপেক্ষমান সাবস্ক্রিপশন নবায়ন অনুরোধ:
+                          </p>
+                          <div className="text-xs text-slate-700 dark:text-slate-350 mt-1.5 space-y-1 font-semibold">
+                            <p className="flex items-center gap-1">প্যাকেজ: <span className="font-extrabold text-indigo-600 dark:text-indigo-400">{user.pendingRenewPackage}</span></p>
+                            <p className="flex items-center gap-1">পেমেন্ট মাধ্যম: <span className="font-black uppercase text-pink-600 dark:text-pink-400">{user.pendingRenewMethod}</span> &bull; TrxID: <span className="font-black text-indigo-605 dark:text-indigo-350 select-all underline decoration-pink-500 decoration-2">{user.pendingRenewTrxId}</span> &bull; অ্যামাউন্ট: <span className="font-extrabold text-emerald-600 dark:text-emerald-450">৳{user.pendingRenewAmount}</span></p>
+                            {user.pendingRenewSubmittedAt && (
+                              <p className="text-[10px] text-slate-500">অনুরোধের সময়: {new Date(user.pendingRenewSubmittedAt).toLocaleString('bn-BD')}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-2.5 shrink-0 self-end sm:self-auto w-full sm:w-auto">
+                          <button
+                            onClick={async () => {
+                              await approveSubscriptionRenewal(user.id);
+                            }}
+                            className="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>নবায়ন এপ্রুভ করুন</span>
+                          </button>
+                          <button
+                            onClick={async () => {
+                              await rejectSubscriptionRenewal(user.id);
+                            }}
+                            className="flex-1 sm:flex-none px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/20 dark:text-rose-450 rounded-xl text-xs font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            <span>বাতিল</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {user.id !== currentUser.id && (
@@ -373,9 +411,10 @@ export default function Dashboard() {
                             onClick={async () => {
                               await sendRenewalEmailManual(user.id);
                             }}
-                            className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/80 dark:text-indigo-350 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                            className="px-3.5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-700 hover:to-indigo-700 hover:shadow-indigo-500/10 text-white rounded-xl font-bold text-xs shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 transform active:scale-95"
                           >
-                            <span>📧 রিনিউ ইমেইল পাঠান</span>
+                            <Send className="w-3.5 h-3.5 animate-pulse" />
+                            <span>রিনিউ ইমেইল পাঠান</span>
                           </button>
                         )}
                         {!user.isApproved ? (
@@ -475,11 +514,24 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'add-content' && currentUser.nidStatus === 'verified' && !isAdmin && (
-           <AddContentForm role={currentUser.role} onAddProperty={addProperty} onAddTutor={addTutor} ownerId={currentUser.id} />
+          isExpired ? (
+            <div className="bg-rose-500/10 border-2 border-rose-300 dark:border-rose-900 rounded-3xl p-8 max-w-2xl text-center space-y-4">
+              <AlertCircle className="w-16 h-16 text-rose-500 mx-auto" />
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">আপনার সাবস্ক্রিপশন মেয়াদ শেষ হয়ে গিয়েছে!</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                আপনার অ্যাকাউন্টের ১ মাসের মেয়াদ শেষ হয়ে যাওয়ার কারণে আপনি নতুন কোনো পোস্ট (প্রপার্টি বিজ্ঞাপন বা টিউটর প্রোফাইল) সাইটে যুক্ত করতে পারবেন না। সেবাগুলো পুনরায় সচল করার জন্য অনুগ্রহ করে আপনার সাবস্ক্রিপশন নবায়ন করুন।
+              </p>
+              <button onClick={() => setActiveTab('subscription')} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md cursor-pointer">
+                সাবস্ক্রিপশন নবায়ন করুন
+              </button>
+            </div>
+          ) : (
+            <AddContentForm role={currentUser.role} onAddProperty={addProperty} onAddTutor={addTutor} ownerId={currentUser.id} />
+          )
         )}
 
         {activeTab === 'subscription' && !isAdmin && (
-          <SubscriptionPayment user={currentUser} addInvoice={addInvoice} invoices={invoices.filter(i => i.userId === currentUser.id)} role={currentUser.role} updateSubscription={updateSubscription} />
+          <SubscriptionPayment user={currentUser} addInvoice={addInvoice} invoices={invoices.filter(i => i.userId === currentUser.id)} role={currentUser.role} updateSubscription={updateSubscription} isExpired={isExpired} />
         )}
         {activeTab === 'profile' && (
           <ProfileSettings user={currentUser} updateProfile={updateProfile} />
@@ -825,11 +877,11 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
 
 
 
-function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscription }: { user: User, addInvoice: any, invoices: Invoice[], role: string, updateSubscription: any }) {
+function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscription, isExpired }: { user: User, addInvoice: any, invoices: Invoice[], role: string, updateSubscription: any, isExpired: boolean }) {
   const [trxId, setTrxId] = useState('');
   const [method, setMethod] = useState<'bkash'|'nagad'|'rocket'>('bkash');
   const { language } = useLanguage();
-  const { updateProfile, logout } = useApp();
+  const { updateProfile } = useApp();
   
   const amount = role === 'visitor' ? 25 : 50;
   const packageType = role === 'visitor' ? 'সাধারণ ভিজিটর প্ল্যান' : role === 'tutor' ? 'টিউটর প্ল্যান' : 'প্রপার্টি মালিক প্ল্যান';
@@ -837,36 +889,30 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
   const userEnd = user?.subscriptionEnd ? new Date(user.subscriptionEnd) : null;
   const isCurrentlySubscribed = userEnd ? userEnd > new Date() : false;
 
-  const handlePayment = (e: React.FormEvent) => {
+  const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!trxId.trim()) {
+      toast.error(language === 'bn' ? 'সঠিক ট্রানজ্যাকশন আইডি দিন!' : 'Please enter a valid Transaction ID!');
+      return;
+    }
     
-    // We set subscription duration to exactly next 30 days
-    const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    
-    addInvoice({
-      id: generateId(), 
-      userId: user.id, 
-      amount, 
-      status: 'paid', 
-      date: new Date().toISOString(), 
-      trxId, 
-      method
-    });
-    
-    updateSubscription(user.id, packageType, futureDate.toISOString());
-    updateProfile(user.id, { isApproved: false, transactionId: trxId, paymentMethod: method }, false);
+    updateProfile(user.id, {
+      pendingRenewStatus: 'pending',
+      pendingRenewTrxId: trxId,
+      pendingRenewMethod: method,
+      pendingRenewPackage: packageType,
+      pendingRenewAmount: amount,
+      pendingRenewSubmittedAt: new Date().toISOString()
+    }, false);
+
     setTrxId('');
-    
+
     toast.success(
       language === 'bn' 
-        ? 'সাবস্ক্রিপশন ক্রয় সফল হয়েছে! অ্যাকাউন্টটি অনুমোদনের জন্য অ্যাডমিন প্যানেলে পাঠানো হয়েছে। অনুমোদন শেষে লগইন করতে পারবেন।' 
-        : 'Subscription purchase request submitted! Sent to admin for approval. You can log in again after approval.', 
-      { duration: 8000 }
+        ? 'সাবস্ক্রিপশন নবায়নের অনুরোধ সফলভাবে পাঠানো হয়েছে! অ্যাডমিন প্যানেল থেকে ট্রানজ্যাকশন আইডি ও পেমেন্ট মিলিয়ে খুব শীঘ্রই এটি এপ্রুভ বা সক্রিয় করে দেওয়া হবে।' 
+        : 'Subscription renewal request submitted! It will be verified and approved by system admin shortly.',
+      { duration: 8050 }
     );
-
-    setTimeout(() => {
-      logout();
-    }, 4000);
   };
 
   return (
@@ -875,6 +921,22 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
         {language === 'bn' ? 'সাবস্ক্রিপশন ও বিলিং' : 'Subscription & Billing'}
       </h2>
 
+      {isExpired && (
+        <div className="bg-rose-500/10 border-2 border-rose-300 dark:border-rose-900/60 p-5 rounded-2xl mb-6 flex gap-3 items-start shadow-sm leading-relaxed font-semibold text-xs">
+          <AlertCircle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-extrabold text-sm text-red-900 dark:text-red-300">
+              {language === 'bn' ? 'সাবস্ক্রিপশনের মেয়াদ শেষ হয়েছে!' : 'Subscription Expired!'}
+            </p>
+            <p className="mt-1">
+              {language === 'bn' 
+                ? 'আপনার চলমান ১ মাসের মেয়াদ শেষ হওয়ার কারণে অন্যান্য প্যাকেজের ইনফরমেশন ও সেটিংস লক করা রয়েছে। শুধুমাত্র আপনার বর্তমান প্রধান প্যাকেজটি নবায়ন করতে পারবেন। নবায়ন সম্পন্ন হলে বাকি ফিচার ও অন্য প্যাকেজসমূহ পুনরায় সচল হবে। ' 
+                : 'Since your current 1-month plan has expired, information on other packages is locked. You can only renew your current primary package to unlock all systems.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gradient-to-br from-indigo-50 to-white dark:from-slate-900 dark:to-indigo-950/20 border-2 border-indigo-200 dark:border-indigo-900/60 rounded-3xl p-6 mb-8 shadow-sm">
         <h3 className="text-indigo-805 dark:text-indigo-300 font-extrabold text-lg mb-1">{packageType} প্রিমিয়াম</h3>
         <p className="text-sm text-indigo-700 dark:text-indigo-400 mb-4">
@@ -882,8 +944,8 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
         </p>
         <p className="text-3xl font-extrabold text-slate-950 dark:text-white mb-4">৳{amount} <span className="text-sm font-normal text-slate-500">/{language === 'bn' ? 'মাস' : 'Month'}</span></p>
         
-        {isCurrentlySubscribed ? (
-          <div className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-450 p-5 rounded-2xl border-2 border-emerald-250 dark:border-emerald-900 leading-relaxed">
+        {isCurrentlySubscribed && (
+          <div className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-450 p-5 rounded-2xl border-2 border-emerald-250 dark:border-emerald-900 leading-relaxed mb-6">
             <p className="font-extrabold flex items-center gap-1.5 text-base">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping"></span>
               {language === 'bn' ? 'আপনার সাবস্ক্রিপশন সফলভাবে সচল আছে!' : 'Your Subscription is Active!'}
@@ -894,22 +956,69 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
                 : `Expiration date: ${new Date(user.subscriptionEnd!).toLocaleString()}`}
             </p>
           </div>
+        )}
+
+        {user.pendingRenewStatus === 'pending' ? (
+          <div className="bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 p-5 rounded-2xl border-2 border-amber-200 dark:border-amber-900/60 leading-relaxed space-y-2 animate-pulse">
+            <p className="font-bold text-base flex items-center gap-1.5 text-amber-850 dark:text-amber-200">
+              <RefreshCw className="w-5 h-5 animate-spin" />
+              {language === 'bn' ? 'নবায়ন অনুরোধ মূল্যায়নাধীন রয়েছে (Verification Pending)' : 'Renewal Verifying by Admin'}
+            </p>
+            <p className="text-xs">
+              {language === 'bn' 
+                ? 'আপনার রিনিউ requête বা পেমেন্ট মিলানোর অনুরোধটি সফলভাবে সিস্টেমে জমা নেওয়া হয়েছে। অ্যাডমিন ম্যানুয়ালি যাচাই করার পর এটি এপ্রুভ করে দেবেন। সাধারণত ১০-৩০ মিনিট সময় লাগতে পারে।' 
+                : 'Your payment verification request has been logged. Admin will review the transaction ID and activate your plan shortly.'}
+            </p>
+            <div className="pt-2 border-t border-amber-200/50 dark:border-amber-900/40 text-xs space-y-1 font-mono">
+              <p>Trx ID: <span className="font-bold underline">{user.pendingRenewTrxId}</span></p>
+              <p>Gateway: <span className="font-bold capitalize">{user.pendingRenewMethod}</span></p>
+              <p>Amount: <span className="font-bold">৳{user.pendingRenewAmount}</span></p>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
-            <div className="bg-amber-100/40 p-4 rounded-xl text-xs text-amber-900 dark:text-amber-300 leading-relaxed mb-2 font-semibold">
-              💡 {language === 'bn' 
-                ? 'আপনার পেমেন্ট করার পর ট্রানজ্যাকশন আইডি (TrxID) নিচের বক্সে দিয়ে ভেরিফাই করুন। আমাদের সিস্টেম ১ মাসের জন্য সাবস্ক্রিপশন সচল করে দেবে।' 
-                : 'Please select a gateway, transfer the monthly subscription fee, and insert the transaction ID to activate your plan.'}
+            {user.pendingRenewStatus === 'rejected' && (
+              <div className="bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-400 p-4 rounded-xl text-xs flex gap-2 border border-red-200 dark:border-red-900/50">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-555" />
+                <div>
+                  <p className="font-bold">{language === 'bn' ? 'পূর্ববর্তী নবায়ন অনুরোধটি বাতিল হয়েছে' : 'Renewal Request Disapproved'}</p>
+                  <p className="mt-1">{language === 'bn' ? 'আপনার পূর্ববর্তী প্রদত্ত ট্রানজ্যাকশন আইডিটি সঠিক পাওয়া যায়নি। অনুগ্রহ করে সঠিক আইডিটি দিয়ে আবারো সাবমিট করুন।' : 'Your previous transaction ID could not be verified. Please double-check your payment app receipt and submit again.'}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-5 rounded-2xl text-xs text-indigo-900 dark:text-indigo-305 leading-relaxed font-semibold border border-indigo-100 dark:border-indigo-900/30">
+              <p className="font-bold text-slate-900 dark:text-white mb-2 text-sm">👇 {language === 'bn' ? 'ফি পরিশোধের সহজ নির্দেশিকা:' : 'Payment Guide:'}</p>
+              <ul className="list-disc list-inside space-y-1.5 text-slate-700 dark:text-slate-300">
+                <li>{language === 'bn' ? <>বিকাশ/নগদ/রকেট (Personal) নাম্বারঃ <strong className="text-pink-600 dark:text-pink-400 text-sm font-extrabold selection:bg-pink-100">01401996674</strong> এ সেন্ড মানি (Send Money) করুন।</> : <>Send money to (Personal Number): <strong className="text-pink-600 dark:text-pink-400 font-mono">01401996674</strong> via bKash/Nagad/Rocket.</>}</li>
+                <li>{language === 'bn' ? 'পেমেন্ট শেষ হয়ে গেলে আপনার অ্যাপ বা মেসেজ থেকে ট্রানজ্যাকশন আইডি (Transaction ID) কপি করুন।' : 'Copy the transaction ID from your confirmation message.'}</li>
+                <li>{language === 'bn' ? 'নিচে আপনার পেমেন্ট মাধ্যম সিলেক্ট করে সঠিক ট্রানজ্যাকশন আইডি বসিয়ে সাবমিট করুন।' : 'Select payment gateway below, enter your TRX ID, and click submit.'}</li>
+              </ul>
             </div>
-            <form onSubmit={handlePayment} className="space-y-4">
-              <select value={method} onChange={(e) => setMethod(e.target.value as any)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white">
-                <option value="bkash">বিকাশ (Personal - 019XXXXXXXX)</option>
-                <option value="nagad">নগদ (Personal - 019XXXXXXXX)</option>
-                <option value="rocket">রকেট (Personal - 019XXXXXXXX)</option>
-              </select>
-              <input required placeholder={language === 'bn' ? 'Transaction ID (TrxID) দিন' : 'Enter Transaction ID (TrxID)'} value={trxId} onChange={e => setTrxId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
-              <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl font-bold transition-all shadow cursor-pointer">
-                {language === 'bn' ? 'সাবস্ক্রিপশন সচল করুন' : 'Verify & Activate Sub'}
+
+            <form onSubmit={handlePaymentSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">{language === 'bn' ? 'পেমেন্ট মাধ্যম সিলেক্ট করুন' : 'Select Gateway Method'}</label>
+                <select value={method} onChange={(e) => setMethod(e.target.value as any)} className="w-full px-4 py-2.5 rounded-xl border border-slate-205 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-900 dark:text-white shadow-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                  <option value="bkash">বিকাশ / bKash (Personal - 01401996674)</option>
+                  <option value="nagad">নগদ / Nagad (Personal - 01401996674)</option>
+                  <option value="rocket">রকেট / Rocket (Personal - 01401996674)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">{language === 'bn' ? 'পেমেন্ট ট্রানজ্যাকশন আইডি (TrxID)' : 'Payment Transaction ID (TrxID)'}</label>
+                <div className="relative">
+                  <input required placeholder={language === 'bn' ? 'যেমন: 8N79OLKWP' : 'Example: 8N79OLKWP'} value={trxId} onChange={e => setTrxId(e.target.value)} className="w-full pl-4 pr-12 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold uppercase focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm placeholder:lowercase" />
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <Send className="w-4 h-4 text-slate-400" />
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4" />
+                {language === 'bn' ? 'সাবস্ক্রিপশন নবায়নের অনুরোধ পাঠান' : 'Submit Subscription Renewal Request'}
               </button>
             </form>
           </div>

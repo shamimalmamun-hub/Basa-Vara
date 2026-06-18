@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 
 export default function WhatsAppWidget() {
   const { language } = useLanguage();
+  const location = useLocation();
   const [isVisible, setIsVisible] = useState(false);
   const [showTooltip, setShowTooltip] = useState(true);
 
@@ -36,7 +38,9 @@ export default function WhatsAppWidget() {
     ? 'আমাদের প্রতিনিধির সাথে কথা বলুন' 
     : 'Speak with our representative';
 
-  if (!isVisible) return null;
+  const isHomePage = location.pathname === '/';
+
+  if (!isHomePage || !isVisible) return null;
 
   return (
     <div id="whatsapp-widget-container" className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
