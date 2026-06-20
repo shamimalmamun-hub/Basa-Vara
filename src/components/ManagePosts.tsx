@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { Search, MapPin, Phone, Trash2, Edit2, CheckCircle, XCircle, FileText, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES } from '../lib/utils';
+import { Search, MapPin, Phone, Trash2, Edit2, CheckCircle, XCircle, FileText, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, Image as ImageIcon } from 'lucide-react';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, compressImage } from '../lib/utils';
 import { Property, Tutor } from '../types';
 import toast from 'react-hot-toast';
 
@@ -72,6 +72,19 @@ export default function ManagePosts() {
       isVerified: editingTutor.isVerified,
     });
     setEditingTutor(null);
+  };
+
+  const handleFileChangeTutor = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file);
+        setEditingTutor(prev => prev ? ({ ...prev, image: compressed }) : null);
+        toast.success('ছবি আপলোড হয়েছে!');
+      } catch (err) {
+        toast.error('ছবি আপলোড ব্যর্থ হয়েছে.');
+      }
+    }
   };
 
   const handleDeleteTutorConfirm = (id: string) => {
@@ -625,13 +638,21 @@ export default function ManagePosts() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">প্রোফাইল পিকচার লিংক (Profile Image URL)</label>
-                <input 
-                  type="text" 
-                  value={editingTutor.image || ''}
-                  onChange={e => setEditingTutor({...editingTutor, image: e.target.value})}
-                  className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
-                />
+                <label className="block text-xs font-bold text-slate-500 mb-1">প্রোফাইল পিকচার লিংক বা আপলোড (Profile Image)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={editingTutor.image || ''}
+                    onChange={e => setEditingTutor({...editingTutor, image: e.target.value})}
+                    className="flex-1 px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                    placeholder="URL..."
+                  />
+                  <label className="cursor-pointer flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors">
+                    <ImageIcon className="w-4 h-4" />
+                    আপলোড
+                    <input type="file" accept="image/*" className="hidden" onChange={handleFileChangeTutor} />
+                  </label>
+                </div>
               </div>
 
               <div>
