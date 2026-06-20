@@ -19,5 +19,8 @@ service cloud.firestore {
     match /settings/{docId} {
       allow read, write: if true;
     }
+    match /visitors/{visitorId} {
+      allow read, write: if true;
+    }
   }
 }

@@ -555,10 +555,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     updatePresence(false, 'online');
 
     const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        updatePresence(true, 'online');
-      }
-    }, 1500); // 1.5 seconds heartbeat frequency for ultra-fast tracking
+      updatePresence(true, 'online');
+    }, 1000); // 1.0 second heartbeat frequency for ultra-fast tracking
 
     return () => {
       clearInterval(interval);

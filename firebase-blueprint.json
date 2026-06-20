@@ -110,9 +110,30 @@
         "heroVideoUrl": { "type": "string" }
       },
       "required": ["id", "heroVideoUrl"]
+    },
+    "Visitor": {
+      "title": "Visitor",
+      "description": "Visitor tracking for presence",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "currentPage": { "type": "string" },
+        "lastActive": { "type": "string" },
+        "deviceInfo": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["online", "offline"] }
+      },
+      "required": ["id", "currentPage", "lastActive", "deviceInfo"]
     }
   },
   "firestore": {
+    "visitors/{visitorId}": {
+      "schema": "Visitor",
+      "description": "Visitor presence information"
+    },
     "users/{userId}": {
       "schema": "User",
       "description": "User profiles"
