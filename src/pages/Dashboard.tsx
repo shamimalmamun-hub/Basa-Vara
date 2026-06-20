@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
-import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send } from 'lucide-react';
+import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Eye, Globe, Users } from 'lucide-react';
 import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, compressImage } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
 import ManageBanners from '../components/ManageBanners';
@@ -11,13 +11,26 @@ import ManageVideo from '../components/ManageVideo';
 import ManageHomepage from '../components/ManageHomepage';
 
 export default function Dashboard() {
-  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual, approveSubscriptionRenewal, rejectSubscriptionRenewal } = useApp();
+  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual, approveSubscriptionRenewal, rejectSubscriptionRenewal, visitors } = useApp();
   const { language } = useLanguage();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
   const [userFilter, setUserFilter] = useState<'all' | 'pending-renew' | 'pending-nid' | 'pending-approval' | 'user' | 'tutor' | 'visitor'>('all');
   const [deleteConfirmUserId, setDeleteConfirmUserId] = useState<string | null>(null);
   const [inputApiUrl, setInputApiUrl] = useState('');
+
+  // Real-time visitor calculations
+  const nowMs = new Date().getTime();
+  const activeVisitorsList = (visitors || []).filter(v => {
+    try {
+      return nowMs - new Date(v.lastActive).getTime() <= 90000; // active within last 1.5 min
+    } catch {
+      return false;
+    }
+  });
+
+  const activeHomepageVisitorsCount = activeVisitorsList.filter(v => v.currentPage === '/').length;
+  const totalUniqueVisitorsCount = (visitors || []).length;
 
   useEffect(() => {
     if (apiUrl) {
@@ -118,11 +131,129 @@ export default function Dashboard() {
             <div className={`col-span-1 ${isAdmin ? 'md:col-span-12' : 'md:col-span-8'} bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-col`}>
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">ড্যাশবোর্ড ওভারভিউ</h2>
               {isAdmin ? (
-                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 flex-1">
-                   <StatCard title="মোট ব্যবহারকারী" value={users.length} />
-                   <StatCard title="অ্যাক্টিভ পেইড প্ল্যান" value={invoices.filter(i => i.status === 'paid').length} />
-                   <StatCard title="মোট প্রপার্টি" value={properties.length} />
-                   <StatCard title="অপেক্ষমাণ এনআইডি" value={users.filter(u => u.nidStatus === 'pending').length} />
+                 <div className="flex flex-col gap-6 w-full">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                     <StatCard title="মোট ব্যবহারকারী" value={users.length} />
+                     <StatCard title="অ্যাক্টিভ পেইড প্ল্যান" value={invoices.filter(i => i.status === 'paid').length} />
+                     <StatCard title="মোট প্রপার্টি" value={properties.length} />
+                     <StatCard title="অপেক্ষমাণ এনআইডি" value={users.filter(u => u.nidStatus === 'pending').length} />
+                     
+                     <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-900/40 text-center relative overflow-hidden flex flex-col justify-center min-h-[110px]">
+                       <div className="absolute top-2 right-2 flex h-2 w-2">
+                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                       </div>
+                       <h4 className="text-emerald-700 dark:text-emerald-400 font-semibold text-xs flex items-center justify-center gap-1">
+                         <Users className="w-3.5 h-3.5 shrink-0" /> মোট ভিজিটরস
+                       </h4>
+                       <p className="text-2xl font-extrabold mt-2 text-emerald-900 dark:text-emerald-250">{totalUniqueVisitorsCount}</p>
+                     </div>
+
+                     <div className="bg-indigo-50/50 dark:bg-indigo-950/20 p-5 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 text-center relative overflow-hidden flex flex-col justify-center min-h-[110px]">
+                       <div className="absolute top-2 right-2 flex h-2 w-2">
+                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                         <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-550"></span>
+                       </div>
+                       <h4 className="text-indigo-700 dark:text-indigo-400 font-semibold text-xs flex items-center justify-center gap-1">
+                         <Eye className="w-3.5 h-3.5 shrink-0" /> হোমপেইজে রানিং
+                       </h4>
+                       <p className="text-2xl font-extrabold mt-2 text-indigo-900 dark:text-indigo-250">{activeHomepageVisitorsCount}</p>
+                     </div>
+                   </div>
+
+                   <div className="mt-4 border-t border-slate-205 dark:border-slate-800 pt-6">
+                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                       <div>
+                         <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                           <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                           ভিজিটরদের রিয়েল-টাইম উপস্থিতি (Presence Tracker)
+                         </h3>
+                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                           গত ৯০ সেকেন্ডের মধ্যে ওয়েবসাইটে সক্রিয় থাকা ইউজার ও ভিজিটরদের লাইভ অবস্থান
+                         </p>
+                       </div>
+                       <span className="text-xs font-mono bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full font-bold self-start sm:self-center">
+                         মোট ট্র্যাকড ডিভাইস: {totalUniqueVisitorsCount}
+                       </span>
+                     </div>
+
+                     <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-805 bg-white dark:bg-slate-950/20 shadow-sm">
+                       <table className="w-full text-left text-sm border-collapse">
+                         <thead>
+                           <tr className="bg-slate-100 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold selection:bg-transparent">
+                             <th className="p-4 text-xs font-semibold uppercase tracking-wider">ভিজিটর / ব্যবহারকারী</th>
+                             <th className="p-4 text-xs font-semibold uppercase tracking-wider">ভূমিকা (Role)</th>
+                             <th className="p-4 text-xs font-semibold uppercase tracking-wider font-mono">চলতি পেইজ</th>
+                             <th className="p-4 text-xs font-semibold uppercase tracking-wider">ডিভাইস ও ব্রাউজার</th>
+                             <th className="p-4 text-xs font-semibold uppercase tracking-wider">স্পন্দন টাইম</th>
+                             <th className="p-4 text-xs font-semibold uppercase tracking-wider text-center">অবস্থা</th>
+                           </tr>
+                         </thead>
+                         <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                           {!visitors || visitors.length === 0 ? (
+                             <tr>
+                               <td colSpan={6} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
+                                 কোনো সক্রিয় ভিজিটর হিস্ট্রি নেই।
+                               </td>
+                             </tr>
+                           ) : (
+                             [...visitors]
+                               .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
+                               .slice(0, 10)
+                               .map(v => {
+                                 const isOnline = nowMs - new Date(v.lastActive).getTime() <= 90000;
+                                 const lastActiveDate = new Date(v.lastActive);
+                                 const lastActiveStr = lastActiveDate.toLocaleTimeString();
+
+                                 return (
+                                   <tr key={v.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/40 text-slate-600 dark:text-slate-300 transition-colors">
+                                     <td className="p-4">
+                                       <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                         <UserCircle className="w-4 h-4 text-indigo-505 shrink-0" />
+                                         <span className="truncate max-w-[150px]">{v.name || 'অতিথি (Guest)'}</span>
+                                       </div>
+                                       <span className="text-[10px] text-slate-400 font-mono block mt-0.5">{v.id}</span>
+                                     </td>
+                                     <td className="p-4">
+                                       <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full capitalize ${
+                                         v.role === 'admin' 
+                                           ? 'bg-red-50 dark:bg-red-950/30 text-red-750 dark:text-red-400 border border-red-105 dark:border-red-900/40' 
+                                           : v.role === 'tutor' 
+                                             ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-755 dark:text-blue-400 border border-blue-105 dark:border-blue-900/40' 
+                                             : v.role === 'user' 
+                                               ? 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-755 dark:text-indigo-400 border border-indigo-105 dark:border-indigo-900/40' 
+                                               : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                                       }`}>
+                                         {v.role === 'admin' ? 'এডমিন' : v.role === 'tutor' ? 'টিউটর' : v.role === 'user' ? 'প্রপার্টি মালিক' : 'সাধারণ ভিজিটর'}
+                                       </span>
+                                     </td>
+                                     <td className="p-4">
+                                       <span className="font-mono text-xs text-indigo-705 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/30 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/35">
+                                         {v.currentPage === '/' ? 'হোম পেইজ (/)' : v.currentPage}
+                                       </span>
+                                     </td>
+                                     <td className="p-4 text-xs text-slate-550 dark:text-slate-400">
+                                       {v.deviceInfo || 'Unknown Device'}
+                                     </td>
+                                     <td className="p-4 text-xs text-slate-600 dark:text-slate-350 font-medium">
+                                       {lastActiveStr}
+                                     </td>
+                                     <td className="p-4">
+                                       <div className="flex items-center gap-1.5 justify-center">
+                                         <span className={`h-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                                         <span className={`text-[11px] font-bold ${isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-405'}`}>
+                                           {isOnline ? 'অনলাইন' : 'নিষ্ক্রিয়'}
+                                         </span>
+                                       </div>
+                                     </td>
+                                   </tr>
+                                 );
+                               })
+                           )}
+                         </tbody>
+                       </table>
+                     </div>
+                   </div>
                  </div>
               ) : (
                  <div className="text-slate-600 dark:text-slate-400 space-y-4 flex-1">

@@ -85,3 +85,15 @@ export interface AdBanner {
   secondaryEmoji?: string;
 }
 
+export interface Visitor {
+  id: string;
+  userId?: string | null;
+  name?: string | null;
+  role?: string | null;
+  currentPage: string;
+  lastActive: string; // ISO string
+  deviceInfo: string;
+  createdAt: string; // ISO string
+}
+
+

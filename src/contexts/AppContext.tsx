@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import toast from 'react-hot-toast';
-import { User, Property, Tutor, Invoice, AdBanner } from '../types';
+import { useLocation } from 'react-router-dom';
+import { User, Property, Tutor, Invoice, AdBanner, Visitor } from '../types';
 import { db, auth } from '../lib/firebase';
 import { generateId } from '../lib/utils';
 import {   collection, 
@@ -100,6 +101,7 @@ interface AppState {
   banners: AdBanner[];
   heroVideoUrl: string;
   apiUrl: string;
+  visitors: Visitor[];
   isLoading: boolean;
 }
 
@@ -137,6 +139,7 @@ const defaultState: AppState = {
   banners: [],
   heroVideoUrl: DEFAULT_VIDEO_URL,
   apiUrl: '',
+  visitors: [],
   isLoading: true,
 };
 
@@ -411,6 +414,18 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       handleFirestoreError(err, OperationType.GET, 'settings/global');
     });
 
+    const unsubVisitors = onSnapshot(collection(db, 'visitors'), (snapshot) => {
+      const visitorsList: Visitor[] = [];
+      snapshot.forEach(docSnap => {
+        visitorsList.push(docSnap.data() as Visitor);
+      });
+      if (active) {
+        setState(prev => ({ ...prev, visitors: visitorsList }));
+      }
+    }, (err) => {
+      console.error('DEBUG: Error loading visitors', err);
+    });
+
     setState(prev => ({ ...prev, isLoading: false }));
 
     return () => {
@@ -421,6 +436,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       unsubInvoices();
       unsubBanners();
       unsubSettings();
+      unsubVisitors();
     };
   }, []);
 
@@ -434,6 +450,103 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }
     }
   }, [state.users, currentUser]);
+
+  // Real-time visitor tracking and heartbeat
+  const location = useLocation();
+  useEffect(() => {
+    let visitorId = localStorage.getItem('basavara_visitor_id');
+    if (!visitorId) {
+      visitorId = 'visitor_' + generateId();
+      localStorage.setItem('basavara_visitor_id', visitorId);
+    }
+
+    const docRef = doc(db, 'visitors', visitorId);
+
+    const getDeviceInfo = () => {
+      const ua = navigator.userAgent;
+      let browser = "Unknown Browser";
+      let os = "Unknown OS";
+
+      if (ua.indexOf("Firefox") > -1) {
+        browser = "Firefox";
+      } else if (ua.indexOf("SamsungBrowser") > -1) {
+        browser = "Samsung Browser";
+      } else if (ua.indexOf("Opera") > -1 || ua.indexOf("OPR") > -1) {
+        browser = "Opera";
+      } else if (ua.indexOf("Trident") > -1) {
+        browser = "IE";
+      } else if (ua.indexOf("Edge") > -1 || ua.indexOf("Edg") > -1) {
+        browser = "Edge";
+      } else if (ua.indexOf("Chrome") > -1) {
+        browser = "Chrome";
+      } else if (ua.indexOf("Safari") > -1) {
+        browser = "Safari";
+      }
+
+      if (ua.indexOf("Windows NT 10.0") > -1) os = "Windows 10/11";
+      else if (ua.indexOf("Windows NT 6.2") > -1) os = "Windows 8";
+      else if (ua.indexOf("Windows NT 6.1") > -1) os = "Windows 7";
+      else if (ua.indexOf("Macintosh") > -1) os = "macOS";
+      else if (ua.indexOf("Android") > -1) os = "Android";
+      else if (ua.indexOf("iPhone") > -1) os = "iOS";
+      else if (ua.indexOf("Linux") > -1) os = "Linux";
+
+      return `${os} / ${browser}`;
+    };
+
+    const devInfo = getDeviceInfo();
+    const uId = currentUser?.id || null;
+    const uName = currentUser?.name || null;
+    const uRole = currentUser?.role || 'guest';
+    const currentPath = location.pathname;
+
+    const updatePresence = async (isHeartbeat = false) => {
+      const now = new Date().toISOString();
+      try {
+        const payload: any = {
+          id: visitorId,
+          currentPage: currentPath,
+          lastActive: now,
+          deviceInfo: devInfo,
+          userId: uId,
+          name: uName,
+          role: uRole
+        };
+        
+        if (isHeartbeat) {
+          await setDoc(docRef, {
+            currentPage: currentPath,
+            lastActive: now,
+            userId: uId,
+            name: uName,
+            role: uRole
+          }, { merge: true });
+        } else {
+          const docSnap = await getDoc(docRef);
+          if (!docSnap.exists()) {
+            payload.createdAt = now;
+            await setDoc(docRef, payload);
+          } else {
+            await setDoc(docRef, payload, { merge: true });
+          }
+        }
+      } catch (err) {
+        console.error("Presence logging error:", err);
+      }
+    };
+
+    updatePresence(false);
+
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        updatePresence(true);
+      }
+    }, 20000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [location.pathname, currentUser]);
 
   // Check for expired subscriptions and send email notification
   useEffect(() => {
