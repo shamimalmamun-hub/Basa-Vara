@@ -23,7 +23,7 @@ export default function Dashboard() {
   const nowMs = new Date().getTime();
   const activeVisitorsList = (visitors || []).filter(v => {
     try {
-      return v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 40000);
+      return v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3500); // 3.5 seconds threshold (ultra-fast)
     } catch {
       return false;
     }
@@ -201,7 +201,7 @@ export default function Dashboard() {
                                .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
                                .slice(0, 10)
                                .map(v => {
-                                 const isOnline = v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 40000);
+                                 const isOnline = v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3500);
                                  const lastActiveDate = new Date(v.lastActive);
                                  const lastActiveStr = lastActiveDate.toLocaleTimeString();
 

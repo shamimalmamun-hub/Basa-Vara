@@ -542,8 +542,17 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       setDoc(docRef, { status: 'offline', lastActive: new Date().toISOString() }, { merge: true }).catch(() => {});
     };
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        updatePresence(true, 'online');
+      } else {
+        updatePresence(true, 'offline');
+      }
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('unload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     updatePresence(false, 'online');
 
@@ -551,12 +560,13 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (document.visibilityState === 'visible') {
         updatePresence(true, 'online');
       }
-    }, 12000); // 12 seconds heartbeat frequency
+    }, 1500); // 1.5 seconds heartbeat frequency for ultra-fast tracking
 
     return () => {
       clearInterval(interval);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('unload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       handleBeforeUnload();
     };
   }, [location.pathname, currentUser]);
