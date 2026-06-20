@@ -485,10 +485,10 @@ export default function ManagePosts() {
                   <select 
                     value={editingProperty.location}
                     onChange={e => setEditingProperty({...editingProperty, location: e.target.value})}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
                   >
                     {MAIN_LOCATIONS.map(loc => (
-                      <option key={loc} value={loc}>{loc}</option>
+                      <option key={loc} value={loc} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{loc}</option>
                     ))}
                   </select>
                 </div>
@@ -497,10 +497,10 @@ export default function ManagePosts() {
                   <select 
                     value={editingProperty.type}
                     onChange={e => setEditingProperty({...editingProperty, type: e.target.value as any})}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
                   >
                     {PROPERTY_TYPES.map(t => (
-                      <option key={t} value={t}>{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>
+                      <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>
                     ))}
                   </select>
                 </div>
@@ -549,7 +549,7 @@ export default function ManagePosts() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-850 p-3 rounded-2xl">
+              <div className="flex items-center gap-2 bg-slate-100/55 dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 p-3 rounded-2xl">
                 <input 
                   type="checkbox" 
                   id="prop_isAvailable"
@@ -649,10 +649,10 @@ export default function ManagePosts() {
                   <select 
                     value={editingTutor.location}
                     onChange={e => setEditingTutor({...editingTutor, location: e.target.value})}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
                   >
                     {MAIN_LOCATIONS.map(loc => (
-                      <option key={loc} value={loc}>{loc}</option>
+                      <option key={loc} value={loc} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{loc}</option>
                     ))}
                   </select>
                 </div>
@@ -694,20 +694,20 @@ export default function ManagePosts() {
                   <select 
                     value={editingTutor.daysPerWeek || '৩ দিন'} 
                     onChange={e => setEditingTutor({...editingTutor, daysPerWeek: e.target.value})} 
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-850 text-slate-900 dark:text-white focus:outline-none"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
                   >
-                    <option value="১ দিন">১ দিন</option>
-                    <option value="২ দিন">২ দিন</option>
-                    <option value="৩ দিন">৩ দিন</option>
-                    <option value="৪ দিন">৪ দিন</option>
-                    <option value="৫ দিন">৫ দিন</option>
-                    <option value="৬ দিন">৬ দিন</option>
-                    <option value="৭ দিন">৭ দিন</option>
+                    <option value="১ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">১ দিন</option>
+                    <option value="২ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">২ দিন</option>
+                    <option value="৩ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৩ দিন</option>
+                    <option value="৪ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৪ দিন</option>
+                    <option value="৫ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৫ দিন</option>
+                    <option value="৬ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৬ দিন</option>
+                    <option value="৭ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৭ দিন</option>
                   </select>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-850 p-3 rounded-2xl">
+              <div className="flex items-center gap-2 bg-slate-100/55 dark:bg-slate-900/40 border border-slate-200/40 dark:border-slate-800/40 p-3 rounded-2xl">
                 <input 
                   type="checkbox" 
                   id="tut_isVerified"

@@ -955,8 +955,8 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">এলাকা</label>
-          <select value={formData.location || MAIN_LOCATIONS[0]} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
-            {MAIN_LOCATIONS.map(l => <option key={l} value={l} className="dark:bg-slate-800">{l}</option>)}
+          <select value={formData.location || MAIN_LOCATIONS[0]} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-705 bg-transparent text-slate-900 dark:text-white focus:outline-none">
+            {MAIN_LOCATIONS.map(l => <option key={l} value={l} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{l}</option>)}
           </select>
         </div>
         <div>
@@ -970,8 +970,8 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">ধরন</label>
-              <select value={formData.type || PROPERTY_TYPES[0]} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
-                {PROPERTY_TYPES.map(t => <option key={t} value={t} className="dark:bg-slate-800">{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>)}
+              <select value={formData.type || PROPERTY_TYPES[0]} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-705 bg-transparent text-slate-900 dark:text-white focus:outline-none">
+                {PROPERTY_TYPES.map(t => <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>)}
               </select>
             </div>
             <div>
@@ -1011,15 +1011,15 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
             <select 
               value={formData.daysPerWeek || '৩ দিন'} 
               onChange={e => setFormData({...formData, daysPerWeek: e.target.value})} 
-              className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-705 bg-transparent text-slate-900 dark:text-white focus:outline-none"
             >
-              <option value="১ দিন">১ দিন (1 Day/Week)</option>
-              <option value="২ দিন">২ দিন (2 Days/Week)</option>
-              <option value="৩ দিন">৩ দিন (3 Days/Week)</option>
-              <option value="৪ দিন">৪ দিন (4 Days/Week)</option>
-              <option value="৫ দিন">৫ দিন (5 Days/Week)</option>
-              <option value="৬ দিন">৬ দিন (6 Days/Week)</option>
-              <option value="৭ দিন">৭ দিন (7 Days/Week)</option>
+              <option value="১ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">১ দিন (1 Day/Week)</option>
+              <option value="২ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">২ দিন (2 Days/Week)</option>
+              <option value="৩ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৩ দিন (3 Days/Week)</option>
+              <option value="৪ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৪ দিন (4 Days/Week)</option>
+              <option value="৫ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৫ দিন (5 Days/Week)</option>
+              <option value="৬ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৬ দিন (6 Days/Week)</option>
+              <option value="৭ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৭ দিন (7 Days/Week)</option>
             </select>
           </div>
         </>

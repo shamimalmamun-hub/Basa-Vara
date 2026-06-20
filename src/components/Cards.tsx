@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Property, Tutor } from '../types';
 import { MapPin, BookOpen, Clock, CalendarDays, Phone, LockKeyhole } from 'lucide-react';
@@ -98,6 +98,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
 export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
   const { currentUser } = useApp();
   const { language, t } = useLanguage();
+  const [showAllSubjects, setShowAllSubjects] = useState(false);
   const isAdmin = currentUser?.role === 'admin';
   const isOwner = currentUser?.id === tutor.userId;
   const isSubscribed = currentUser?.subscriptionEnd ? new Date(currentUser.subscriptionEnd) > new Date() : false;
@@ -214,12 +215,21 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
         )}
         
         <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/60 p-2.5 rounded-2xl border border-slate-200/40 dark:border-slate-800/40">
-          <div className="flex flex-wrap gap-1">
-            {tutor.subjects.map(sub => (
+          <div className="flex flex-wrap gap-1 flex-1">
+            {(showAllSubjects ? tutor.subjects : tutor.subjects.slice(0, 2)).map(sub => (
               <span key={sub} className="px-2 py-0.5 text-[10px] rounded bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200/50 dark:border-slate-750">
                 {getSubjectLabel(sub)}
               </span>
             ))}
+            {tutor.subjects.length > 2 && (
+              <button
+                type="button"
+                onClick={() => setShowAllSubjects(!showAllSubjects)}
+                className="px-1.5 py-0.5 text-[10px] rounded bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-extrabold border border-indigo-200/50 dark:border-indigo-800/50 cursor-pointer transition-colors"
+              >
+                {showAllSubjects ? '×' : `+${tutor.subjects.length - 2}`}
+              </button>
+            )}
           </div>
           <div className="text-right">
             <span className="text-[9px] text-slate-500 dark:text-slate-400 block font-bold uppercase tracking-wider">{language === 'bn' ? 'প্রত্যাশিত' : 'Expected'}</span>
