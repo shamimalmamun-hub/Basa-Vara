@@ -144,7 +144,7 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
   const locationLabel = getLocationLabel(tutor.location);
 
   return (
-    <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-4 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden">
+    <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-3 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-white/10 dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
       {tutor.isVerified && (
         <div className="absolute top-0 right-0 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold px-3 py-1.5 rounded-bl-xl uppercase tracking-wider">
@@ -161,20 +161,20 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
           />
         </div>
         <div className="min-w-0">
-          <h3 className="font-semibold text-sm text-slate-900 dark:text-white truncate">{tutor.name}</h3>
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-start">
-            <BookOpen className="w-3 h-3 mr-1 text-slate-400 shrink-0 mt-0.5" /> <span className="truncate">{tutor.education}</span>
+          <h3 className="font-semibold text-base text-slate-900 dark:text-white truncate">{tutor.name}</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-start">
+            <BookOpen className="w-3 h-3 mr-1 text-slate-400 shrink-0 mt-0.5" /> <span>{tutor.education}</span>
           </p>
         </div>
       </div>
       
-      <div className="space-y-1 mt-1 shrink-0 flex flex-col justify-center">
-        <div className="flex items-start text-xs">
-          <MapPin className="w-3.5 h-3.5 text-indigo-500 mr-2 shrink-0 mt-0.5" />
+      <div className="space-y-1.5 mt-1 shrink-0 flex flex-col justify-center">
+        <div className="flex items-start text-sm">
+          <MapPin className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
           <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{locationLabel}</span>
         </div>
-        <div className="flex items-start text-xs">
-          <CalendarDays className="w-3.5 h-3.5 text-indigo-500 mr-2 shrink-0 mt-0.5" />
+        <div className="flex items-start text-sm">
+          <CalendarDays className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
           <span className="text-slate-700 dark:text-slate-300 font-medium font-sans truncate">
             {tutor.daysPerWeek ? (
               <span>{language === 'bn' ? `সপ্তাহে ${tutor.daysPerWeek}` : `${tutor.daysPerWeek}/week`}</span>
@@ -183,8 +183,8 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
             )}
           </span>
         </div>
-        <div className="flex items-start text-xs">
-          <Clock className="w-3.5 h-3.5 text-indigo-500 mr-2 shrink-0 mt-0.5" />
+        <div className="flex items-start text-sm">
+          <Clock className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
           <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{tutor.availableTime}</span>
         </div>
       </div>
@@ -192,28 +192,28 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-1 flex-grow">
         <div className="flex items-center">
           {canViewDetails ? (
-             <div className="space-y-0.5 w-full">
+             <div className="space-y-1 w-full">
                {(tutor.contactNumber || tutor.phoneNumber) && (
-                 <div className="flex items-center text-[10px]">
-                   <Phone className="w-3 h-3 text-emerald-500 mr-1.5 shrink-0" />
+                 <div className="flex items-center text-xs">
+                   <Phone className="w-4 h-4 text-emerald-500 mr-1.5 shrink-0" />
                    <span className="text-slate-500 mr-1 shrink-0">{language === 'bn' ? 'ফোন:' : 'Phone:'}</span>
                    <a href={`tel:${tutor.contactNumber || tutor.phoneNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{tutor.contactNumber || tutor.phoneNumber}</a>
                  </div>
                )}
                {tutor.whatsappNumber && (
-                 <div className="flex items-center text-[10px]">
-                   <MessageCircle className="w-3 h-3 text-emerald-500 mr-1.5 shrink-0" />
+                 <div className="flex items-center text-xs">
+                   <MessageCircle className="w-4 h-4 text-emerald-500 mr-1.5 shrink-0" />
                    <span className="text-slate-500 mr-1 shrink-0">{language === 'bn' ? 'হোয়াটসঅ্যাপ:' : 'WhatsApp:'}</span>
                    <a href={`https://wa.me/${tutor.whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{tutor.whatsappNumber}</a>
                  </div>
                )}
                {!tutor.contactNumber && !tutor.phoneNumber && !tutor.whatsappNumber && (
-                 <span className="text-slate-500 text-[10px] italic">{language === 'bn' ? 'কোনো কন্টাক্ট নম্বর দেওয়া নেই' : 'No contact details provided'}</span>
+                 <span className="text-slate-500 text-xs italic">{language === 'bn' ? 'কোনো কন্টাক্ট নম্বর দেওয়া নেই' : 'No contact details provided'}</span>
                )}
              </div>
           ) : (
-             <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded-xl transition-all border border-slate-200/50 dark:border-slate-700/50">
-               <LockKeyhole className="w-3 h-3 mr-1" /> {language === 'bn' ? 'কন্টাক্ট দেখতে সাবস্ক্রাইব করুন' : 'Subscribe to View Contact'}
+             <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-xl transition-all border border-slate-200/50 dark:border-slate-700/50">
+               <LockKeyhole className="w-4 h-4 mr-1" /> {language === 'bn' ? 'কন্টাক্ট দেখতে সাবস্ক্রাইব করুন' : 'Subscribe to View Contact'}
              </Link>
           )}
         </div>
@@ -236,8 +236,8 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
             )}
           </div>
           <div className="text-right shrink-0 pl-1">
-            <span className="text-[7px] text-slate-500 dark:text-slate-400 block font-bold uppercase tracking-wider">{language === 'bn' ? 'প্রত্যাশিত' : 'Expected'}</span>
-            <span className="text-[11px] font-black text-slate-900 dark:text-white">৳{tutor.salaryExpected.toLocaleString('en-IN')}<span className="text-[8px] font-normal">{language === 'bn' ? '/মাস' : '/Month'}</span></span>
+            <span className="text-[9px] text-slate-500 dark:text-slate-400 block font-bold uppercase tracking-wider">{language === 'bn' ? 'প্রত্যাশিত' : 'Expected'}</span>
+            <span className="text-xs font-black text-slate-900 dark:text-white">৳{tutor.salaryExpected.toLocaleString('en-IN')}<span className="text-[10px] font-normal">{language === 'bn' ? '/মাস' : '/Month'}</span></span>
           </div>
         </div>
       </div>
