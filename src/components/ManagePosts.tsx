@@ -68,6 +68,7 @@ export default function ManagePosts() {
       whatsappNumber: editingTutor.whatsappNumber,
       daysPerWeek: editingTutor.daysPerWeek,
       gender: editingTutor.gender,
+      image: editingTutor.image,
       isVerified: editingTutor.isVerified,
     });
     setEditingTutor(null);
@@ -619,6 +620,16 @@ export default function ManagePosts() {
                   required
                   value={editingTutor.education}
                   onChange={e => setEditingTutor({...editingTutor, education: e.target.value})}
+                  className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">প্রোফাইল পিকচার লিংক (Profile Image URL)</label>
+                <input 
+                  type="text" 
+                  value={editingTutor.image || ''}
+                  onChange={e => setEditingTutor({...editingTutor, image: e.target.value})}
                   className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
