@@ -20,10 +20,18 @@ export default function Dashboard() {
   const [inputApiUrl, setInputApiUrl] = useState('');
 
   // Real-time visitor calculations
-  const nowMs = new Date().getTime();
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const nowMs = currentTime;
   const activeVisitorsList = (visitors || []).filter(v => {
     try {
-      return v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3500); // 3.5 seconds threshold (ultra-fast)
+      return v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3000); // 3 seconds threshold
     } catch {
       return false;
     }
@@ -169,7 +177,7 @@ export default function Dashboard() {
                            ভিজিটরদের রিয়েল-টাইম উপস্থিতি (Presence Tracker)
                          </h3>
                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                           গত ৯০ সেকেন্ডের মধ্যে ওয়েবসাইটে সক্রিয় থাকা ইউজার ও ভিজিটরদের লাইভ অবস্থান
+                           গত ৩ সেকেন্ডের মধ্যে ওয়েবসাইটে সক্রিয় থাকা ইউজার ও ভিজিটরদের লাইভ অবস্থান
                          </p>
                        </div>
                        <span className="text-xs font-mono bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded-full font-bold self-start sm:self-center">
@@ -201,7 +209,7 @@ export default function Dashboard() {
                                .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
                                .slice(0, 10)
                                .map(v => {
-                                 const isOnline = v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3500);
+                                 const isOnline = v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3000);
                                  const lastActiveDate = new Date(v.lastActive);
                                  const lastActiveStr = lastActiveDate.toLocaleTimeString();
 

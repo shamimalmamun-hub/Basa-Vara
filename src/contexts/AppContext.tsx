@@ -545,8 +545,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         updatePresence(true, 'online');
-      } else {
-        updatePresence(true, 'offline');
       }
     };
 
