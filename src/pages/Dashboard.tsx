@@ -913,7 +913,8 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       isVerified: true,
       phoneNumber: formData.phoneNumber || '',
       whatsappNumber: formData.whatsappNumber || '',
-      daysPerWeek: formData.daysPerWeek || '৩ দিন'
+      daysPerWeek: formData.daysPerWeek || '৩ দিন',
+      gender: formData.gender || 'male'
     });
     setFormData({});
   };
@@ -1020,6 +1021,17 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
               <option value="৫ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৫ দিন (5 Days/Week)</option>
               <option value="৬ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৬ দিন (6 Days/Week)</option>
               <option value="৭ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৭ দিন (7 Days/Week)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">লিঙ্গ (Gender)</label>
+            <select 
+              value={formData.gender || 'male'} 
+              onChange={e => setFormData({...formData, gender: e.target.value})} 
+              className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-705 bg-transparent text-slate-900 dark:text-white"
+            >
+              <option value="male">ছেলে</option>
+              <option value="female">মেয়ে</option>
             </select>
           </div>
         </>

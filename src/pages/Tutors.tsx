@@ -9,12 +9,14 @@ export default function Tutors() {
   const { tutors, selectedLocation, setSelectedLocation } = useApp();
   const { language, t } = useLanguage();
   const [filterSubj, setFilterSubj] = useState<string>('All');
+  const [filterGender, setFilterGender] = useState<string>('All');
 
   const allSubjects = Array.from(new Set(tutors.flatMap(t => t.subjects))) as string[];
 
   const filtered = tutors.filter(t => 
     (selectedLocation === null || (t.location || '').toLowerCase().trim() === selectedLocation.toLowerCase().trim()) &&
-    (filterSubj === 'All' || t.subjects.includes(filterSubj))
+    (filterSubj === 'All' || t.subjects.includes(filterSubj)) &&
+    (filterGender === 'All' || t.gender === filterGender)
   );
 
   const getSubjectLabel = (subject: string) => {
@@ -73,6 +75,15 @@ export default function Tutors() {
           >
             <option value="All">{t('tutorsAllSubjects')}</option>
             {allSubjects.map(s => <option key={s} value={s}>{getSubjectLabel(s)}</option>)}
+          </select>
+          <select 
+            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-sm cursor-pointer"
+            value={filterGender} 
+            onChange={e => setFilterGender(e.target.value)}
+          >
+            <option value="All">{language === 'bn' ? 'টিউটর নির্বাচন করুন' : 'Select Tutor'}</option>
+            <option value="male">{language === 'bn' ? 'ছেলে' : 'Male'}</option>
+            <option value="female">{language === 'bn' ? 'মেয়ে' : 'Female'}</option>
           </select>
         </div>
       </div>

@@ -46,6 +46,8 @@ export interface Property {
   ownerPhoneNumber?: string; // Specifically owner's phone number
 }
 
+export type Gender = 'male' | 'female';
+
 export interface Tutor {
   id: string;
   userId: string;
@@ -62,6 +64,7 @@ export interface Tutor {
   phoneNumber?: string;     // Added phone number
   whatsappNumber?: string;  // Added WhatsApp number
   daysPerWeek?: string;     // Added days per week "১ দিন" to "৭ দিন"
+  gender?: Gender;          // Added gender
 }
 
 export interface Invoice {
