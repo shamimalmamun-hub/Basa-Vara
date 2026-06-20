@@ -567,7 +567,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('unload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      handleBeforeUnload();
     };
   }, [location.pathname, currentUser]);
 
