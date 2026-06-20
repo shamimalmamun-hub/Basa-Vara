@@ -215,16 +215,11 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
         
         <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/60 p-2.5 rounded-2xl border border-slate-200/40 dark:border-slate-800/40">
           <div className="flex flex-wrap gap-1">
-            {tutor.subjects.slice(0, 2).map(sub => (
+            {tutor.subjects.map(sub => (
               <span key={sub} className="px-2 py-0.5 text-[10px] rounded bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200/50 dark:border-slate-750">
                 {getSubjectLabel(sub)}
               </span>
             ))}
-            {tutor.subjects.length > 2 && (
-              <span className="px-1.5 py-0.5 text-[10px] rounded bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-bold border border-slate-200/50 dark:border-slate-750">
-                +{tutor.subjects.length - 2}
-              </span>
-            )}
           </div>
           <div className="text-right">
             <span className="text-[9px] text-slate-500 dark:text-slate-400 block font-bold uppercase tracking-wider">{language === 'bn' ? 'প্রত্যাশিত' : 'Expected'}</span>

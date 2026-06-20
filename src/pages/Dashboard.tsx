@@ -3,15 +3,16 @@ import { useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
-import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Eye, Globe, Users } from 'lucide-react';
+import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Eye, Globe, Users, FileText } from 'lucide-react';
 import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, compressImage } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
 import ManageBanners from '../components/ManageBanners';
 import ManageVideo from '../components/ManageVideo';
 import ManageHomepage from '../components/ManageHomepage';
+import ManagePosts from '../components/ManagePosts';
 
 export default function Dashboard() {
-  const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual, approveSubscriptionRenewal, rejectSubscriptionRenewal, visitors } = useApp();
+  const { currentUser, users, properties, tutors, invoices, addProperty, updateProperty, deleteProperty, addTutor, updateTutor, deleteTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual, approveSubscriptionRenewal, rejectSubscriptionRenewal, visitors } = useApp();
   const nonAdminVisitors = (visitors || []).filter(v => v.role !== 'admin');
   const { language } = useLanguage();
   const location = useLocation();
@@ -102,6 +103,9 @@ export default function Dashboard() {
             </button>
             <button onClick={() => setActiveTab('admin-add-content')} className={`text-left px-4 py-3 rounded-xl font-medium transition-colors flex items-center ${activeTab === 'admin-add-content' ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <PlusCircle className="w-5 h-5 mr-3" /> নতুন পোস্ট যুক্ত করুন
+            </button>
+            <button onClick={() => setActiveTab('manage-posts')} className={`text-left px-4 py-3 rounded-xl font-medium transition-colors flex items-center ${activeTab === 'manage-posts' ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+              <FileText className="w-5 h-5 mr-3" /> পোস্টসমূহ নিয়ন্ত্রণ
             </button>
             <button onClick={() => setActiveTab('manage-banners')} className={`text-left px-4 py-3 rounded-xl font-medium transition-colors flex items-center ${activeTab === 'manage-banners' ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
               <Megaphone className="w-5 h-5 mr-3" /> বিজ্ঞাপন ও ব্যানার
@@ -695,6 +699,10 @@ export default function Dashboard() {
 
         {activeTab === 'manage-video' && isAdmin && (
           <ManageVideo />
+        )}
+
+        {activeTab === 'manage-posts' && isAdmin && (
+          <ManagePosts />
         )}
 
         {activeTab === 'manage-homepage' && isAdmin && (

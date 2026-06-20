@@ -112,7 +112,11 @@ interface AppContextType extends AppState {
   logout: () => void;
   registerUser: (user: User) => void;
   addProperty: (property: Property) => void;
+  updateProperty: (propertyId: string, data: Partial<Property>) => void;
+  deleteProperty: (propertyId: string) => void;
   addTutor: (tutor: Tutor) => void;
+  updateTutor: (tutorId: string, data: Partial<Tutor>) => void;
+  deleteTutor: (tutorId: string) => void;
   addInvoice: (invoice: Invoice) => void;
   updateUserNID: (userId: string, status: 'pending' | 'verified' | 'rejected') => void;
   updateProfile: (userId: string, data: Partial<User>, showToast?: boolean) => void;
@@ -1320,6 +1324,46 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
+  const updateProperty = async (propertyId: string, data: Partial<Property>) => {
+    try {
+      await updateDoc(doc(db, 'properties', propertyId), data);
+      toast.success('Property details updated successfully.');
+    } catch (err) {
+      console.error("Failed to update property:", err);
+      toast.error('প্রপার্টি আপডেট করতে ব্যর্থ হয়েছে।');
+    }
+  };
+
+  const deleteProperty = async (propertyId: string) => {
+    try {
+      await deleteDoc(doc(db, 'properties', propertyId));
+      toast.success('Property deleted successfully.');
+    } catch (err) {
+      console.error("Failed to delete property:", err);
+      toast.error('প্রপার্টি মুছে ফেলতে ব্যর্থ হয়েছে।');
+    }
+  };
+
+  const updateTutor = async (tutorId: string, data: Partial<Tutor>) => {
+    try {
+      await updateDoc(doc(db, 'tutors', tutorId), data);
+      toast.success('Tutor details updated successfully.');
+    } catch (err) {
+      console.error("Failed to update tutor:", err);
+      toast.error('টিউটর আপডেট করতে ব্যর্থ হয়েছে।');
+    }
+  };
+
+  const deleteTutor = async (tutorId: string) => {
+    try {
+      await deleteDoc(doc(db, 'tutors', tutorId));
+      toast.success('Tutor profile deleted successfully.');
+    } catch (err) {
+      console.error("Failed to delete tutor:", err);
+      toast.error('টিউটর মুছে ফেলতে ব্যর্থ হয়েছে।');
+    }
+  };
+
   const updateHeroVideoUrl = async (url: string) => {
     try {
       await setDoc(doc(db, 'settings', 'global'), { heroVideoUrl: url }, { merge: true });
@@ -1350,7 +1394,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       logout,
       registerUser: registerUser as any, 
       addProperty: addProperty as any, 
+      updateProperty: updateProperty as any,
+      deleteProperty: deleteProperty as any,
       addTutor: addTutor as any, 
+      updateTutor: updateTutor as any,
+      deleteTutor: deleteTutor as any, 
       addInvoice: addInvoice as any, 
       updateUserNID: updateUserNID as any, 
       updateProfile: updateProfile as any, 
