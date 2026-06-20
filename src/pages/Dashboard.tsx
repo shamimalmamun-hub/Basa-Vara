@@ -906,7 +906,7 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       subjects: (formData.subjects || '').split(',').map((s: string) => s.trim()),
       education: formData.education || '',
       availableDays: ['Flexible'],
-      availableTime: 'Negotiable',
+      availableTime: formData.availableTime || 'Negotiable',
       location: formData.location || MAIN_LOCATIONS[0],
       salaryExpected: Number(formData.price) || 0,
       image: formData.image || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200',
@@ -1022,6 +1022,10 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
               <option value="৬ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৬ দিন (6 Days/Week)</option>
               <option value="৭ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৭ দিন (7 Days/Week)</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">পড়ানোর সময় (Available Time)</label>
+            <input required placeholder="যেমন: বিকেল ৩টা - সন্ধ্যা ৬টা" value={formData.availableTime || ''} onChange={e => setFormData({...formData, availableTime: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">লিঙ্গ (Gender)</label>
