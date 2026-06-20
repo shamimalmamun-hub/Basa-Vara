@@ -162,8 +162,8 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
         </div>
         <div className="min-w-0">
           <h3 className="font-semibold text-base text-slate-900 dark:text-white truncate">{tutor.name}</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center mt-0.5">
-            <BookOpen className="w-3.5 h-3.5 mr-1 text-slate-400 shrink-0" /> <span className="truncate">{tutor.education}</span>
+          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-start mt-0.5">
+            <BookOpen className="w-3.5 h-3.5 mr-1 text-slate-400 shrink-0 mt-0.5" /> <span>{tutor.education}</span>
           </p>
         </div>
       </div>
@@ -218,10 +218,10 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
           )}
         </div>
         
-        <div className="flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/60 p-2 rounded-2xl border border-slate-200/40 dark:border-slate-800/40 h-[54px] shrink-0 mt-2">
-          <div className="flex flex-wrap gap-1 flex-1 h-[42px] overflow-y-auto pr-1">
+        <div className="flex justify-between items-center bg-white dark:bg-slate-950 px-2 py-1 rounded-2xl border border-slate-200 dark:border-slate-800 min-h-[58px] shrink-0 mt-2">
+          <div className="flex flex-wrap gap-1 flex-1 pr-1">
             {(showAllSubjects ? tutor.subjects : tutor.subjects.slice(0, 2)).map(sub => (
-              <span key={sub} className="px-1.5 py-0.5 text-[9px] rounded bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold border border-slate-200/50 dark:border-slate-750">
+              <span key={sub} className="px-2 py-1 text-[10px] rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-100 dark:border-indigo-900/50">
                 {getSubjectLabel(sub)}
               </span>
             ))}
@@ -229,7 +229,7 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
               <button
                 type="button"
                 onClick={() => setShowAllSubjects(!showAllSubjects)}
-                className="px-1 py-0.5 text-[9px] rounded bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-extrabold border border-indigo-200/50 dark:border-indigo-800/50 cursor-pointer transition-colors shrink-0"
+                className="px-2 py-1 text-[10px] rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors shrink-0"
               >
                 {showAllSubjects ? '×' : `+${tutor.subjects.length - 2}`}
               </button>
