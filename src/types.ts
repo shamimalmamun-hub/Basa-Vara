@@ -94,6 +94,7 @@ export interface Visitor {
   lastActive: string; // ISO string
   deviceInfo: string;
   createdAt: string; // ISO string
+  status?: 'online' | 'offline';
 }
 
 

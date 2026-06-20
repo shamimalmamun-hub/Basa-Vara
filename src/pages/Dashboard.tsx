@@ -23,7 +23,7 @@ export default function Dashboard() {
   const nowMs = new Date().getTime();
   const activeVisitorsList = (visitors || []).filter(v => {
     try {
-      return nowMs - new Date(v.lastActive).getTime() <= 90000; // active within last 1.5 min
+      return v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 40000);
     } catch {
       return false;
     }
@@ -201,7 +201,7 @@ export default function Dashboard() {
                                .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
                                .slice(0, 10)
                                .map(v => {
-                                 const isOnline = nowMs - new Date(v.lastActive).getTime() <= 90000;
+                                 const isOnline = v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 40000);
                                  const lastActiveDate = new Date(v.lastActive);
                                  const lastActiveStr = lastActiveDate.toLocaleTimeString();
 
@@ -240,9 +240,9 @@ export default function Dashboard() {
                                      </td>
                                      <td className="p-4">
                                        <div className="flex items-center gap-1.5 justify-center">
-                                         <span className={`h-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
-                                         <span className={`text-[11px] font-bold ${isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-405'}`}>
-                                           {isOnline ? 'অনলাইন' : 'নিষ্ক্রিয়'}
+                                         <span className={`h-2 w-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
+                                         <span className={`text-[11px] font-bold ${isOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                                           {isOnline ? 'অনলাইন' : 'অফলাইন'}
                                          </span>
                                        </div>
                                      </td>

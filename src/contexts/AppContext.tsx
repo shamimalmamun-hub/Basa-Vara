@@ -500,7 +500,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const uRole = currentUser?.role || 'guest';
     const currentPath = location.pathname;
 
-    const updatePresence = async (isHeartbeat = false) => {
+    const updatePresence = async (isHeartbeat = false, status: 'online' | 'offline' = 'online') => {
       const now = new Date().toISOString();
       try {
         const payload: any = {
@@ -510,7 +510,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           deviceInfo: devInfo,
           userId: uId,
           name: uName,
-          role: uRole
+          role: uRole,
+          status: status
         };
         
         if (isHeartbeat) {
@@ -519,7 +520,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             lastActive: now,
             userId: uId,
             name: uName,
-            role: uRole
+            role: uRole,
+            status: status
           }, { merge: true });
         } else {
           const docSnap = await getDoc(docRef);
@@ -535,16 +537,27 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }
     };
 
-    updatePresence(false);
+    const handleBeforeUnload = () => {
+      // Promptly signal offline status on tab/browser closure is useful
+      setDoc(docRef, { status: 'offline', lastActive: new Date().toISOString() }, { merge: true }).catch(() => {});
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleBeforeUnload);
+
+    updatePresence(false, 'online');
 
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
-        updatePresence(true);
+        updatePresence(true, 'online');
       }
-    }, 20000);
+    }, 12000); // 12 seconds heartbeat frequency
 
     return () => {
       clearInterval(interval);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleBeforeUnload);
+      handleBeforeUnload();
     };
   }, [location.pathname, currentUser]);
 
