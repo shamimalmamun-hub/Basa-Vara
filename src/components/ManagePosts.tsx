@@ -67,6 +67,7 @@ export default function ManagePosts() {
       phoneNumber: editingTutor.phoneNumber,
       whatsappNumber: editingTutor.whatsappNumber,
       daysPerWeek: editingTutor.daysPerWeek,
+      gender: editingTutor.gender,
       isVerified: editingTutor.isVerified,
     });
     setEditingTutor(null);
@@ -703,6 +704,17 @@ export default function ManagePosts() {
                     <option value="৫ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৫ দিন</option>
                     <option value="৬ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৬ দিন</option>
                     <option value="৭ দিন" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">৭ দিন</option>
+                  </select>
+                </div>
+                <div>
+                   <label className="block text-xs font-bold text-slate-500 mb-1">লিঙ্গ (Gender)</label>
+                   <select 
+                    value={editingTutor.gender || 'male'} 
+                    onChange={e => setEditingTutor({...editingTutor, gender: e.target.value as any})} 
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                  >
+                    <option value="male">ছেলে</option>
+                    <option value="female">মেয়ে</option>
                   </select>
                 </div>
               </div>
