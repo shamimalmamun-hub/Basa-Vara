@@ -32,7 +32,7 @@ export default function Dashboard() {
   const nowMs = currentTime;
   const activeVisitorsList = nonAdminVisitors.filter(v => {
     try {
-      return v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3000); // 3 seconds threshold
+      return v.status === 'online' && (Math.abs(nowMs - new Date(v.lastActive).getTime()) <= 30000); // 30 seconds threshold with clock-skew safety
     } catch {
       return false;
     }
@@ -210,7 +210,7 @@ export default function Dashboard() {
                                .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
                                .slice(0, 10)
                                .map(v => {
-                                 const isOnline = v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3000);
+                                 const isOnline = v.status === 'online' && (Math.abs(nowMs - new Date(v.lastActive).getTime()) <= 30000);
                                  const lastActiveDate = new Date(v.lastActive);
                                  const lastActiveStr = lastActiveDate.toLocaleTimeString();
 

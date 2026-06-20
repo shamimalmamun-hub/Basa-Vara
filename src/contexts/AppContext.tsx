@@ -479,9 +479,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const location = useLocation();
   useEffect(() => {
     let visitorId = safeLocalStorage.getItem('basavara_visitor_id');
+    let isNewVisitor = false;
     if (!visitorId) {
       visitorId = 'visitor_' + generateId();
       safeLocalStorage.setItem('basavara_visitor_id', visitorId);
+      isNewVisitor = true;
     }
 
     const docRef = doc(db, 'visitors', visitorId);
@@ -556,13 +558,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             status: status
           }, { merge: true });
         } else {
-          const docSnap = await getDoc(docRef);
-          if (!docSnap.exists()) {
-            payload.createdAt = now;
-            await setDoc(docRef, payload);
-          } else {
-            await setDoc(docRef, payload, { merge: true });
+          // Absolute instant save - no getDoc needed
+          const finalPayload = { ...payload };
+          if (isNewVisitor) {
+            finalPayload.createdAt = now;
           }
+          await setDoc(docRef, finalPayload, { merge: true });
         }
       } catch (err) {
         console.error("Presence logging error:", err);
@@ -589,7 +590,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
     const interval = setInterval(() => {
       updatePresence(true, 'online');
-    }, 1000); // 1.0 second heartbeat frequency for ultra-fast tracking
+    }, 5000); // 5.0 seconds heartbeat frequency for stable, fast tracking
 
     return () => {
       clearInterval(interval);
