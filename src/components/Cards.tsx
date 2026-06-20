@@ -237,7 +237,7 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
           </div>
           <div className="text-right shrink-0 pl-1.5">
             <span className="text-[8px] text-slate-500 dark:text-slate-400 block font-bold uppercase tracking-wider">{language === 'bn' ? 'প্রত্যাশিত' : 'Expected'}</span>
-            <span className="text-xs sm:text-xs font-black text-slate-900 dark:text-white">৳{tutor.salaryExpected.toLocaleString('en-IN')}</span>
+            <span className="text-xs sm:text-xs font-black text-slate-900 dark:text-white">৳{tutor.salaryExpected.toLocaleString('en-IN')}<span className="text-[9px] font-normal">{language === 'bn' ? '/মাস' : '/Month'}</span></span>
           </div>
         </div>
       </div>
