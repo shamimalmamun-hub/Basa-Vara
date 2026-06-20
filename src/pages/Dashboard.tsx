@@ -12,6 +12,7 @@ import ManageHomepage from '../components/ManageHomepage';
 
 export default function Dashboard() {
   const { currentUser, users, properties, invoices, addProperty, addTutor, addInvoice, updateUserNID, updateProfile, updateSubscription, deleteUser, apiUrl, updateApiUrl, sendRenewalEmailManual, approveSubscriptionRenewal, rejectSubscriptionRenewal, visitors } = useApp();
+  const nonAdminVisitors = (visitors || []).filter(v => v.role !== 'admin');
   const { language } = useLanguage();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
@@ -29,7 +30,7 @@ export default function Dashboard() {
   }, []);
 
   const nowMs = currentTime;
-  const activeVisitorsList = (visitors || []).filter(v => {
+  const activeVisitorsList = nonAdminVisitors.filter(v => {
     try {
       return v.status === 'online' && (nowMs - new Date(v.lastActive).getTime() <= 3000); // 3 seconds threshold
     } catch {
@@ -38,7 +39,7 @@ export default function Dashboard() {
   });
 
   const activeHomepageVisitorsCount = activeVisitorsList.filter(v => v.currentPage === '/').length;
-  const totalUniqueVisitorsCount = (visitors || []).length;
+  const totalUniqueVisitorsCount = nonAdminVisitors.length;
 
   useEffect(() => {
     if (apiUrl) {
@@ -198,14 +199,14 @@ export default function Dashboard() {
                            </tr>
                          </thead>
                          <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                           {!visitors || visitors.length === 0 ? (
+                           {!nonAdminVisitors || nonAdminVisitors.length === 0 ? (
                              <tr>
                                <td colSpan={6} className="p-12 text-center text-slate-400 dark:text-slate-500 font-medium">
                                  কোনো সক্রিয় ভিজিটর হিস্ট্রি নেই।
                                </td>
                              </tr>
                            ) : (
-                             [...visitors]
+                             [...nonAdminVisitors]
                                .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
                                .slice(0, 10)
                                .map(v => {

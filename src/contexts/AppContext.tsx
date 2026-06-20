@@ -194,13 +194,37 @@ const MOCK_TUTORS: Tutor[] = [
 
 const MOCK_ADMIN: User = { id: 'admin1', name: 'System Admin', email: 'admin@basavara.com', password: 'admin', role: 'admin', nidStatus: 'verified', isApproved: true };
 
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // Ignore
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Ignore
+    }
+  }
+};
+
 export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [state, setState] = useState<AppState>(defaultState);
 
   const [selectedLocation, setSelectedLocationState] = useState<string | null>(null);
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('basavara_current_user');
+    const saved = safeLocalStorage.getItem('basavara_current_user');
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -446,7 +470,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       const freshUser = state.users.find(u => u.id === currentUser.id);
       if (freshUser && JSON.stringify(freshUser) !== JSON.stringify(currentUser)) {
         setCurrentUser(freshUser);
-        localStorage.setItem('basavara_current_user', JSON.stringify(freshUser));
+        safeLocalStorage.setItem('basavara_current_user', JSON.stringify(freshUser));
       }
     }
   }, [state.users, currentUser]);
@@ -454,10 +478,10 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   // Real-time visitor tracking and heartbeat
   const location = useLocation();
   useEffect(() => {
-    let visitorId = localStorage.getItem('basavara_visitor_id');
+    let visitorId = safeLocalStorage.getItem('basavara_visitor_id');
     if (!visitorId) {
       visitorId = 'visitor_' + generateId();
-      localStorage.setItem('basavara_visitor_id', visitorId);
+      safeLocalStorage.setItem('basavara_visitor_id', visitorId);
     }
 
     const docRef = doc(db, 'visitors', visitorId);
@@ -501,6 +525,14 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const currentPath = location.pathname;
 
     const updatePresence = async (isHeartbeat = false, status: 'online' | 'offline' = 'online') => {
+      if (uRole === 'admin') {
+        try {
+          await deleteDoc(docRef);
+        } catch {
+          // Ignore
+        }
+        return;
+      }
       const now = new Date().toISOString();
       try {
         const payload: any = {
@@ -538,6 +570,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     };
 
     const handleBeforeUnload = () => {
+      if (uRole === 'admin') return;
       // Promptly signal offline status on tab/browser closure is useful
       setDoc(docRef, { status: 'offline', lastActive: new Date().toISOString() }, { merge: true }).catch(() => {});
     };
@@ -637,7 +670,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }
       
       setCurrentUser(user);
-      localStorage.setItem('basavara_current_user', JSON.stringify(user));
+      safeLocalStorage.setItem('basavara_current_user', JSON.stringify(user));
       toast.success('Successfully logged in!');
       return true;
     } else {
@@ -648,7 +681,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('basavara_current_user');
+    safeLocalStorage.removeItem('basavara_current_user');
     toast.success('সফলভাবে লগআউট করা হয়েছে।');
   };
 
@@ -1148,7 +1181,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (currentUser?.id === userId) {
         const updatedUser = { ...currentUser, ...updates };
         setCurrentUser(updatedUser);
-        localStorage.setItem('basavara_current_user', JSON.stringify(updatedUser));
+        safeLocalStorage.setItem('basavara_current_user', JSON.stringify(updatedUser));
       }
       
       if (showToast) {
@@ -1231,7 +1264,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (currentUser?.id === userId) {
         const updatedUser = { ...currentUser, ...updates };
         setCurrentUser(updatedUser);
-        localStorage.setItem('basavara_current_user', JSON.stringify(updatedUser));
+        safeLocalStorage.setItem('basavara_current_user', JSON.stringify(updatedUser));
       }
     } catch (err) {
       console.error("Failed to update subscription:", err);
