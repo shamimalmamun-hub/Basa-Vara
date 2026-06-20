@@ -62,13 +62,25 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
           {canViewDetails ? (
             <div className="space-y-2">
               <div className="flex items-start text-sm">
-                <MapPin className="w-4 h-4 text-emerald-500 mr-2 mt-0.5 shrink-0" />
+                <MapPin className="w-4 h-4 text-indigo-500 mr-2 mt-0.5 shrink-0" />
                 <span className="text-slate-700 dark:text-slate-300 font-semibold">{property.address}</span>
               </div>
-              {property.contactNumber && (
-                <div className="flex items-center text-sm">
-                  <Phone className="w-4 h-4 text-emerald-500 mr-2 shrink-0" />
-                  <a href={`tel:${property.contactNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">{property.contactNumber}</a>
+              {(property.contactNumber || property.ownerPhoneNumber) && (
+                <div className="flex flex-col gap-1.5 pt-1">
+                  {property.contactNumber && (
+                    <div className="flex items-center text-sm">
+                      <Phone className="w-4 h-4 text-indigo-500 mr-2 shrink-0" />
+                      <span className="text-slate-500 mr-1 text-xs">{language === 'bn' ? 'যোগাযোগ:' : 'Contact:'}</span>
+                      <a href={`tel:${property.contactNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">{property.contactNumber}</a>
+                    </div>
+                  )}
+                  {property.ownerPhoneNumber && (
+                    <div className="flex items-center text-sm">
+                      <Phone className="w-4 h-4 text-emerald-500 mr-2 shrink-0" />
+                      <span className="text-slate-500 mr-1 text-xs">{language === 'bn' ? 'মালিকের নাম্বার:' : 'Owner Phone:'}</span>
+                      <a href={`tel:${property.ownerPhoneNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">{property.ownerPhoneNumber}</a>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -160,8 +172,12 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
         </div>
         <div className="flex items-start text-sm">
           <CalendarDays className="w-4 h-4 text-indigo-500 mr-2 mt-0.5 shrink-0" />
-          <span className="text-slate-700 dark:text-slate-300 font-medium">
-            {tutor.availableDays.map(d => getDaysLabel(d)).join(', ')}
+          <span className="text-slate-700 dark:text-slate-300 font-medium font-sans">
+            {tutor.daysPerWeek ? (
+              <span>{language === 'bn' ? `সপ্তাহে ${tutor.daysPerWeek}` : `${tutor.daysPerWeek}/week`}</span>
+            ) : (
+              tutor.availableDays.map(d => getDaysLabel(d)).join(', ')
+            )}
           </span>
         </div>
         <div className="flex items-start text-sm">
@@ -172,12 +188,23 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
 
       <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
         {canViewDetails ? (
-           <div className="flex items-center text-sm mb-4">
-             <Phone className="w-4 h-4 text-emerald-500 mr-2 shrink-0" />
-             {tutor.contactNumber ? (
-               <a href={`tel:${tutor.contactNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">{tutor.contactNumber}</a>
-             ) : (
-               <span className="text-slate-500 italic">{language === 'bn' ? 'নম্বর দেওয়া নেই' : 'No number provided'}</span>
+           <div className="space-y-2 mb-4">
+             {(tutor.contactNumber || tutor.phoneNumber) && (
+               <div className="flex items-center text-sm">
+                 <Phone className="w-4 h-4 text-emerald-500 mr-2 shrink-0" />
+                 <span className="text-slate-500 mr-1 text-xs">{language === 'bn' ? 'ফোন:' : 'Phone:'}</span>
+                 <a href={`tel:${tutor.contactNumber || tutor.phoneNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">{tutor.contactNumber || tutor.phoneNumber}</a>
+               </div>
+             )}
+             {tutor.whatsappNumber && (
+               <div className="flex items-center text-sm">
+                 <span className="text-emerald-500 font-bold mr-2 text-xs">🟢</span>
+                 <span className="text-slate-500 mr-1 text-xs">{language === 'bn' ? 'হোয়াটসঅ্যাপ:' : 'WhatsApp:'}</span>
+                 <a href={`https://wa.me/${tutor.whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">{tutor.whatsappNumber}</a>
+               </div>
+             )}
+             {!tutor.contactNumber && !tutor.phoneNumber && !tutor.whatsappNumber && (
+               <span className="text-slate-500 text-xs italic">{language === 'bn' ? 'কোনো কন্টাক্ট নম্বর দেওয়া নেই' : 'No contact details provided'}</span>
              )}
            </div>
         ) : (

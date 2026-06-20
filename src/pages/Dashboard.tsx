@@ -628,7 +628,7 @@ export default function Dashboard() {
                             onClick={async () => {
                               await sendRenewalEmailManual(user.id);
                             }}
-                            className="px-3.5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-650 hover:from-violet-700 hover:to-indigo-700 hover:shadow-indigo-500/10 text-white rounded-xl font-bold text-xs shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 transform active:scale-95"
+                            className="px-3.5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-655 hover:from-violet-700 hover:to-indigo-700 hover:shadow-indigo-500/10 text-white rounded-xl font-bold text-xs shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 transform active:scale-95"
                           >
                             <Send className="w-3.5 h-3.5 animate-pulse" />
                             <span>রিনিউ ইমেইল পাঠান</span>
@@ -677,7 +677,7 @@ export default function Dashboard() {
                                 </button>
                               </div>
                             ) : (
-                              <button onClick={() => setDeleteConfirmUserId(user.id)} className="px-3.5 py-2 bg-red-105 hover:bg-red-200 text-red-700 rounded-xl font-semibold transition-all cursor-pointer">মুছে ফেলুন</button>
+                              <button onClick={() => setDeleteConfirmUserId(user.id)} className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-semibold transition-all cursor-pointer">মুছে ফেলুন</button>
                             )}
                           </>
                         )}
@@ -717,7 +717,7 @@ export default function Dashboard() {
                      demoTutors.forEach(addTutor);
                      toast.success(' ৬টি ডেমো পোস্ট সফলভাবে যোগ করা হয়েছে!');
                    }}
-                   className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700"
+                   className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 font-sans cursor-pointer shadow-sm transition-all"
                 >
                   ৬টি ডেমো পোস্ট যোগ করুন
                 </button>
@@ -883,7 +883,8 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       price: Number(formData.price) || 0,
       images: [formData.image || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'],
       isAvailable: true,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      ownerPhoneNumber: formData.ownerPhoneNumber || ''
     });
     setFormData({});
   };
@@ -901,7 +902,10 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       location: formData.location || MAIN_LOCATIONS[0],
       salaryExpected: Number(formData.price) || 0,
       image: formData.image || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200',
-      isVerified: true
+      isVerified: true,
+      phoneNumber: formData.phoneNumber || '',
+      whatsappNumber: formData.whatsappNumber || '',
+      daysPerWeek: formData.daysPerWeek || '৩ দিন'
     });
     setFormData({});
   };
@@ -954,16 +958,22 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       </div>
 
       {!isTutor && (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">ধরন</label>
-            <select value={formData.type || PROPERTY_TYPES[0]} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
-              {PROPERTY_TYPES.map(t => <option key={t} value={t} className="dark:bg-slate-800">{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>)}
-            </select>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">ধরন</label>
+              <select value={formData.type || PROPERTY_TYPES[0]} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                {PROPERTY_TYPES.map(t => <option key={t} value={t} className="dark:bg-slate-800">{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">বিস্তারিত ঠিকানা</label>
+              <input required value={formData.address || ''} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
+            </div>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">বিস্তারিত ঠিকানা</label>
-            <input required value={formData.address || ''} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
+            <label className="block text-sm font-medium mb-1">মালিকের ফোন নাম্বার (Owner Phone Number)</label>
+            <input required type="tel" placeholder="যেমন: 017xxxxxxxx" value={formData.ownerPhoneNumber || ''} onChange={e => setFormData({...formData, ownerPhoneNumber: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
           </div>
         </div>
       )}
@@ -977,6 +987,32 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
           <div>
             <label className="block text-sm font-medium mb-1">শিক্ষাগত যোগ্যতা</label>
             <input required value={formData.education || ''} onChange={e => setFormData({...formData, education: e.target.value})} placeholder="যেমন: B.Sc in CSE, Mymensingh College" className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">ফোন নাম্বার (Phone)</label>
+              <input required type="tel" placeholder="যেমন: 017xxxxxxxx" value={formData.phoneNumber || ''} onChange={e => setFormData({...formData, phoneNumber: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">হোয়াটসঅ্যাপ নাম্বার (WhatsApp)</label>
+              <input required type="tel" placeholder="যেমন: 017xxxxxxxx" value={formData.whatsappNumber || ''} onChange={e => setFormData({...formData, whatsappNumber: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">সপ্তাহে কত দিন পড়াতে পারবেন?</label>
+            <select 
+              value={formData.daysPerWeek || '৩ দিন'} 
+              onChange={e => setFormData({...formData, daysPerWeek: e.target.value})} 
+              className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+            >
+              <option value="১ দিন">১ দিন (1 Day/Week)</option>
+              <option value="২ দিন">২ দিন (2 Days/Week)</option>
+              <option value="৩ দিন">৩ দিন (3 Days/Week)</option>
+              <option value="৪ দিন">৪ দিন (4 Days/Week)</option>
+              <option value="৫ দিন">৫ দিন (5 Days/Week)</option>
+              <option value="৬ দিন">৬ দিন (6 Days/Week)</option>
+              <option value="৭ দিন">৭ দিন (7 Days/Week)</option>
+            </select>
           </div>
         </>
       )}

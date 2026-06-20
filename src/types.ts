@@ -25,6 +25,9 @@ export interface User {
   pendingRenewPackage?: string;
   pendingRenewAmount?: number;
   pendingRenewSubmittedAt?: string;
+  phoneNumber?: string;     // Added phone number for tutor or property owners
+  whatsappNumber?: string;  // Added whatsapp number for tutors
+  daysPerWeek?: string;     // Added days per week for tutors
 }
 
 export interface Property {
@@ -40,6 +43,7 @@ export interface Property {
   isAvailable: boolean;
   createdAt: string;
   contactNumber?: string;
+  ownerPhoneNumber?: string; // Specifically owner's phone number
 }
 
 export interface Tutor {
@@ -55,6 +59,9 @@ export interface Tutor {
   image: string;
   isVerified: boolean;
   contactNumber?: string;
+  phoneNumber?: string;     // Added phone number
+  whatsappNumber?: string;  // Added WhatsApp number
+  daysPerWeek?: string;     // Added days per week "১ দিন" to "৭ দিন"
 }
 
 export interface Invoice {
