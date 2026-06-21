@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Property, Tutor } from '../types';
-import { MapPin, BookOpen, Clock, CalendarDays, Phone, LockKeyhole, MessageCircle } from 'lucide-react';
+import { MapPin, BookOpen, Clock, CalendarDays, Phone, LockKeyhole, MessageCircle, Briefcase } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
