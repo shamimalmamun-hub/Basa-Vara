@@ -65,6 +65,7 @@ export interface Tutor {
   whatsappNumber?: string;  // Added WhatsApp number
   daysPerWeek?: string;     // Added days per week "১ দিন" to "৭ দিন"
   gender?: Gender;          // Added gender
+  experience?: string;      // Added experience
 }
 
 export interface Invoice {

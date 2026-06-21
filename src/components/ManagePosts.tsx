@@ -68,6 +68,7 @@ export default function ManagePosts() {
       whatsappNumber: editingTutor.whatsappNumber,
       daysPerWeek: editingTutor.daysPerWeek,
       gender: editingTutor.gender,
+      experience: editingTutor.experience,
       image: editingTutor.image,
       isVerified: editingTutor.isVerified,
     });
@@ -748,6 +749,16 @@ export default function ManagePosts() {
                     <option value="male">ছেলে</option>
                     <option value="female">মেয়ে</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">অভিজ্ঞতা (Experience)</label>
+                  <textarea 
+                    value={editingTutor.experience || ''} 
+                    onChange={e => setEditingTutor({...editingTutor, experience: e.target.value})} 
+                    className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                    placeholder="উদাহরণ: ২ বছরের অভিজ্ঞতা..."
+                    rows={2}
+                  />
                 </div>
               </div>
 

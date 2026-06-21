@@ -187,6 +187,12 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
           <Clock className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
           <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{tutor.availableTime}</span>
         </div>
+        {tutor.experience && (
+        <div className="flex items-start text-sm">
+          <Briefcase className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
+          <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{tutor.experience}</span>
+        </div>
+        )}
       </div>
 
       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-1 flex-grow">

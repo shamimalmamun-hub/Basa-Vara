@@ -914,7 +914,8 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       phoneNumber: formData.phoneNumber || '',
       whatsappNumber: formData.whatsappNumber || '',
       daysPerWeek: formData.daysPerWeek || '৩ দিন',
-      gender: formData.gender || 'male'
+      gender: formData.gender || 'male',
+      experience: formData.experience || ''
     });
     setFormData({});
   };
@@ -1037,6 +1038,10 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
               <option value="male">ছেলে</option>
               <option value="female">মেয়ে</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">অভিজ্ঞতা (Experience)</label>
+            <input placeholder="যেমন: ৩ বছরের অভিজ্ঞতা..." value={formData.experience || ''} onChange={e => setFormData({...formData, experience: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white" />
           </div>
         </>
       )}
