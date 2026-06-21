@@ -849,33 +849,65 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
   const [selectedType, setSelectedType] = useState<'property' | 'tutor'>(role === 'tutor' ? 'tutor' : 'property');
   const [formData, setFormData] = useState<any>({});
   const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [urlInput, setUrlInput] = useState<string>('');
+
+  const isTutor = selectedType === 'tutor';
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!');
-      return;
-    }
 
-    try {
-      const compressed = await compressImage(file);
-      setFormData((prev: any) => ({ ...prev, image: compressed }));
-    } catch (err) {
-      console.error("Content image compression failed:", err);
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        setFormData((prev: any) => ({ ...prev, image: base64String }));
-      };
-      reader.readAsDataURL(file);
+    if (isTutor) {
+      const file = files[0];
+      if (!allowedTypes.includes(file.type)) {
+        alert('শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!');
+        return;
+      }
+
+      try {
+        const compressed = await compressImage(file);
+        setFormData((prev: any) => ({ ...prev, image: compressed }));
+      } catch (err) {
+        console.error("Content image compression failed:", err);
+        const reader = new FileReader();
+        reader.onload = () => {
+          setFormData((prev: any) => ({ ...prev, image: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      // Multiple image uploads for property
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!allowedTypes.includes(file.type)) {
+          alert(`"${file.name}" - শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!`);
+          continue;
+        }
+
+        try {
+          const compressed = await compressImage(file);
+          setUploadedImages(prev => [...prev, compressed]);
+        } catch (err) {
+          console.error("Content image compression failed:", err);
+          const reader = new FileReader();
+          reader.onload = () => {
+            setUploadedImages(prev => [...prev, reader.result as string]);
+          };
+          reader.readAsDataURL(file);
+        }
+      }
     }
   };
 
-  const removeSelectedImage = () => {
-    setFormData((prev: any) => ({ ...prev, image: '' }));
+  const removeSelectedImage = (index?: number) => {
+    if (isTutor) {
+      setFormData((prev: any) => ({ ...prev, image: '' }));
+    } else if (typeof index === 'number') {
+      setUploadedImages(prev => prev.filter((_, i) => i !== index));
+    }
   };
   
   const submitProperty = (e: React.FormEvent) => {
@@ -889,12 +921,14 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       address: formData.address || '',
       type: formData.type || PROPERTY_TYPES[0],
       price: Number(formData.price) || 0,
-      images: [formData.image || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'],
+      images: uploadedImages.length > 0 ? uploadedImages : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'],
       isAvailable: true,
       createdAt: new Date().toISOString(),
       ownerPhoneNumber: formData.ownerPhoneNumber || ''
     });
     setFormData({});
+    setUploadedImages([]);
+    setUrlInput('');
   };
 
   const submitTutor = (e: React.FormEvent) => {
@@ -919,8 +953,6 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
     });
     setFormData({});
   };
-
-  const isTutor = selectedType === 'tutor';
 
   return (
     <form className="space-y-6 max-w-xl bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm" onSubmit={isTutor ? submitTutor : submitProperty}>
@@ -1078,71 +1110,151 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
           </div>
         </div>
 
-        {uploadMethod === 'file' ? (
-          <div>
-            {!formData.image ? (
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl py-8 px-4 text-center cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-550 transition-colors">
-                <Upload className="w-10 h-10 text-slate-400 dark:text-slate-500 mb-2 animate-pulse" />
+        {isTutor ? (
+          uploadMethod === 'file' ? (
+            <div>
+              {!formData.image ? (
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl py-8 px-4 text-center cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-550 transition-colors">
+                  <Upload className="w-10 h-10 text-slate-400 dark:text-slate-500 mb-2 animate-pulse" />
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    ছবি নির্বাচন করতে এখানে ক্লিক করুন
+                  </span>
+                  <span className="text-xs text-slate-400 mt-1">
+                    PNG, JPEG, JPG, WEBP (সর্বোচ্চ ৪ মেগাবাইট)
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              ) : (
+                <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-900 p-2 group">
+                  <img
+                    src={formData.image}
+                    alt="Uploaded Preview"
+                    className="w-full h-48 object-cover rounded-xl"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSelectedImage()}
+                    className="absolute top-4 right-4 bg-red-650 hover:bg-red-700 text-white p-2 rounded-full shadow-lg transition-transform hover:scale-105 cursor-pointer"
+                    title="ছবি মুছে ফেলুন"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="p-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                    ✓ ছবি সফলভাবে আপলোড হয়েছে
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <input
+                type="url"
+                value={formData.image || ''}
+                onChange={e => setFormData({ ...formData, image: e.target.value })}
+                placeholder="https://images.unsplash.com/photo-..."
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white"
+              />
+              {formData.image && formData.image.startsWith('http') && (
+                <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden p-2 bg-slate-50 dark:bg-slate-900">
+                  <img
+                    src={formData.image}
+                    alt="URL Preview"
+                    className="w-full h-48 object-cover rounded-xl"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSelectedImage()}
+                    className="absolute top-4 right-4 bg-red-650 hover:bg-red-700 text-white p-1.5 rounded-full shadow cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )
+        ) : (
+          /* Property - multi image uploads */
+          <div className="space-y-4">
+            {uploadMethod === 'file' ? (
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl py-6 px-4 text-center cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-550 transition-colors">
+                <Upload className="w-8 h-8 text-slate-400 dark:text-slate-500 mb-1.5 animate-pulse" />
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  ছবি নির্বাচন করতে এখানে ক্লিক করুন
+                  বাসার একাধিক ছবি যুক্ত করতে এখানে ক্লিক করুন
                 </span>
                 <span className="text-xs text-slate-400 mt-1">
-                  PNG, JPEG, JPG, WEBP (সর্বোচ্চ ৪ মেগাবাইট)
+                  PNG, JPEG, JPG, WEBP (কন্ট্রোল কী চেপে একাধিক সিলেক্ট করতে পারেন)
                 </span>
                 <input
                   type="file"
+                  multiple
                   accept="image/*"
                   onChange={handleFileChange}
                   className="hidden"
                 />
               </label>
             ) : (
-              <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-900 p-2 group">
-                <img
-                  src={formData.image}
-                  alt="Uploaded Preview"
-                  className="w-full h-48 object-cover rounded-xl"
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={e => setUrlInput(e.target.value)}
+                  placeholder="https://images.unsplash.com/photo-..."
+                  className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white text-sm"
                 />
                 <button
                   type="button"
-                  onClick={removeSelectedImage}
-                  className="absolute top-4 right-4 bg-red-650 hover:bg-red-700 text-white p-2 rounded-full shadow-lg transition-transform hover:scale-105 cursor-pointer"
-                  title="ছবি মুছে ফেলুন"
+                  onClick={() => {
+                    if (urlInput.trim()) {
+                      setUploadedImages(prev => [...prev, urlInput.trim()]);
+                      setUrlInput('');
+                    }
+                  }}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold whitespace-nowrap"
                 >
-                  <X className="w-4 h-4" />
+                  যোগ করুন
                 </button>
-                <div className="p-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                  ✓ ছবি সফলভাবে আপলোড হয়েছে
-                </div>
               </div>
             )}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <input
-              type="url"
-              value={formData.image || ''}
-              onChange={e => setFormData({ ...formData, image: e.target.value })}
-              placeholder="https://images.unsplash.com/photo-..."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent text-slate-900 dark:text-white"
-            />
-            {formData.image && formData.image.startsWith('http') && (
-              <div className="relative rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden p-2 bg-slate-50 dark:bg-slate-900">
-                <img
-                  src={formData.image}
-                  alt="URL Preview"
-                  className="w-full h-48 object-cover rounded-xl"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400';
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={removeSelectedImage}
-                  className="absolute top-4 right-4 bg-red-650 hover:bg-red-700 text-white p-1.5 rounded-full shadow cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+
+            {/* Render uploaded list of multiple images */}
+            {uploadedImages.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                  যুক্ত করা ছবিসমূহ ({uploadedImages.length}টি):
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {uploadedImages.map((img, idx) => (
+                    <div key={idx} className="relative aspect-video rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-900 group">
+                      <img
+                        src={img}
+                        alt={`Preview ${idx + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400';
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSelectedImage(idx)}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-1 rounded-full shadow-lg transition-transform hover:scale-110 cursor-pointer"
+                        title="মুছে ফেলুন"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      <span className="absolute bottom-1.5 left-2 bg-slate-900/60 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-white font-mono font-bold">
+                        {idx + 1}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

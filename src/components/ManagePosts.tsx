@@ -42,6 +42,7 @@ export default function ManagePosts() {
       contactNumber: editingProperty.contactNumber,
       ownerPhoneNumber: editingProperty.ownerPhoneNumber,
       isAvailable: editingProperty.isAvailable,
+      images: editingProperty.images,
     });
     setEditingProperty(null);
   };
@@ -552,6 +553,17 @@ export default function ManagePosts() {
                     className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">বাসার ছবিসমূহ (কমা দিয়ে আলাদা করা একাধিক URL)</label>
+                <textarea 
+                  rows={2}
+                  value={editingProperty.images ? editingProperty.images.join(', ') : ''}
+                  onChange={e => setEditingProperty({...editingProperty, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
+                  placeholder="https://images.unsplash.com/photo-1, https://images.unsplash.com/photo-2"
+                  className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-sans text-xs"
+                />
               </div>
 
               <div>

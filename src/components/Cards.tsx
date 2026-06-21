@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Property, Tutor } from '../types';
-import { MapPin, BookOpen, Clock, CalendarDays, Phone, LockKeyhole, MessageCircle, Briefcase } from 'lucide-react';
+import { MapPin, BookOpen, Clock, CalendarDays, Phone, LockKeyhole, MessageCircle, Briefcase, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export function PropertyCard({ property }: { property: Property, key?: any }) {
   const { currentUser } = useApp();
   const { language, t } = useLanguage();
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
   const isOwner = currentUser?.id === property.ownerId;
   const isAdmin = currentUser?.role === 'admin';
   const isSubscribed = currentUser?.subscriptionEnd ? new Date(currentUser.subscriptionEnd) > new Date() : false;
@@ -33,53 +34,94 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
   const locationLabel = getLocationLabel(property.location);
 
   return (
-    <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl overflow-hidden hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group h-[480px]">
+    <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-3 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden h-full">
       <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-white/10 dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0">
+      
+      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0 rounded-2xl mb-3 group/slider">
         <img 
-          src={property.images[0] || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80'} 
-          alt={property.title}
-          className="w-full h-full object-cover"
+          src={(property.images && property.images[currentImgIndex]) || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80'} 
+          alt={`${property.title} - ${currentImgIndex + 1}`}
+          className="w-full h-full object-cover transition-all duration-500"
           referrerPolicy="no-referrer"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80';
+          }}
         />
-        <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-sm px-3 py-1 rounded-full font-bold shadow-sm text-slate-900 dark:text-slate-100">
-          ৳{property.price.toLocaleString('en-IN')}<span className="text-slate-500 dark:text-slate-400 text-xs font-normal">{t('tagMonth')}</span>
+        
+        {/* Left/Right Carousel Controls */}
+        {property.images && property.images.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setCurrentImgIndex(prev => (prev === 0 ? property.images.length - 1 : prev - 1));
+              }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white dark:bg-slate-950/80 dark:hover:bg-slate-950 text-slate-800 dark:text-slate-200 p-1 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 cursor-pointer z-10"
+              title={language === 'bn' ? 'পূর্ববর্তী ছবি' : 'Previous Image'}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setCurrentImgIndex(prev => (prev === property.images.length - 1 ? 0 : prev + 1));
+              }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white dark:bg-slate-950/80 dark:hover:bg-slate-950 text-slate-800 dark:text-slate-200 p-1 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 cursor-pointer z-10"
+              title={language === 'bn' ? 'পরবর্তী ছবি' : 'Next Image'}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            
+            {/* Image index badge indicator */}
+            <div className="absolute bottom-2 right-2 bg-slate-950/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm shadow z-10 font-sans">
+              {currentImgIndex + 1}/{property.images.length}
+            </div>
+          </>
+        )}
+
+        <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-xs px-2.5 py-1 rounded-full font-bold shadow-sm text-indigo-650 dark:text-indigo-400">
+          ৳{property.price.toLocaleString('en-IN')}<span className="text-slate-500 dark:text-slate-400 text-[10px] font-normal">{t('tagMonth')}</span>
         </div>
-        <div className="absolute top-3 left-3 bg-indigo-500 text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+        <div className="absolute top-3 left-3 bg-indigo-500/90 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm backdrop-blur-sm">
           {propertyTypeLabel()}
         </div>
       </div>
-      <div className="p-5 flex-1 flex flex-col justify-between overflow-hidden">
+
+      <div className="p-1 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
-          <h3 className="font-semibold text-lg text-slate-900 dark:text-white line-clamp-1">{property.title}</h3>
-          <p className="flex items-center text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">
-            <MapPin className="w-4 h-4 mr-1 text-indigo-500 shrink-0" /> {locationLabel}
+          <h3 className="font-semibold text-base text-slate-900 dark:text-white line-clamp-1">{property.title}</h3>
+          <p className="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
+            <MapPin className="w-3.5 h-3.5 mr-1 text-indigo-500 shrink-0" /> {locationLabel}
           </p>
-          <p className="text-sm text-slate-600 dark:text-slate-300 mt-3 line-clamp-2 leading-relaxed h-[42px] overflow-hidden">
+          <p className="text-xs text-slate-600 dark:text-slate-350 mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
             {property.description}
           </p>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 h-[100px] overflow-y-auto pr-1">
+        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 h-[80px] overflow-y-auto pr-1">
           {canViewDetails ? (
-            <div className="space-y-1.5">
-              <div className="flex items-start text-xs sm:text-sm">
-                <MapPin className="w-4 h-4 text-indigo-500 mr-2 mt-0.5 shrink-0" />
+            <div className="space-y-1">
+              <div className="flex items-start text-xs">
+                <MapPin className="w-3.5 h-3.5 text-indigo-500 mr-1.5 mt-0.5 shrink-0" />
                 <span className="text-slate-700 dark:text-slate-300 font-semibold truncate">{property.address}</span>
               </div>
               {(property.contactNumber || property.ownerPhoneNumber) && (
-                <div className="flex flex-col gap-1.5 pt-1">
+                <div className="flex flex-col gap-1 pt-0.5">
                   {property.contactNumber && (
-                    <div className="flex items-center text-xs sm:text-sm">
-                      <Phone className="w-3.5 h-3.5 text-indigo-500 mr-2 shrink-0" />
-                      <span className="text-slate-500 mr-1 text-xs shrink-0">{language === 'bn' ? 'যোগাযোগ:' : 'Contact:'}</span>
+                    <div className="flex items-center text-xs">
+                      <Phone className="w-3.5 h-3.5 text-indigo-500 mr-1.5 shrink-0" />
+                      <span className="text-slate-500 mr-1 text-[10px] shrink-0">{language === 'bn' ? 'যোগাযোগ:' : 'Contact:'}</span>
                       <a href={`tel:${property.contactNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{property.contactNumber}</a>
                     </div>
                   )}
                   {property.ownerPhoneNumber && (
-                    <div className="flex items-center text-xs sm:text-sm">
-                      <Phone className="w-3.5 h-3.5 text-emerald-500 mr-2 shrink-0" />
-                      <span className="text-slate-500 mr-1 text-xs shrink-0">{language === 'bn' ? 'মালিক:' : 'Owner Phone:'}</span>
+                    <div className="flex items-center text-xs">
+                      <Phone className="w-3.5 h-3.5 text-emerald-500 mr-1.5 shrink-0" />
+                      <span className="text-slate-500 mr-1 text-[10px] shrink-0">{language === 'bn' ? 'মালিক:' : 'Owner Phone:'}</span>
                       <a href={`tel:${property.ownerPhoneNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{property.ownerPhoneNumber}</a>
                     </div>
                   )}
@@ -87,8 +129,8 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
               )}
             </div>
           ) : (
-            <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-xl transition-all border border-slate-200/50 dark:border-slate-700/50">
-              <LockKeyhole className="w-3.5 h-3.5 mr-1.5" /> {language === 'bn' ? 'সাবস্ক্রাইব করে বিস্তারিত দেখুন' : 'Subscribe to View Details'}
+            <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded-xl transition-all border border-slate-200/50 dark:border-slate-700/50">
+              <LockKeyhole className="w-3 h-3 mr-1" /> {language === 'bn' ? 'সাবস্ক্রাইব করে বিস্তারিত দেখুন' : 'Subscribe to View Details'}
             </Link>
           )}
         </div>
@@ -144,7 +186,7 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
   const locationLabel = getLocationLabel(tutor.location);
 
   return (
-    <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-3 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden">
+    <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-3 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden h-full">
       <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-white/10 dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
       {tutor.isVerified && (
         <div className="absolute top-0 right-0 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold px-3 py-1.5 rounded-bl-xl uppercase tracking-wider">
