@@ -9,10 +9,12 @@ export default function ManagePosts() {
   const { 
     properties, 
     tutors, 
+    addProperty,
     updateProperty, 
     deleteProperty, 
     updateTutor, 
-    deleteTutor 
+    deleteTutor,
+    currentUser
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<'properties' | 'tutors'>('properties');
@@ -21,10 +23,44 @@ export default function ManagePosts() {
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('all');
   const [sortByPrice, setSortByPrice] = useState<'asc' | 'desc' | 'none'>('none');
 
-  // Edit states
+  // Edit and Create states
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   const [editPropertyUrlInput, setEditPropertyUrlInput] = useState('');
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
+
+  const handleCreatePropertyClick = () => {
+    setEditingProperty({
+      id: `prop_${Date.now()}`,
+      ownerId: currentUser?.id || 'admin',
+      title: '',
+      description: '',
+      location: MAIN_LOCATIONS[0],
+      address: '',
+      type: PROPERTY_TYPES[0] as any,
+      price: 0,
+      images: [],
+      isAvailable: true,
+      createdAt: new Date().toISOString(),
+      contactNumber: '',
+      ownerPhoneNumber: '',
+    });
+    setIsCreatingProperty(true);
+  };
+
+  const getPropertyTypeLabel = (type: string) => {
+    if (type === 'Family Flat') return 'ফ্যামিলি ফ্ল্যাট';
+    if (type === 'Female Mess') return 'ছাত্রী মেস';
+    if (type === 'Male Mess') return 'ছাত্র মেস';
+    if (type === 'Bachelor Flat') return 'ব্যাচেলর ফ্ল্যাট';
+    
+    // fallbacks
+    if (type === 'Flat') return 'ফ্ল্যাট';
+    if (type === 'Seat') return 'সিট';
+    if (type === 'Single Room') return 'সিঙ্গেল রুম';
+    if (type === 'Mess') return 'মেস';
+    return type;
+  };
 
   // Delete confirm states
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -87,19 +123,29 @@ export default function ManagePosts() {
   const handleSaveProperty = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProperty) return;
-    updateProperty(editingProperty.id, {
-      title: editingProperty.title,
-      description: editingProperty.description,
-      location: editingProperty.location,
-      address: editingProperty.address,
-      type: editingProperty.type,
-      price: Number(editingProperty.price),
-      contactNumber: editingProperty.contactNumber,
-      ownerPhoneNumber: editingProperty.ownerPhoneNumber,
-      isAvailable: editingProperty.isAvailable,
-      images: editingProperty.images,
-    });
+    if (isCreatingProperty) {
+      addProperty({
+        ...editingProperty,
+        price: Number(editingProperty.price),
+        createdAt: new Date().toISOString()
+      });
+      toast.success('নতুন বাসাভাড়া পোস্ট সফলভাবে তৈরি করা হয়েছে।');
+    } else {
+      updateProperty(editingProperty.id, {
+        title: editingProperty.title,
+        description: editingProperty.description,
+        location: editingProperty.location,
+        address: editingProperty.address,
+        type: editingProperty.type,
+        price: Number(editingProperty.price),
+        contactNumber: editingProperty.contactNumber,
+        ownerPhoneNumber: editingProperty.ownerPhoneNumber,
+        isAvailable: editingProperty.isAvailable,
+        images: editingProperty.images,
+      });
+    }
     setEditingProperty(null);
+    setIsCreatingProperty(false);
   };
 
   const handleDeletePropertyConfirm = (id: string) => {
@@ -189,7 +235,19 @@ export default function ManagePosts() {
           <p className="text-sm text-slate-500">বাসা ভাড়া এবং হোম টিউশন বিজ্ঞাপনের তালিকা, সম্পাদনা এবং ডিলিট করার স্থান</p>
         </div>
         
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl self-start md:self-auto">
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          {activeSubTab === 'properties' && (
+            <button
+              type="button"
+              onClick={handleCreatePropertyClick}
+              className="px-4.5 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-505 dark:hover:bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>নতুন বাসাভাড়া পোস্ট</span>
+            </button>
+          )}
+
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
           <button 
             type="button"
             onClick={() => {
@@ -220,6 +278,7 @@ export default function ManagePosts() {
           </button>
         </div>
       </div>
+    </div>
 
       {/* Control Panel: Filters, Search, Sort */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -256,7 +315,7 @@ export default function ManagePosts() {
             >
               <option value="all">🏠 সব ধরন (All Types)</option>
               {PROPERTY_TYPES.map(t => (
-                <option key={t} value={t}>{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>
+                <option key={t} value={t}>{getPropertyTypeLabel(t)}</option>
               ))}
             </select>
           ) : null}
@@ -296,9 +355,14 @@ export default function ManagePosts() {
                 <div>
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider font-sans">
-                        {property.type === 'Flat' ? 'ফ্ল্যাট' : property.type === 'Seat' ? 'সিট' : property.type === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider font-sans">
+                          {getPropertyTypeLabel(property.type)}
+                        </span>
+                        <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider font-sans ${property.isAvailable === false ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450' : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'}`}>
+                          {property.isAvailable === false ? 'ভাড়া হয়ে গেছে 🛑' : 'খালি আছে ✅'}
+                        </span>
+                      </div>
                       <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1.5 leading-snug line-clamp-1">{property.title}</h4>
                     </div>
                     <span className="text-lg font-black text-indigo-600 dark:text-indigo-400 font-sans whitespace-nowrap">
@@ -517,11 +581,18 @@ export default function ManagePosts() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
               <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Edit2 className="w-5 h-5 text-indigo-600" />
-                <span>বাসাভাড়া পোস্ট সমাধান করুন</span>
+                {isCreatingProperty ? (
+                  <Plus className="w-5 h-5 text-indigo-600" />
+                ) : (
+                  <Edit2 className="w-5 h-5 text-indigo-600" />
+                )}
+                <span>{isCreatingProperty ? 'নতুন বাসাভাড়া পোস্ট যোগ করুন' : 'বাসাভাড়া পোস্ট সম্পাদনা করুন'}</span>
               </h3>
               <button 
-                onClick={() => setEditingProperty(null)}
+                onClick={() => {
+                  setEditingProperty(null);
+                  setIsCreatingProperty(false);
+                }}
                 className="p-1 px-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 rounded-xl font-bold cursor-pointer transition-colors"
               >
                 বন্ধ
@@ -536,6 +607,17 @@ export default function ManagePosts() {
                   required
                   value={editingProperty.title}
                   onChange={e => setEditingProperty({...editingProperty, title: e.target.value})}
+                  className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">বিজ্ঞাপন বিবরণ (Description)</label>
+                <textarea 
+                  required
+                  rows={3}
+                  value={editingProperty.description}
+                  onChange={e => setEditingProperty({...editingProperty, description: e.target.value})}
                   className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
@@ -572,7 +654,7 @@ export default function ManagePosts() {
                     className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
                   >
                     {PROPERTY_TYPES.map(t => (
-                      <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>
+                      <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{getPropertyTypeLabel(t)}</option>
                     ))}
                   </select>
                 </div>
@@ -608,6 +690,21 @@ export default function ManagePosts() {
                     className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">ভাড়ার জন্য উপলব্ধ? (Is Available for Rent?)</label>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-550 mt-0.5">
+                    {editingProperty.isAvailable !== false ? '✅ খালি আছে (Available)' : '🛑 ভাড়া হয়ে গেছে (Rented Out / Taken)'}
+                  </p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  checked={editingProperty.isAvailable !== false} 
+                  onChange={e => setEditingProperty({...editingProperty, isAvailable: e.target.checked})} 
+                  className="w-5 h-5 rounded border-slate-300 focus:ring-indigo-500 accent-indigo-600 cursor-pointer"
+                />
               </div>
 
               <div>

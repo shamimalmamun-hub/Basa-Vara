@@ -1,5 +1,5 @@
 export type Role = 'admin' | 'user' | 'tutor' | 'visitor';
-export type PropertyType = 'Flat' | 'Mess' | 'Single Room' | 'Seat';
+export type PropertyType = 'Family Flat' | 'Female Mess' | 'Male Mess' | 'Bachelor Flat';
 export type NIDStatus = 'pending' | 'verified' | 'rejected' | 'unsubmitted';
 
 export interface User {

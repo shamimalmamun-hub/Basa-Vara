@@ -69,10 +69,10 @@ export default function Rentals() {
             <option value="All">{language === 'bn' ? 'সকল ধরন' : 'All Types'}</option>
             {PROPERTY_TYPES.map(tOption => {
               let localizedLabel = tOption;
-              if (tOption === 'Flat') localizedLabel = language === 'bn' ? 'ফ্ল্যাট' : 'Flat';
-              else if (tOption === 'Seat') localizedLabel = language === 'bn' ? 'সিট' : 'Seat';
-              else if (tOption === 'Single Room') localizedLabel = language === 'bn' ? 'সিঙ্গেল রুম' : 'Single Room';
-              else if (tOption === 'Mess') localizedLabel = language === 'bn' ? 'মেস' : 'Mess';
+              if (tOption === 'Family Flat') localizedLabel = language === 'bn' ? 'ফ্যামিলি ফ্ল্যাট' : 'Family Flat';
+              else if (tOption === 'Female Mess') localizedLabel = language === 'bn' ? 'ছাত্রী মেস' : 'Female Mess';
+              else if (tOption === 'Male Mess') localizedLabel = language === 'bn' ? 'ছাত্র মেস' : 'Male Mess';
+              else if (tOption === 'Bachelor Flat') localizedLabel = language === 'bn' ? 'ব্যাচেলর ফ্ল্যাট' : 'Bachelor Flat';
               
               return (
                 <option key={tOption} value={tOption}>

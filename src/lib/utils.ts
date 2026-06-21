@@ -25,7 +25,7 @@ export const MAIN_LOCATIONS = [
   "Dhaka"
 ];
 
-export const PROPERTY_TYPES = ["Flat", "Mess", "Single Room", "Seat"];
+export const PROPERTY_TYPES = ["Family Flat", "Female Mess", "Male Mess", "Bachelor Flat"];
 
 export function compressImage(file: File, maxWidth = 600, maxHeight = 450): Promise<string> {
   return new Promise((resolve, reject) => {

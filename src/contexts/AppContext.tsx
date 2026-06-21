@@ -188,8 +188,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Mock Initial Data
 const MOCK_PROPERTIES: Property[] = [
-  { id: 'p1', ownerId: 'u1', title: 'Bright 2BHK Flat', description: 'South facing, fully tiled.', location: 'Mymensingh Sadar', address: '12/A Charpara', type: 'Flat', price: 12000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=80'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '017XXXXXXXX' },
-  { id: 'p2', ownerId: 'u2', title: '1 Seat in Standard Mess', description: '3 seats in one room. Food excluded.', location: 'Madhupur', address: 'Munsur Ali Road', type: 'Seat', price: 1500, images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=400&q=80'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '018XXXXXXXX' },
+  { id: 'p1', ownerId: 'u1', title: 'Bright 2BHK Flat', description: 'South facing, fully tiled.', location: 'Mymensingh Sadar', address: '12/A Charpara', type: 'Family Flat', price: 12000, images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=80'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '017XXXXXXXX' },
+  { id: 'p2', ownerId: 'u2', title: '1 Seat in Standard Mess', description: '3 seats in one room. Food excluded.', location: 'Madhupur', address: 'Munsur Ali Road', type: 'Bachelor Flat', price: 1500, images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=400&q=80'], isAvailable: true, createdAt: new Date().toISOString(), contactNumber: '018XXXXXXXX' },
 ];
 
 const MOCK_TUTORS: Tutor[] = [

@@ -15,10 +15,17 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
   const canViewDetails = isAdmin || isOwner || isSubscribed;
 
   const propertyTypeLabel = () => {
+    if (property.type === 'Family Flat') return language === 'bn' ? 'ফ্যামিলি ফ্ল্যাট' : 'Family Flat';
+    if (property.type === 'Female Mess') return language === 'bn' ? 'ছাত্রী মেস' : 'Female Mess';
+    if (property.type === 'Male Mess') return language === 'bn' ? 'ছাত্র মেস' : 'Male Mess';
+    if (property.type === 'Bachelor Flat') return language === 'bn' ? 'ব্যাচেলর ফ্ল্যাট' : 'Bachelor Flat';
+    
+    // fallbacks
     if (property.type === 'Flat') return language === 'bn' ? 'ফ্ল্যাট' : 'Flat';
     if (property.type === 'Seat') return language === 'bn' ? 'সিট' : 'Seat';
     if (property.type === 'Single Room') return language === 'bn' ? 'সিঙ্গেল রুম' : 'Single Room';
-    return language === 'bn' ? 'মেস' : 'Mess';
+    if (property.type === 'Mess') return language === 'bn' ? 'মেস' : 'Mess';
+    return property.type || (language === 'bn' ? 'ফ্ল্যাট' : 'Flat');
   };
 
   const getLocationLabel = (loc: string) => {
@@ -81,6 +88,11 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
               {currentImgIndex + 1}/{property.images.length}
             </div>
 
+            {/* Availability Badge inside slide */}
+            <div className={`absolute bottom-2 left-2 text-[9px] font-black px-2.5 py-1 rounded-full backdrop-blur-md shadow-lg z-10 text-white uppercase tracking-wider ${property.isAvailable === false ? 'bg-rose-600/90 ring-1 ring-white/10' : 'bg-emerald-600/90 ring-1 ring-white/10'}`}>
+              {property.isAvailable === false ? (language === 'bn' ? 'ভাড়া হয়ে গেছে 🛑' : 'Rented Out 🛑') : (language === 'bn' ? 'খালি আছে ✅' : 'Available ✅')}
+            </div>
+
             {/* Pagination dots at the top center of the slide */}
             <div className="absolute top-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
               {property.images.map((_, i) => (
@@ -93,26 +105,26 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
           </>
         )}
 
-        <div className="absolute top-3 right-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-xs px-2.5 py-1 rounded-full font-bold shadow-sm text-indigo-650 dark:text-indigo-400">
+        <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur text-xs px-2.5 py-1 rounded-full font-black shadow-sm text-indigo-650 dark:text-indigo-400 border border-slate-200/20">
           ৳{property.price.toLocaleString('en-IN')}<span className="text-slate-500 dark:text-slate-400 text-[10px] font-normal">{t('tagMonth')}</span>
         </div>
-        <div className="absolute top-3 left-3 bg-indigo-500/90 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm backdrop-blur-sm">
+        <div className="absolute top-3 left-3 bg-violet-600/90 text-white text-[9.5px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm backdrop-blur-sm">
           {propertyTypeLabel()}
         </div>
       </div>
 
       <div className="p-1 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
-          <h3 className="font-semibold text-base text-slate-900 dark:text-white leading-snug">{property.title}</h3>
-          <p className="flex items-center text-sm text-slate-700 dark:text-slate-300 mt-1 font-semibold">
-            <MapPin className="w-4 h-4 mr-1 text-indigo-550 shrink-0" /> {locationLabel}
+          <h3 className="font-bold text-base text-slate-900 dark:text-white leading-snug tracking-tight">{property.title}</h3>
+          <p className="flex items-center text-sm text-amber-600 dark:text-amber-400 mt-1.5 font-bold">
+            <MapPin className="w-4 h-4 mr-1 text-amber-500 shrink-0" /> {locationLabel}
           </p>
           {canViewDetails ? (
-            <div className="text-xs text-slate-800 dark:text-slate-100 font-medium mt-2 leading-relaxed max-h-[120px] overflow-y-auto pr-1 select-text scrollbar-thin">
+            <div className="text-xs text-indigo-950 dark:text-indigo-100 font-medium mt-2 leading-relaxed max-h-[120px] overflow-y-auto pr-1 select-text scrollbar-thin bg-indigo-50/20 dark:bg-indigo-950/20 border border-indigo-100/40 dark:border-indigo-900/30 p-2 rounded-2xl">
               {property.description}
             </div>
           ) : (
-            <p className="text-xs text-slate-800 dark:text-slate-100 font-medium mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
+            <p className="text-xs text-slate-805 dark:text-slate-200 font-medium mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
               {property.description}
             </p>
           )}

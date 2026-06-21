@@ -1030,7 +1030,7 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
             <div>
               <label className="block text-sm font-medium mb-1">ধরন</label>
               <select value={formData.type || PROPERTY_TYPES[0]} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-705 bg-transparent text-slate-900 dark:text-white focus:outline-none">
-                {PROPERTY_TYPES.map(t => <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t === 'Flat' ? 'ফ্ল্যাট' : t === 'Seat' ? 'সিট' : t === 'Single Room' ? 'সিঙ্গেল রুম' : 'মেস'}</option>)}
+                {PROPERTY_TYPES.map(t => <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t === 'Family Flat' ? 'ফ্যামিলি ফ্ল্যাট' : t === 'Female Mess' ? 'ছাত্রী মেস' : t === 'Male Mess' ? 'ছাত্র মেস' : t === 'Bachelor Flat' ? 'ব্যাচেলর ফ্ল্যাট' : t}</option>)}
               </select>
             </div>
             <div>
