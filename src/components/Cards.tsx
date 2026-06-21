@@ -97,7 +97,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
           <p className="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
             <MapPin className="w-3.5 h-3.5 mr-1 text-indigo-500 shrink-0" /> {locationLabel}
           </p>
-          <p className="text-xs text-slate-600 dark:text-slate-350 mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
+          <p className="text-xs text-slate-750 dark:text-slate-200 mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
             {property.description}
           </p>
         </div>
