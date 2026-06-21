@@ -108,11 +108,11 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
             <MapPin className="w-4 h-4 mr-1 text-indigo-550 shrink-0" /> {locationLabel}
           </p>
           {canViewDetails ? (
-            <div className="text-xs text-slate-750 dark:text-slate-200 mt-2 leading-relaxed max-h-[120px] overflow-y-auto pr-1 select-text scrollbar-thin">
+            <div className="text-xs text-slate-800 dark:text-slate-100 font-medium mt-2 leading-relaxed max-h-[120px] overflow-y-auto pr-1 select-text scrollbar-thin">
               {property.description}
             </div>
           ) : (
-            <p className="text-xs text-slate-750 dark:text-slate-200 mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
+            <p className="text-xs text-slate-800 dark:text-slate-100 font-medium mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
               {property.description}
             </p>
           )}

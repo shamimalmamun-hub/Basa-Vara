@@ -1324,9 +1324,21 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
+  // Helper to remove any undefined values from Firestore payloads
+  const sanitizeData = (data: any) => {
+    const sanitized = { ...data };
+    Object.keys(sanitized).forEach(key => {
+      if (sanitized[key] === undefined) {
+        delete sanitized[key];
+      }
+    });
+    return sanitized;
+  };
+
   const updateProperty = async (propertyId: string, data: Partial<Property>) => {
     try {
-      await updateDoc(doc(db, 'properties', propertyId), data);
+      const sanitized = sanitizeData(data);
+      await updateDoc(doc(db, 'properties', propertyId), sanitized);
       toast.success('Property details updated successfully.');
     } catch (err) {
       console.error("Failed to update property:", err);
@@ -1346,7 +1358,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const updateTutor = async (tutorId: string, data: Partial<Tutor>) => {
     try {
-      await updateDoc(doc(db, 'tutors', tutorId), data);
+      const sanitized = sanitizeData(data);
+      await updateDoc(doc(db, 'tutors', tutorId), sanitized);
       toast.success('Tutor details updated successfully.');
     } catch (err) {
       console.error("Failed to update tutor:", err);
