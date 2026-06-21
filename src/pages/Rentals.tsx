@@ -9,11 +9,20 @@ export default function Rentals() {
   const { properties, selectedLocation, setSelectedLocation } = useApp();
   const { language, t } = useLanguage();
   const [filterType, setFilterType] = useState<string>('All');
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   const filtered = properties.filter(p => 
     (selectedLocation === null || (p.location || '').toLowerCase().trim() === selectedLocation.toLowerCase().trim()) &&
     (filterType === 'All' || p.type === filterType)
   );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedLocation, filterType]);
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedProperties = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -76,8 +85,41 @@ export default function Rentals() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {filtered.map(p => <PropertyCard key={p.id} property={p} />)}
+        {paginatedProperties.map(p => <PropertyCard key={p.id} property={p} />)}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-12">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => {
+              setCurrentPage(prev => Math.max(prev - 1, 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-5 py-2.5 text-sm font-semibold rounded-2xl bg-slate-100 hover:bg-slate-205 dark:bg-slate-800 dark:hover:bg-slate-705 text-slate-800 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            {language === 'bn' ? 'পূর্ববর্তী' : 'Previous'}
+          </button>
+          
+          <span className="text-sm font-bold text-slate-750 dark:text-slate-300">
+            {language === 'bn' 
+              ? `${currentPage} / ${totalPages} পৃষ্ঠা` 
+              : `Page ${currentPage} of ${totalPages}`
+            }
+          </span>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => {
+              setCurrentPage(prev => Math.min(prev + 1, totalPages));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-5 py-2.5 text-sm font-semibold rounded-2xl bg-indigo-600 hover:bg-indigo-750 text-white disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/10"
+          >
+            {language === 'bn' ? 'পরবর্তী' : 'Next'}
+          </button>
+        </div>
+      )}
       
       {filtered.length === 0 && (
         <div className="text-center py-20 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-xl">

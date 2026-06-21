@@ -8,6 +8,7 @@ import { SlidersHorizontal } from 'lucide-react';
 export default function Tutors() {
   const { tutors, selectedLocation, setSelectedLocation } = useApp();
   const { language, t } = useLanguage();
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [filterSubj, setFilterSubj] = useState<string>('All');
   const [filterGender, setFilterGender] = useState<string>('All');
 
@@ -18,6 +19,14 @@ export default function Tutors() {
     (filterSubj === 'All' || t.subjects.includes(filterSubj)) &&
     (filterGender === 'All' || t.gender === filterGender)
   );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedLocation, filterSubj, filterGender]);
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedTutors = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getSubjectLabel = (subject: string) => {
     const dictionary: Record<string, string> = {
@@ -89,8 +98,41 @@ export default function Tutors() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filtered.map(t => <TutorCard key={t.id} tutor={t} />)}
+        {paginatedTutors.map(t => <TutorCard key={t.id} tutor={t} />)}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 mt-12">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => {
+              setCurrentPage(prev => Math.max(prev - 1, 1));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-5 py-2.5 text-sm font-semibold rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
+            {language === 'bn' ? 'পূর্ববর্তী' : 'Previous'}
+          </button>
+          
+          <span className="text-sm font-bold text-slate-750 dark:text-slate-300">
+            {language === 'bn' 
+              ? `${currentPage} / ${totalPages} পৃষ্ঠা` 
+              : `Page ${currentPage} of ${totalPages}`
+            }
+          </span>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => {
+              setCurrentPage(prev => Math.min(prev + 1, totalPages));
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="px-5 py-2.5 text-sm font-semibold rounded-2xl bg-indigo-600 hover:bg-indigo-750 text-white disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/10"
+          >
+            {language === 'bn' ? 'পরবর্তী' : 'Next'}
+          </button>
+        </div>
+      )}
       
       {filtered.length === 0 && (
         <div className="text-center py-20 bg-white/50 dark:bg-slate-900/40 backdrop-blur-md rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-xl">

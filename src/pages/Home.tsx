@@ -313,6 +313,30 @@ export default function Home() {
               </Link>
             </motion.div>
           </motion.div>
+
+          {/* Real-time Stats Counts Banner */}
+          <motion.div 
+            variants={itemVariants} 
+            className="mt-12 max-w-md mx-auto grid grid-cols-2 gap-4 px-4 sm:px-0"
+          >
+            <div className="bg-white/10 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-sm hover:bg-white/15 transition-all">
+              <div className="text-2xl md:text-3.5xl font-black text-indigo-300 font-sans">
+                {language === 'bn' ? `${properties.length}টি` : `${properties.length}`}
+              </div>
+              <div className="text-xs font-semibold text-slate-200 mt-1">
+                {language === 'bn' ? 'মোট বাসা ভাড়া পোস্ট' : 'Total House Rentals'}
+              </div>
+            </div>
+            
+            <div className="bg-white/10 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-sm hover:bg-white/15 transition-all">
+              <div className="text-2xl md:text-3.5xl font-black text-pink-300 font-sans">
+                {language === 'bn' ? `${tutors.length}টি` : `${tutors.length}`}
+              </div>
+              <div className="text-xs font-semibold text-slate-200 mt-1">
+                {language === 'bn' ? 'মোট হোম টিউটর পোস্ট' : 'Total Tutors'}
+              </div>
+            </div>
+          </motion.div>
         </motion.div>
       </section>
 
@@ -663,23 +687,7 @@ export default function Home() {
           )}
         </motion.div>
 
-        {filteredTutors.length > 6 && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="mt-14 text-center"
-          >
-            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="inline-block">
-              <Link 
-                to="/tutors" 
-                className="inline-flex items-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-all shadow-xl shadow-indigo-600/15 cursor-pointer hover:shadow-2xl hover:shadow-indigo-600/20"
-              >
-                {language === 'bn' ? 'সবগুলো হোম টিউটর দেখুন' : 'See All Home Tutors'} <ArrowRight className="w-4 h-4 animate-pulse" />
-              </Link>
-            </motion.div>
-          </motion.div>
-        )}
+
       </section>
 
       {/* Pricing Plans Section */}
