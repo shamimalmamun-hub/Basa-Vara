@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
-import { Search, MapPin, Phone, Trash2, Edit2, CheckCircle, XCircle, FileText, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, Image as ImageIcon } from 'lucide-react';
+import { Search, MapPin, Phone, Trash2, Edit2, CheckCircle, XCircle, FileText, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, Image as ImageIcon, X, Upload, Plus } from 'lucide-react';
 import { MAIN_LOCATIONS, PROPERTY_TYPES, compressImage } from '../lib/utils';
 import { Property, Tutor } from '../types';
 import toast from 'react-hot-toast';
@@ -23,10 +23,39 @@ export default function ManagePosts() {
 
   // Edit states
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
+  const [editPropertyUrlInput, setEditPropertyUrlInput] = useState('');
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
 
   // Delete confirm states
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const handleFileChangeProperty = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      try {
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          if (!allowedTypes.includes(file.type)) {
+            toast.error(`"${file.name}" - শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!`);
+            continue;
+          }
+          const compressed = await compressImage(file);
+          setEditingProperty(prev => {
+            if (!prev) return null;
+            const existingImages = prev.images || [];
+            return {
+              ...prev,
+              images: [...existingImages, compressed]
+            };
+          });
+        }
+        toast.success('ছবি আপলোড সম্পন্ন হয়েছে!');
+      } catch (err) {
+        toast.error('ছবি প্রসেস করা সম্ভব হয়নি.');
+      }
+    }
+  };
 
   // Handlers for Properties
   const handleSaveProperty = (e: React.FormEvent) => {
@@ -556,14 +585,94 @@ export default function ManagePosts() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">বাসার ছবিসমূহ (কমা দিয়ে আলাদা করা একাধিক URL)</label>
-                <textarea 
-                  rows={2}
-                  value={editingProperty.images ? editingProperty.images.join(', ') : ''}
-                  onChange={e => setEditingProperty({...editingProperty, images: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
-                  placeholder="https://images.unsplash.com/photo-1, https://images.unsplash.com/photo-2"
-                  className="w-full px-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-sans text-xs"
-                />
+                <label className="block text-xs font-bold text-slate-500 mb-2">বাসার ছবিসমূহ (Manage Images)</label>
+                
+                {/* Visual Image Grid with Delete Option */}
+                {editingProperty.images && editingProperty.images.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2 p-2 bg-slate-55 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-2xl mb-2 max-h-[160px] overflow-y-auto">
+                    {editingProperty.images.map((img, index) => (
+                      <div key={index} className="relative aspect-video rounded-xl overflow-hidden border border-slate-250 dark:border-slate-800 group bg-slate-100">
+                        <img 
+                          src={img} 
+                          alt={`Preview ${index + 1}`} 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80';
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProperty(prev => {
+                              if (!prev) return null;
+                              return {
+                                ...prev,
+                                images: (prev.images || []).filter((_, i) => i !== index)
+                              };
+                            });
+                          }}
+                          className="absolute top-1 right-1 bg-red-650 hover:bg-red-700 text-white p-1 rounded-full shadow transition-transform hover:scale-110 cursor-pointer"
+                          title="ছবি মুছে ফেলুন"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                        <span className="absolute bottom-0.5 left-1 bg-slate-950/60 px-1 rounded text-[9px] text-white">
+                          {index + 1}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-3 text-xs text-slate-400 bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/80 rounded-xl mb-2">
+                    কোনো ছবি যুক্ত করা নেই
+                  </div>
+                )}
+
+                {/* Local upload & Web url inputs */}
+                <div className="space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <label className="flex items-center gap-1.5 border border-dashed border-indigo-200 hover:border-indigo-505 dark:border-indigo-805 dark:hover:border-indigo-705 bg-indigo-50/15 hover:bg-indigo-50/35 dark:bg-indigo-950/5 dark:hover:bg-indigo-950/15 rounded-xl py-2 px-3 text-center cursor-pointer transition-all">
+                      <Upload className="w-3.5 h-3.5 text-indigo-550" />
+                      <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">নতুন ছবি আপলোড</span>
+                      <input 
+                        type="file" 
+                        multiple 
+                        accept="image/*" 
+                        onChange={handleFileChangeProperty}
+                        className="hidden" 
+                      />
+                    </label>
+
+                    <div className="flex-1 flex gap-1.5">
+                      <input 
+                        type="url"
+                        value={editPropertyUrlInput}
+                        onChange={e => setEditPropertyUrlInput(e.target.value)}
+                        placeholder="সরাসরি লিংক (URL) লিখুন..."
+                        className="flex-1 px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-sans"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (editPropertyUrlInput.trim()) {
+                            setEditingProperty(prev => {
+                              if (!prev) return null;
+                              return {
+                                ...prev,
+                                images: [...(prev.images || []), editPropertyUrlInput.trim()]
+                              };
+                            });
+                            setEditPropertyUrlInput('');
+                            toast.success('লিংক যোগ করা হয়েছে!');
+                          }
+                        }}
+                        className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                      >
+                        যোগ
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div>

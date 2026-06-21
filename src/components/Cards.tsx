@@ -93,7 +93,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
 
       <div className="p-1 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
-          <h3 className="font-semibold text-base text-slate-900 dark:text-white line-clamp-1">{property.title}</h3>
+          <h3 className="font-semibold text-base text-slate-900 dark:text-white leading-snug">{property.title}</h3>
           <p className="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
             <MapPin className="w-3.5 h-3.5 mr-1 text-indigo-500 shrink-0" /> {locationLabel}
           </p>
@@ -102,7 +102,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
           </p>
         </div>
 
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 h-[80px] overflow-y-auto pr-1">
+        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 min-h-[84px] flex flex-col justify-center pr-1">
           {canViewDetails ? (
             <div className="space-y-1">
               <div className="flex items-start text-xs">
@@ -129,8 +129,8 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
               )}
             </div>
           ) : (
-            <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold rounded-xl transition-all border border-slate-200/50 dark:border-slate-700/50">
-              <LockKeyhole className="w-3 h-3 mr-1" /> {language === 'bn' ? 'সাবস্ক্রাইব করে বিস্তারিত দেখুন' : 'Subscribe to View Details'}
+            <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-2.5 bg-indigo-50/65 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-black rounded-xl transition-all border border-indigo-200/50 dark:border-indigo-900/50 shadow-sm">
+              <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" /> {language === 'bn' ? 'সাবস্ক্রাইব করে বিস্তারিত দেখুন' : 'Subscribe to View Details'}
             </Link>
           )}
         </div>
@@ -260,8 +260,8 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
                )}
              </div>
           ) : (
-             <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-xl transition-all border border-slate-200/50 dark:border-slate-700/50">
-               <LockKeyhole className="w-4 h-4 mr-1" /> {language === 'bn' ? 'কন্টাক্ট দেখতে সাবস্ক্রাইব করুন' : 'Subscribe to View Contact'}
+             <Link to={currentUser ? '/dashboard' : '/login'} state={{ tab: 'subscription' }} className="flex items-center justify-center w-full py-2.5 bg-indigo-50/65 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs font-black rounded-xl transition-all border border-indigo-200/50 dark:border-indigo-900/50 shadow-sm">
+               <LockKeyhole className="w-4 h-4 mr-1.5 shrink-0" /> {language === 'bn' ? 'কন্টাক্ট দেখতে সাবস্ক্রাইব করুন' : 'Subscribe to View Contact'}
              </Link>
           )}
         </div>
