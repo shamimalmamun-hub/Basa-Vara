@@ -852,12 +852,11 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [urlInput, setUrlInput] = useState<string>('');
 
+  const [isDragging, setIsDragging] = useState(false);
   const isTutor = selectedType === 'tutor';
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+  const processFiles = async (files: FileList | File[]) => {
     if (!files || files.length === 0) return;
-
     const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
 
     if (isTutor) {
@@ -899,6 +898,32 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
           reader.readAsDataURL(file);
         }
       }
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      await processFiles(files);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files) {
+      await processFiles(files);
     }
   };
 
@@ -1114,10 +1139,15 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
           uploadMethod === 'file' ? (
             <div>
               {!formData.image ? (
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl py-8 px-4 text-center cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-550 transition-colors">
+                <label 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl py-8 px-4 text-center cursor-pointer transition-all ${isDragging ? 'border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/30' : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-550'}`}
+                >
                   <Upload className="w-10 h-10 text-slate-400 dark:text-slate-500 mb-2 animate-pulse" />
                   <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    ছবি নির্বাচন করতে এখানে ক্লিক করুন
+                    {isDragging ? 'এখানে ড্রপ করে দিন!' : 'ছবি নির্বাচন করতে এখানে ক্লিক করুন অথবা ড্রাগ অ্যান্ড ড্রপ করুন'}
                   </span>
                   <span className="text-xs text-slate-400 mt-1">
                     PNG, JPEG, JPG, WEBP (সর্বোচ্চ ৪ মেগাবাইট)
@@ -1184,13 +1214,18 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
           /* Property - multi image uploads */
           <div className="space-y-4">
             {uploadMethod === 'file' ? (
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl py-6 px-4 text-center cursor-pointer hover:border-indigo-500 dark:hover:border-indigo-550 transition-colors">
-                <Upload className="w-8 h-8 text-slate-400 dark:text-slate-500 mb-1.5 animate-pulse" />
+              <label 
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-2xl py-8 px-4 text-center cursor-pointer transition-all ${isDragging ? 'border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/30' : 'border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-550'}`}
+              >
+                <Upload className="w-10 h-10 text-indigo-500 dark:text-indigo-400 mb-2 animate-bounce" />
                 <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  বাসার একাধিক ছবি যুক্ত করতে এখানে ক্লিক করুন
+                  {isDragging ? 'গ্রুপ অফ ইমেজ ড্রপ করুন!' : 'বাসার একাধিক ছবি যুক্ত করতে মাউস দিয়ে ড্রাগ করুন অথবা এখানে ক্লিক করুন'}
                 </span>
-                <span className="text-xs text-slate-400 mt-1">
-                  PNG, JPEG, JPG, WEBP (কন্ট্রোল কী চেপে একাধিক সিলেক্ট করতে পারেন)
+                <span className="text-xs text-slate-450 dark:text-slate-400 mt-1">
+                  PNG, JPEG, JPG, WEBP (একসাথে একাধিক ফাইল মাউস ড্র্যাগ বা কিবোর্ড দিয়ে সিলেক্ট করতে পারেন)
                 </span>
                 <input
                   type="file"

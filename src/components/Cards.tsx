@@ -58,7 +58,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
                 e.stopPropagation();
                 setCurrentImgIndex(prev => (prev === 0 ? property.images.length - 1 : prev - 1));
               }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white dark:bg-slate-950/80 dark:hover:bg-slate-950 text-slate-800 dark:text-slate-200 p-1 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 cursor-pointer z-10"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white dark:bg-slate-900/95 dark:hover:bg-slate-950 text-slate-800 dark:text-slate-200 p-1.5 rounded-full shadow-lg opacity-100 md:opacity-0 md:group-hover/slider:opacity-100 transition-opacity duration-200 cursor-pointer z-10"
               title={language === 'bn' ? 'পূর্ববর্তী ছবি' : 'Previous Image'}
             >
               <ChevronLeft className="w-4 h-4" />
@@ -70,7 +70,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
                 e.stopPropagation();
                 setCurrentImgIndex(prev => (prev === property.images.length - 1 ? 0 : prev + 1));
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white dark:bg-slate-950/80 dark:hover:bg-slate-950 text-slate-800 dark:text-slate-200 p-1 rounded-full shadow-lg opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200 cursor-pointer z-10"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/95 hover:bg-white dark:bg-slate-900/95 dark:hover:bg-slate-950 text-slate-800 dark:text-slate-200 p-1.5 rounded-full shadow-lg opacity-100 md:opacity-0 md:group-hover/slider:opacity-100 transition-opacity duration-200 cursor-pointer z-10"
               title={language === 'bn' ? 'পরবর্তী ছবি' : 'Next Image'}
             >
               <ChevronRight className="w-4 h-4" />
@@ -79,6 +79,16 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
             {/* Image index badge indicator */}
             <div className="absolute bottom-2 right-2 bg-slate-950/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-sm shadow z-10 font-sans">
               {currentImgIndex + 1}/{property.images.length}
+            </div>
+
+            {/* Pagination dots at the top center of the slide */}
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+              {property.images.map((_, i) => (
+                <span 
+                  key={i} 
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${i === currentImgIndex ? 'bg-indigo-500 w-3' : 'bg-white/60'}`}
+                />
+              ))}
             </div>
           </>
         )}
@@ -94,35 +104,41 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
       <div className="p-1 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
           <h3 className="font-semibold text-base text-slate-900 dark:text-white leading-snug">{property.title}</h3>
-          <p className="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
-            <MapPin className="w-3.5 h-3.5 mr-1 text-indigo-500 shrink-0" /> {locationLabel}
+          <p className="flex items-center text-sm text-slate-700 dark:text-slate-300 mt-1 font-semibold">
+            <MapPin className="w-4 h-4 mr-1 text-indigo-550 shrink-0" /> {locationLabel}
           </p>
-          <p className="text-xs text-slate-750 dark:text-slate-200 mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
-            {property.description}
-          </p>
+          {canViewDetails ? (
+            <div className="text-xs text-slate-750 dark:text-slate-200 mt-2 leading-relaxed max-h-[120px] overflow-y-auto pr-1 select-text scrollbar-thin">
+              {property.description}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-750 dark:text-slate-200 mt-2 line-clamp-2 leading-relaxed h-[36px] overflow-hidden">
+              {property.description}
+            </p>
+          )}
         </div>
 
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 min-h-[84px] flex flex-col justify-center pr-1">
+        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 min-h-[92px] flex flex-col justify-center pr-1">
           {canViewDetails ? (
             <div className="space-y-1">
-              <div className="flex items-start text-xs">
-                <MapPin className="w-3.5 h-3.5 text-indigo-500 mr-1.5 mt-0.5 shrink-0" />
-                <span className="text-slate-700 dark:text-slate-300 font-semibold truncate">{property.address}</span>
+              <div className="flex items-start text-sm">
+                <MapPin className="w-4 h-4 text-indigo-500 mr-1.5 mt-0.5 shrink-0" />
+                <span className="text-slate-800 dark:text-slate-200 font-bold truncate">{property.address}</span>
               </div>
               {(property.contactNumber || property.ownerPhoneNumber) && (
-                <div className="flex flex-col gap-1 pt-0.5">
+                <div className="flex flex-col gap-1.5 pt-0.5">
                   {property.contactNumber && (
-                    <div className="flex items-center text-xs">
-                      <Phone className="w-3.5 h-3.5 text-indigo-500 mr-1.5 shrink-0" />
-                      <span className="text-slate-500 mr-1 text-[10px] shrink-0">{language === 'bn' ? 'যোগাযোগ:' : 'Contact:'}</span>
-                      <a href={`tel:${property.contactNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{property.contactNumber}</a>
+                    <div className="flex items-center text-sm">
+                      <Phone className="w-4 h-4 text-indigo-500 mr-1.5 shrink-0" />
+                      <span className="text-slate-550 dark:text-slate-400 mr-1 text-xs font-semibold shrink-0">{language === 'bn' ? 'যোগাযোগ:' : 'Contact:'}</span>
+                      <a href={`tel:${property.contactNumber}`} className="text-indigo-650 dark:text-indigo-400 font-extrabold hover:underline truncate">{property.contactNumber}</a>
                     </div>
                   )}
                   {property.ownerPhoneNumber && (
-                    <div className="flex items-center text-xs">
-                      <Phone className="w-3.5 h-3.5 text-emerald-500 mr-1.5 shrink-0" />
-                      <span className="text-slate-500 mr-1 text-[10px] shrink-0">{language === 'bn' ? 'মালিক:' : 'Owner Phone:'}</span>
-                      <a href={`tel:${property.ownerPhoneNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{property.ownerPhoneNumber}</a>
+                    <div className="flex items-center text-sm">
+                      <Phone className="w-4 h-4 text-emerald-550 mr-1.5 shrink-0" />
+                      <span className="text-slate-550 dark:text-slate-400 mr-1 text-xs font-semibold shrink-0">{language === 'bn' ? 'মালিক:' : 'Owner:'}</span>
+                      <a href={`tel:${property.ownerPhoneNumber}`} className="text-emerald-600 dark:text-emerald-400 text-base font-black hover:underline truncate">{property.ownerPhoneNumber}</a>
                     </div>
                   )}
                 </div>
@@ -240,19 +256,19 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-1 flex-grow">
         <div className="flex items-center">
           {canViewDetails ? (
-             <div className="space-y-1 w-full">
+             <div className="space-y-1.5 w-full">
                {(tutor.contactNumber || tutor.phoneNumber) && (
-                 <div className="flex items-center text-xs">
-                   <Phone className="w-4 h-4 text-emerald-500 mr-1.5 shrink-0" />
-                   <span className="text-slate-500 mr-1 shrink-0">{language === 'bn' ? 'ফোন:' : 'Phone:'}</span>
-                   <a href={`tel:${tutor.contactNumber || tutor.phoneNumber}`} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{tutor.contactNumber || tutor.phoneNumber}</a>
+                 <div className="flex items-center text-sm">
+                   <Phone className="w-4.5 h-4.5 text-indigo-500 mr-1.5 shrink-0" />
+                   <span className="text-slate-650 dark:text-slate-300 mr-1 font-semibold shrink-0">{language === 'bn' ? 'ফোন:' : 'Phone:'}</span>
+                   <a href={`tel:${tutor.contactNumber || tutor.phoneNumber}`} className="text-indigo-650 dark:text-indigo-400 text-sm md:text-base font-black hover:underline truncate">{tutor.contactNumber || tutor.phoneNumber}</a>
                  </div>
                )}
                {tutor.whatsappNumber && (
-                 <div className="flex items-center text-xs">
-                   <MessageCircle className="w-4 h-4 text-emerald-500 mr-1.5 shrink-0" />
-                   <span className="text-slate-500 mr-1 shrink-0">{language === 'bn' ? 'হোয়াটসঅ্যাপ:' : 'WhatsApp:'}</span>
-                   <a href={`https://wa.me/${tutor.whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline truncate">{tutor.whatsappNumber}</a>
+                 <div className="flex items-center text-sm">
+                   <MessageCircle className="w-4.5 h-4.5 text-emerald-500 mr-1.5 shrink-0" />
+                   <span className="text-slate-650 dark:text-slate-300 mr-1 font-semibold shrink-0">{language === 'bn' ? 'হোয়াটসঅ্যাপ:' : 'WhatsApp:'}</span>
+                   <a href={`https://wa.me/${tutor.whatsappNumber.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="text-emerald-600 dark:text-emerald-400 text-sm md:text-base font-black hover:underline truncate">{tutor.whatsappNumber}</a>
                  </div>
                )}
                {!tutor.contactNumber && !tutor.phoneNumber && !tutor.whatsappNumber && (
