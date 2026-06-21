@@ -20,7 +20,7 @@ export default function Rentals() {
     setCurrentPage(1);
   }, [selectedLocation, filterType]);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 9;
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedProperties = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
