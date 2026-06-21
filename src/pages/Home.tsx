@@ -313,30 +313,6 @@ export default function Home() {
               </Link>
             </motion.div>
           </motion.div>
-
-          {/* Real-time Stats Counts Banner */}
-          <motion.div 
-            variants={itemVariants} 
-            className="mt-12 max-w-md mx-auto grid grid-cols-2 gap-4 px-4 sm:px-0"
-          >
-            <div className="bg-white/10 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-sm hover:bg-white/15 transition-all">
-              <div className="text-2xl md:text-3.5xl font-black text-indigo-300 font-sans">
-                {language === 'bn' ? `${properties.length}টি` : `${properties.length}`}
-              </div>
-              <div className="text-xs font-semibold text-slate-200 mt-1">
-                {language === 'bn' ? 'মোট বাসা ভাড়া পোস্ট' : 'Total House Rentals'}
-              </div>
-            </div>
-            
-            <div className="bg-white/10 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl p-4 border border-white/10 shadow-sm hover:bg-white/15 transition-all">
-              <div className="text-2xl md:text-3.5xl font-black text-pink-300 font-sans">
-                {language === 'bn' ? `${tutors.length}টি` : `${tutors.length}`}
-              </div>
-              <div className="text-xs font-semibold text-slate-200 mt-1">
-                {language === 'bn' ? 'মোট হোম টিউটর পোস্ট' : 'Total Tutors'}
-              </div>
-            </div>
-          </motion.div>
         </motion.div>
       </section>
 
@@ -464,6 +440,9 @@ export default function Home() {
               >
                 <span className="bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-900 dark:from-white dark:via-indigo-100 dark:to-indigo-200 bg-clip-text text-transparent">
                   {t('homeNewAds')}
+                </span>
+                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-black bg-indigo-50/60 dark:bg-indigo-950/60 border border-indigo-100/60 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl font-sans">
+                  {language === 'bn' ? `মোট: ${properties.length}টি` : `Total: ${properties.length}`}
                 </span>
                 {selectedLocation && (
                   <motion.span 
@@ -601,6 +580,9 @@ export default function Home() {
               >
                 <span className="bg-gradient-to-r from-slate-900 via-indigo-950 to-indigo-900 dark:from-white dark:via-indigo-100 dark:to-indigo-200 bg-clip-text text-transparent">
                   {t('homeNewTutors')}
+                </span>
+                <span className="inline-flex items-center justify-center px-3 py-1 text-sm font-black bg-pink-50/60 dark:bg-pink-950/60 border border-pink-100/60 dark:border-pink-500/20 text-pink-600 dark:text-pink-400 rounded-xl font-sans">
+                  {language === 'bn' ? `মোট: ${tutors.length}টি` : `Total: ${tutors.length}`}
                 </span>
                 {selectedLocation && (
                   <motion.span 
