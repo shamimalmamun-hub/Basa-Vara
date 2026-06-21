@@ -15,17 +15,22 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
   const canViewDetails = isAdmin || isOwner || isSubscribed;
 
   const propertyTypeLabel = () => {
-    if (property.type === 'Family Flat') return language === 'bn' ? 'ফ্যামিলি ফ্ল্যাট' : 'Family Flat';
-    if (property.type === 'Female Mess') return language === 'bn' ? 'ছাত্রী মেস' : 'Female Mess';
-    if (property.type === 'Male Mess') return language === 'bn' ? 'ছাত্র মেস' : 'Male Mess';
-    if (property.type === 'Bachelor Flat') return language === 'bn' ? 'ব্যাচেলর ফ্ল্যাট' : 'Bachelor Flat';
+    const types = Array.isArray(property.type) ? property.type : [property.type].filter(Boolean);
+    if (types.length === 0) return language === 'bn' ? 'ফ্ল্যাট' : 'Flat';
     
-    // fallbacks
-    if (property.type === 'Flat') return language === 'bn' ? 'ফ্ল্যাট' : 'Flat';
-    if (property.type === 'Seat') return language === 'bn' ? 'সিট' : 'Seat';
-    if (property.type === 'Single Room') return language === 'bn' ? 'সিঙ্গেল রুম' : 'Single Room';
-    if (property.type === 'Mess') return language === 'bn' ? 'মেস' : 'Mess';
-    return property.type || (language === 'bn' ? 'ফ্ল্যাট' : 'Flat');
+    return types.map(t => {
+      if (t === 'Family Flat') return language === 'bn' ? 'ফ্যামিলি ফ্ল্যাট' : 'Family Flat';
+      if (t === 'Female Mess') return language === 'bn' ? 'ছাত্রী মেস' : 'Female Mess';
+      if (t === 'Male Mess') return language === 'bn' ? 'ছাত্র মেস' : 'Male Mess';
+      if (t === 'Bachelor Flat') return language === 'bn' ? 'ব্যাচেলর ফ্ল্যাট' : 'Bachelor Flat';
+      
+      // fallbacks
+      if (t === 'Flat') return language === 'bn' ? 'ফ্ল্যাট' : 'Flat';
+      if (t === 'Seat') return language === 'bn' ? 'সিট' : 'Seat';
+      if (t === 'Single Room') return language === 'bn' ? 'সিঙ্গেল রুম' : 'Single Room';
+      if (t === 'Mess') return language === 'bn' ? 'মেস' : 'Mess';
+      return t;
+    }).join(', ');
   };
 
   const getLocationLabel = (loc: string) => {
@@ -115,8 +120,8 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
 
       <div className="p-1 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
-          <h3 className="font-bold text-base text-slate-900 dark:text-white leading-snug tracking-tight">{property.title}</h3>
-          <p className="flex items-center text-sm text-amber-600 dark:text-amber-400 mt-1.5 font-bold">
+          <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-snug tracking-tight">{property.title}</h3>
+          <p className="flex items-center text-xs text-amber-600 dark:text-amber-400 mt-1 font-bold">
             <MapPin className="w-4 h-4 mr-1 text-amber-500 shrink-0" /> {locationLabel}
           </p>
           {canViewDetails ? (

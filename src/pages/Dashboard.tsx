@@ -944,7 +944,7 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       description: formData.description || '',
       location: formData.location || MAIN_LOCATIONS[0],
       address: formData.address || '',
-      type: formData.type || PROPERTY_TYPES[0],
+      type: Array.isArray(formData.type) ? formData.type : (formData.type ? [formData.type] : [PROPERTY_TYPES[0]]),
       price: Number(formData.price) || 0,
       images: uploadedImages.length > 0 ? uploadedImages : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400'],
       isAvailable: true,
@@ -1026,12 +1026,50 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
 
       {!isTutor && (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">ধরন</label>
-              <select value={formData.type || PROPERTY_TYPES[0]} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-705 bg-transparent text-slate-900 dark:text-white focus:outline-none">
-                {PROPERTY_TYPES.map(t => <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{t === 'Family Flat' ? 'ফ্যামিলি ফ্ল্যাট' : t === 'Female Mess' ? 'ছাত্রী মেস' : t === 'Male Mess' ? 'ছাত্র মেস' : t === 'Bachelor Flat' ? 'ব্যাচেলর ফ্ল্যাট' : t}</option>)}
-              </select>
+              <label className="block text-sm font-medium mb-2 text-slate-700 dark:text-slate-300">বাসার ধরনসমূহ (একাধিক ক্লিক করে সিলেক্ট করতে পারবেন)</label>
+              <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200 dark:border-slate-800">
+                {PROPERTY_TYPES.map(t => {
+                  const currentTypes = Array.isArray(formData.type) 
+                    ? formData.type 
+                    : formData.type 
+                      ? [formData.type] 
+                      : [PROPERTY_TYPES[0]];
+                  const isChecked = currentTypes.includes(t);
+                  
+                  const handleCheckboxChange = (checked: boolean) => {
+                    let nextTypes;
+                    if (checked) {
+                      nextTypes = [...currentTypes, t];
+                    } else {
+                      nextTypes = currentTypes.filter(x => x !== t);
+                    }
+                    if (nextTypes.length === 0) {
+                      nextTypes = [PROPERTY_TYPES[0]]; // force at least one
+                    }
+                    setFormData({...formData, type: nextTypes});
+                  };
+
+                  let displayLabel = t;
+                  if (t === 'Family Flat') displayLabel = 'ফ্যামিলি ফ্ল্যাট';
+                  else if (t === 'Female Mess') displayLabel = 'ছাত্রী মেস';
+                  else if (t === 'Male Mess') displayLabel = 'ছাত্র মেস';
+                  else if (t === 'Bachelor Flat') displayLabel = 'ব্যাচেলর ফ্ল্যাট';
+
+                  return (
+                    <label key={t} className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={isChecked} 
+                        onChange={e => handleCheckboxChange(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                      />
+                      <span>{displayLabel}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">বিস্তারিত ঠিকানা</label>

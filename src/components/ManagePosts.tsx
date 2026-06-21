@@ -37,7 +37,7 @@ export default function ManagePosts() {
       description: '',
       location: MAIN_LOCATIONS[0],
       address: '',
-      type: PROPERTY_TYPES[0] as any,
+      type: [PROPERTY_TYPES[0]] as any,
       price: 0,
       images: [],
       isAvailable: true,
@@ -48,18 +48,22 @@ export default function ManagePosts() {
     setIsCreatingProperty(true);
   };
 
-  const getPropertyTypeLabel = (type: string) => {
-    if (type === 'Family Flat') return 'ফ্যামিলি ফ্ল্যাট';
-    if (type === 'Female Mess') return 'ছাত্রী মেস';
-    if (type === 'Male Mess') return 'ছাত্র মেস';
-    if (type === 'Bachelor Flat') return 'ব্যাচেলর ফ্ল্যাট';
-    
-    // fallbacks
-    if (type === 'Flat') return 'ফ্ল্যাট';
-    if (type === 'Seat') return 'সিট';
-    if (type === 'Single Room') return 'সিঙ্গেল রুম';
-    if (type === 'Mess') return 'মেস';
-    return type;
+  const getPropertyTypeLabel = (type: string | string[]) => {
+    const list = Array.isArray(type) ? type : [type].filter(Boolean);
+    if (list.length === 0) return 'ফ্ল্যাট';
+    return list.map(t => {
+      if (t === 'Family Flat') return 'ফ্যামিলি ফ্ল্যাট';
+      if (t === 'Female Mess') return 'ছাত্রী মেস';
+      if (t === 'Male Mess') return 'ছাত্র মেস';
+      if (t === 'Bachelor Flat') return 'ব্যাচেলর ফ্ল্যাট';
+      
+      // fallbacks
+      if (t === 'Flat') return 'ফ্ল্যাট';
+      if (t === 'Seat') return 'সিট';
+      if (t === 'Single Room') return 'সিঙ্গেল রুম';
+      if (t === 'Mess') return 'মেস';
+      return t;
+    }).join(', ');
   };
 
   // Delete confirm states
@@ -646,17 +650,43 @@ export default function ManagePosts() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">বাসার ধরন (Type)</label>
-                  <select 
-                    value={editingProperty.type}
-                    onChange={e => setEditingProperty({...editingProperty, type: e.target.value as any})}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-transparent text-slate-900 dark:text-white focus:outline-none"
-                  >
-                    {PROPERTY_TYPES.map(t => (
-                      <option key={t} value={t} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">{getPropertyTypeLabel(t)}</option>
-                    ))}
-                  </select>
+                <div className="col-span-2 mt-1">
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5">বাসার ধরনসমূহ (একাধিক নির্বাচনযোগ্য) - Type</label>
+                  <div className="grid grid-cols-2 gap-1.5 p-2.5 bg-slate-50 dark:bg-slate-950/40 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+                    {PROPERTY_TYPES.map(t => {
+                      const currentTypes = Array.isArray(editingProperty.type) 
+                        ? editingProperty.type 
+                        : editingProperty.type 
+                          ? [editingProperty.type] 
+                          : [PROPERTY_TYPES[0]];
+                      const isChecked = currentTypes.includes(t);
+                      
+                      const handleCheckboxChange = (checked: boolean) => {
+                        let nextTypes;
+                        if (checked) {
+                          nextTypes = [...currentTypes, t];
+                        } else {
+                          nextTypes = currentTypes.filter(x => x !== t);
+                        }
+                        if (nextTypes.length === 0) {
+                          nextTypes = [PROPERTY_TYPES[0]]; // fallback
+                        }
+                        setEditingProperty({...editingProperty, type: nextTypes});
+                      };
+
+                      return (
+                        <label key={t} className="flex items-center gap-2 text-[11px] font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={isChecked} 
+                            onChange={e => handleCheckboxChange(e.target.checked)}
+                            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer accent-indigo-600"
+                          />
+                          <span>{getPropertyTypeLabel(t)}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

@@ -13,7 +13,9 @@ export default function Rentals() {
 
   const filtered = properties.filter(p => 
     (selectedLocation === null || (p.location || '').toLowerCase().trim() === selectedLocation.toLowerCase().trim()) &&
-    (filterType === 'All' || p.type === filterType)
+    (filterType === 'All' || 
+      (Array.isArray(p.type) ? p.type.includes(filterType as any) : p.type === filterType)
+    )
   );
 
   useEffect(() => {

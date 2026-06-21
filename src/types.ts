@@ -37,7 +37,7 @@ export interface Property {
   description: string;
   location: string;
   address: string;
-  type: PropertyType;
+  type: PropertyType | PropertyType[];
   price: number;
   images: string[];
   isAvailable: boolean;
