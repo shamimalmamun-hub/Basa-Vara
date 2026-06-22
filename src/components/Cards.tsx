@@ -120,7 +120,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
 
       <div className="p-1 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
-          <h3 className="font-bold text-sm text-slate-900 dark:text-white leading-snug tracking-tight">{property.title}</h3>
+          <h3 className="font-bold font-sans text-sm text-slate-900 dark:text-white leading-snug tracking-normal">{property.title}</h3>
           <p className="flex items-center text-xs text-amber-600 dark:text-amber-400 mt-1 font-bold">
             <MapPin className="w-4 h-4 mr-1 text-amber-500 shrink-0" /> {locationLabel}
           </p>
