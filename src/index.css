@@ -1,16 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @custom-variant dark (&:is(.dark, .dark *));
 
 @theme {
-  --font-sans: "Hind Siliguri", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Noto Sans Bengali", "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Noto Sans Bengali", "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Noto Sans Bengali", "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
-  font-family: "Hind Siliguri", "Noto Sans Bengali", sans-serif;
+  font-family: "Noto Sans Bengali", "Anek Bangla", sans-serif;
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {
-  font-family: "Noto Sans Bengali", "Hind Siliguri", sans-serif;
+  font-family: "Noto Sans Bengali", "Anek Bangla", sans-serif;
 }
