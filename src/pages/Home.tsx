@@ -529,23 +529,7 @@ export default function Home() {
           )}
         </motion.div>
 
-        {filteredProperties.length > 6 && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="mt-14 text-center"
-          >
-            <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="inline-block">
-              <Link 
-                to="/rentals" 
-                className="inline-flex items-center gap-2 px-10 py-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-black text-sm rounded-2xl transition-all shadow-xl shadow-indigo-600/15 cursor-pointer hover:shadow-2xl hover:shadow-indigo-600/20"
-              >
-                {language === 'bn' ? 'সবগুলো বাসা ভাড়া দেখুন' : 'See All House Rentals'} <ArrowRight className="w-4 h-4 animate-pulse" />
-              </Link>
-            </motion.div>
-          </motion.div>
-        )}
+
       </section>
 
       {/* Featured Tutors Grid with viewport trigger animations */}
