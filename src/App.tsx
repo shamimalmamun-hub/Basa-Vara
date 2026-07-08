@@ -43,8 +43,10 @@ export default function App() {
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">
-        <Navbar />
-        <ScrollingText />
+        <div className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
+          <Navbar />
+          <ScrollingText />
+        </div>
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />

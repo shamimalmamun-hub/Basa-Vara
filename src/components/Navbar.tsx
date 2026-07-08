@@ -15,7 +15,7 @@ export default function Navbar() {
   const [isLangOpen, setIsLangOpen] = React.useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/70 dark:bg-[#0A0F1C]/70 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-indigo-900/10 transition-colors duration-500">
+    <nav className="w-full backdrop-blur-xl bg-white/70 dark:bg-[#0A0F1C]/70 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-indigo-900/10 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2.5">

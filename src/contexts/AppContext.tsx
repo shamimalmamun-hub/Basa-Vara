@@ -229,8 +229,59 @@ const safeLocalStorage = {
   }
 };
 
+const safeCookies = {
+  get: (name: string): string | null => {
+    try {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]*)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    } catch {
+      return null;
+    }
+  },
+  set: (name: string, value: string, days = 365) => {
+    try {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      document.cookie = `${name}=${encodeURIComponent(value)}; expires=${date.toUTCString()}; path=/; SameSite=Lax`;
+    } catch {
+      // Ignore
+    }
+  }
+};
+
+const getInitialState = (): AppState => {
+  try {
+    const isScrollingTextEnabledSaved = safeLocalStorage.getItem('basavara_scrolling_enabled');
+    const scrollingTextBnSaved = safeLocalStorage.getItem('basavara_scrolling_bn');
+    const scrollingTextEnSaved = safeLocalStorage.getItem('basavara_scrolling_en');
+    const heroVideoUrlSaved = safeLocalStorage.getItem('basavara_hero_video_url');
+    
+    const propertiesSaved = safeLocalStorage.getItem('basavara_properties');
+    const tutorsSaved = safeLocalStorage.getItem('basavara_tutors');
+    const bannersSaved = safeLocalStorage.getItem('basavara_banners');
+
+    // If they have visited before and have a local cache of properties,
+    // we bypass the full page loading screen entirely for a clear, instant view.
+    const hasCache = propertiesSaved !== null;
+
+    return {
+      ...defaultState,
+      isLoading: !hasCache,
+      isScrollingTextEnabled: isScrollingTextEnabledSaved !== null ? isScrollingTextEnabledSaved === 'true' : defaultState.isScrollingTextEnabled,
+      scrollingTextBn: scrollingTextBnSaved !== null ? scrollingTextBnSaved : defaultState.scrollingTextBn,
+      scrollingTextEn: scrollingTextEnSaved !== null ? scrollingTextEnSaved : defaultState.scrollingTextEn,
+      heroVideoUrl: heroVideoUrlSaved !== null ? heroVideoUrlSaved : defaultState.heroVideoUrl,
+      properties: propertiesSaved ? JSON.parse(propertiesSaved) : defaultState.properties,
+      tutors: tutorsSaved ? JSON.parse(tutorsSaved) : defaultState.tutors,
+      banners: bannersSaved ? JSON.parse(bannersSaved) : defaultState.banners,
+    };
+  } catch (e) {
+    return defaultState;
+  }
+};
+
 export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
-  const [state, setState] = useState<AppState>(defaultState);
+  const [state, setState] = useState<AppState>(getInitialState);
 
   const [selectedLocation, setSelectedLocationState] = useState<string | null>(null);
 
@@ -252,13 +303,20 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   }, [state.users]);
 
+  // Set the visitor cookie on load for clear analytics tracking & caching
+  useEffect(() => {
+    if (!safeCookies.get('basavara_visited')) {
+      safeCookies.set('basavara_visited', 'true');
+    }
+  }, []);
+
   // Setup Firestore synchronization
   useEffect(() => {
     let active = true;
 
     // Tracker to guarantee the loader displays until the database is seeded AND every essential listener is fully loaded
     const loaded = {
-      seeding: false,
+      seeding: true, // Seeding runs in the background to prevent loading speed bottlenecks
       users: false,
       properties: false,
       tutors: false,
@@ -271,7 +329,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const checkAllLoaded = () => {
       if (!active) return;
       if (
-        loaded.seeding &&
         loaded.users &&
         loaded.properties &&
         loaded.tutors &&
@@ -286,6 +343,9 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
     // Helper to seed database if empty
     const seedIfEmpty = async () => {
+      if (safeLocalStorage.getItem('basavara_db_seeded') === 'true') {
+        return;
+      }
       try {
         const usersSnap = await getDocs(collection(db, 'users')).catch(err => {
           handleFirestoreError(err, OperationType.GET, 'users');
@@ -387,17 +447,14 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             throw err;
           });
         }
+
+        safeLocalStorage.setItem('basavara_db_seeded', 'true');
       } catch (err) {
         console.error("Firestore seeding failed:", err);
       }
     };
 
-    seedIfEmpty().then(() => {
-      if (active) {
-        loaded.seeding = true;
-        checkAllLoaded();
-      }
-    });
+    seedIfEmpty();
 
     // Setup active listeners
     const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
@@ -424,6 +481,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       console.log('DEBUG: Loaded properties', propertiesList.length);
       if (active) {
         setState(prev => ({ ...prev, properties: propertiesList }));
+        safeLocalStorage.setItem('basavara_properties', JSON.stringify(propertiesList));
       }
       loaded.properties = true;
       checkAllLoaded();
@@ -440,6 +498,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       console.log('DEBUG: Loaded tutors', tutorsList.length);
       if (active) {
         setState(prev => ({ ...prev, tutors: tutorsList }));
+        safeLocalStorage.setItem('basavara_tutors', JSON.stringify(tutorsList));
       }
       loaded.tutors = true;
       checkAllLoaded();
@@ -469,10 +528,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       });
       console.log('DEBUG: Loaded banners, count:', bannersList.length);
       if (active) {
+        const listToStore = bannersList.length > 0 ? bannersList : DEFAULT_BANNERS;
         setState(prev => ({
           ...prev,
-          banners: bannersList.length > 0 ? bannersList : DEFAULT_BANNERS
+          banners: listToStore
         }));
+        safeLocalStorage.setItem('basavara_banners', JSON.stringify(listToStore));
       }
       loaded.banners = true;
       checkAllLoaded();
@@ -484,14 +545,25 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     const unsubSettings = onSnapshot(doc(db, 'settings', 'global'), (docSnap) => {
       if (docSnap.exists() && active) {
         const data = docSnap.data();
+        const heroVideoUrl = data.heroVideoUrl || DEFAULT_VIDEO_URL;
+        const isScrollingTextEnabled = data.isScrollingTextEnabled !== undefined ? data.isScrollingTextEnabled : true;
+        const scrollingTextBn = data.scrollingTextBn || "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।";
+        const scrollingTextEn = data.scrollingTextEn || "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.";
+        const apiUrl = data.apiUrl || '';
+
         setState(prev => ({ 
           ...prev, 
-          heroVideoUrl: data.heroVideoUrl || DEFAULT_VIDEO_URL,
-          apiUrl: data.apiUrl || '',
-          isScrollingTextEnabled: data.isScrollingTextEnabled !== undefined ? data.isScrollingTextEnabled : true,
-          scrollingTextBn: data.scrollingTextBn || "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
-          scrollingTextEn: data.scrollingTextEn || "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes."
+          heroVideoUrl,
+          apiUrl,
+          isScrollingTextEnabled,
+          scrollingTextBn,
+          scrollingTextEn
         }));
+
+        safeLocalStorage.setItem('basavara_scrolling_enabled', String(isScrollingTextEnabled));
+        safeLocalStorage.setItem('basavara_scrolling_bn', scrollingTextBn);
+        safeLocalStorage.setItem('basavara_scrolling_en', scrollingTextEn);
+        safeLocalStorage.setItem('basavara_hero_video_url', heroVideoUrl);
       }
       loaded.settings = true;
       checkAllLoaded();

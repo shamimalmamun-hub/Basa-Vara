@@ -19,7 +19,7 @@ export default function ScrollingText() {
           {/* Badge indicator */}
           <div className="flex items-center gap-1.5 bg-indigo-600 dark:bg-indigo-550 text-white px-2.5 py-1 rounded-full text-[10px] md:text-xs font-extrabold shadow-sm shadow-indigo-500/10 shrink-0 z-10 select-none">
             <Megaphone className="w-3 h-3 animate-bounce" />
-            <span>{language === 'bn' ? 'অফার ও ঘোষণা' : 'Offers & Ads'}</span>
+            <span>{language === 'bn' ? 'ঘোষণা' : 'Announcement'}</span>
           </div>
 
           {/* Scrolling text area */}

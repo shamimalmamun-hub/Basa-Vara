@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
 import firebaseConfigJson from '../../firebase-applet-config.json';
 
 // Support both environment variables (for GitHub / Cloud Workers / custom deploys)
@@ -19,5 +19,19 @@ const databaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || fireba
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, databaseId); /* CRITICAL: The app will break without this line */
+
+// Enable multi-tab offline persistence for maximum load speed, caching and smooth UI
+try {
+  enableMultiTabIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('Firestore offline persistence failed: Multiple tabs open.');
+    } else if (err.code === 'unimplemented') {
+      console.warn('Firestore offline persistence unimplemented by browser.');
+    }
+  });
+} catch (e) {
+  console.warn('Firestore persistence failed to initialize:', e);
+}
+
 export const auth = getAuth();
 
