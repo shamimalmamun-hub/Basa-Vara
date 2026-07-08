@@ -90,7 +90,7 @@ export default function Footer() {
         <div className="border-t border-slate-800 mt-5 mb-2.5"></div>
 
         {/* Bottom Bar: Copyright & Built Info */}
-        <div className="flex flex-col items-center justify-center gap-2 text-xs text-slate-400 font-medium no-padding">
+        <div className="flex flex-col items-center justify-center gap-2 text-[11px] sm:text-xs text-slate-400 font-medium no-padding">
           <div className="w-full text-center">
             {language === 'bn' ? (
               <span>
