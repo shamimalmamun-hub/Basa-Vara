@@ -7,6 +7,21 @@
   --font-heading: "Noto Sans Bengali", "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 body {
   font-family: "Noto Sans Bengali", "Anek Bangla", sans-serif;
 }

@@ -1,14 +1,40 @@
 import React, { useState } from 'react';
 import { useLanguage, Language } from '../contexts/LanguageContext';
 import { useApp } from '../contexts/AppContext';
-import { FileCode2, Image, Save, RotateCcw, Layout, Compass, Type, Eye, Sparkles, Copy } from 'lucide-react';
+import { FileCode2, Image, Save, RotateCcw, Layout, Compass, Type, Eye, Sparkles, Copy, Megaphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { compressImage } from '../lib/utils';
 
 export default function ManageHomepage() {
   const { overrides, updateOverrides, language } = useLanguage();
-  const { properties, tutors, banners, heroVideoUrl } = useApp();
-  const [activeSubTab, setActiveSubTab] = useState<'logo' | 'menu' | 'hero' | 'sections' | 'sync'>('logo');
+  const { 
+    properties, 
+    tutors, 
+    banners, 
+    heroVideoUrl,
+    isScrollingTextEnabled,
+    scrollingTextBn,
+    scrollingTextEn,
+    updateScrollingTextSettings
+  } = useApp();
+  
+  const [activeSubTab, setActiveSubTab] = useState<'logo' | 'menu' | 'hero' | 'sections' | 'scrolling' | 'sync'>('logo');
+
+  const [tempScrollingEnabled, setTempScrollingEnabled] = useState(isScrollingTextEnabled);
+  const [tempScrollingTextBn, setTempScrollingTextBn] = useState(scrollingTextBn);
+  const [tempScrollingTextEn, setTempScrollingTextEn] = useState(scrollingTextEn);
+
+  React.useEffect(() => {
+    setTempScrollingEnabled(isScrollingTextEnabled);
+  }, [isScrollingTextEnabled]);
+
+  React.useEffect(() => {
+    setTempScrollingTextBn(scrollingTextBn);
+  }, [scrollingTextBn]);
+
+  React.useEffect(() => {
+    setTempScrollingTextEn(scrollingTextEn);
+  }, [scrollingTextEn]);
 
   // Copy overrides to local state
   const [tempOverrides, setTempOverrides] = useState<Record<Language, Record<string, string>>>(() => {
@@ -67,9 +93,13 @@ export default function ManageHomepage() {
     toast.success('কাস্টম লোগো সরানো হয়েছে (Reverted to default Home Icon)');
   };
 
-  const handleSave = () => {
-    updateOverrides(tempOverrides);
-    toast.success('হোমপেইজের সকল কনফিগারেশন সফলভাবে সেভ করা হয়েছে!');
+  const handleSave = async () => {
+    try {
+      updateOverrides(tempOverrides);
+      await updateScrollingTextSettings(tempScrollingEnabled, tempScrollingTextBn, tempScrollingTextEn);
+    } catch (err) {
+      console.error("Failed to save settings:", err);
+    }
   };
 
   const handleResetDefaults = () => {
@@ -118,6 +148,12 @@ export default function ManageHomepage() {
           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeSubTab === 'sections' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-650 dark:text-slate-400 hover:bg-slate-200/40 dark:hover:bg-slate-700/40'}`}
         >
           <FileCode2 className="w-3.5 h-3.5" /> বিজ্ঞাপন ও টিউটর সেকশন
+        </button>
+        <button
+          onClick={() => setActiveSubTab('scrolling')}
+          className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeSubTab === 'scrolling' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-650 dark:text-slate-400 hover:bg-slate-200/40 dark:hover:bg-slate-700/40'}`}
+        >
+          <Megaphone className="w-3.5 h-3.5" /> স্ক্রলিং টেক্সট হেডার
         </button>
         <button
           onClick={() => setActiveSubTab('sync')}
@@ -590,6 +626,62 @@ export default function ManageHomepage() {
           </div>
         )}
 
+        {/* TAB: Scrolling Text Settings */}
+        {activeSubTab === 'scrolling' && (
+          <div className="space-y-6 animate-fade-in text-left">
+            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center gap-2">
+              <Megaphone className="w-4 h-4 text-indigo-500 animate-pulse" /> স্ক্রলিং টেক্সট এবং ঘোষণা সেটিংস (Scrolling Announcement Bar)
+            </h3>
+
+            {/* Toggle switch for Enabling/Disabling */}
+            <div className="flex items-center justify-between p-4 bg-white dark:bg-[#0c1222] border border-slate-200/50 dark:border-slate-800/60 rounded-2xl">
+              <div>
+                <p className="text-xs font-bold text-slate-800 dark:text-white">স্ক্রলিং টেক্সট অন/অফ করুন (Toggle Announcement Bar)</p>
+                <p className="text-[10px] text-slate-400 mt-1">হেডারের নিচে অফার ও নোটিশ দেখানোর স্ক্রলিং বারটি বন্ধ বা চালু করতে পারবেন।</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={tempScrollingEnabled} 
+                  onChange={(e) => setTempScrollingEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-250 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-650 peer-checked:bg-indigo-650"></div>
+              </label>
+            </div>
+
+            {/* Bengali scroll text input */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-400">স্ক্রলিং টেক্সট (বাংলা - Bengali Text)</label>
+              <textarea
+                rows={3}
+                placeholder="বাসাভাড়া ও টিউটর রিলেটেড অফার, সাবস্ক্রিপশন এবং ঘোষণা বাংলাতে লিখুন..."
+                value={tempScrollingTextBn}
+                onChange={(e) => setTempScrollingTextBn(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-white leading-relaxed font-medium"
+              />
+              <p className="text-[10px] text-slate-400">
+                যেমন: নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।
+              </p>
+            </div>
+
+            {/* English scroll text input */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-400">Scrolling Text (English - ইংরেজি টেক্সট)</label>
+              <textarea
+                rows={3}
+                placeholder="Enter the rental or tutor subscription offers and updates in English..."
+                value={tempScrollingTextEn}
+                onChange={(e) => setTempScrollingTextEn(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-800 dark:text-white leading-relaxed font-medium"
+              />
+              <p className="text-[10px] text-slate-400">
+                Example: Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* TAB 5: Production Sync */}
         {activeSubTab === 'sync' && (
           <div className="space-y-6 animate-fade-in text-left">
@@ -625,7 +717,12 @@ export default function ManageHomepage() {
                     heroVideoUrl: heroVideoUrl || '',
                     banners: banners || [],
                     properties: properties || [],
-                    tutors: tutors || []
+                    tutors: tutors || [],
+                    scrollingTextSettings: {
+                      isScrollingTextEnabled: tempScrollingEnabled,
+                      scrollingTextBn: tempScrollingTextBn,
+                      scrollingTextEn: tempScrollingTextEn
+                    }
                   };
                   
                   const formattedJSON = JSON.stringify(syncPayload, null, 2);
@@ -652,7 +749,12 @@ export default function ManageHomepage() {
                     heroVideoUrl: heroVideoUrl || '',
                     banners: banners || [],
                     properties: properties || [],
-                    tutors: tutors || []
+                    tutors: tutors || [],
+                    scrollingTextSettings: {
+                      isScrollingTextEnabled: tempScrollingEnabled,
+                      scrollingTextBn: tempScrollingTextBn,
+                      scrollingTextEn: tempScrollingTextEn
+                    }
                   }, null, 2)}
                   className="w-full text-xs font-mono p-4 bg-slate-900 text-slate-100 rounded-2xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-550"
                   onClick={(e) => {

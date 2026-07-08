@@ -103,6 +103,9 @@ interface AppState {
   apiUrl: string;
   visitors: Visitor[];
   isLoading: boolean;
+  isScrollingTextEnabled: boolean;
+  scrollingTextBn: string;
+  scrollingTextEn: string;
 }
 
 interface AppContextType extends AppState {
@@ -130,6 +133,7 @@ interface AppContextType extends AppState {
   sendRenewalEmailManual: (userId: string) => Promise<boolean>;
   approveSubscriptionRenewal: (userId: string) => Promise<boolean>;
   rejectSubscriptionRenewal: (userId: string) => Promise<boolean>;
+  updateScrollingTextSettings: (enabled: boolean, textBn: string, textEn: string) => Promise<void>;
 }
 
 const DEFAULT_VIDEO_URL = 'https://www.youtube.com/watch?v=c0yFdX4VRKI&t=127s';
@@ -145,6 +149,9 @@ const defaultState: AppState = {
   apiUrl: '',
   visitors: [],
   isLoading: true,
+  isScrollingTextEnabled: true,
+  scrollingTextBn: "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
+  scrollingTextEn: "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes."
 };
 
 export const DEFAULT_BANNERS: AdBanner[] = [
@@ -370,7 +377,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
         const settingsSnap = await getDoc(doc(db, 'settings', 'global')).catch(() => null);
         if (!settingsSnap || !settingsSnap.exists()) {
-          await setDoc(doc(db, 'settings', 'global'), { heroVideoUrl: DEFAULT_VIDEO_URL }).catch(err => {
+          await setDoc(doc(db, 'settings', 'global'), { 
+            heroVideoUrl: DEFAULT_VIDEO_URL,
+            isScrollingTextEnabled: true,
+            scrollingTextBn: "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
+            scrollingTextEn: "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes."
+          }).catch(err => {
             handleFirestoreError(err, OperationType.WRITE, 'settings/global');
             throw err;
           });
@@ -475,7 +487,10 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         setState(prev => ({ 
           ...prev, 
           heroVideoUrl: data.heroVideoUrl || DEFAULT_VIDEO_URL,
-          apiUrl: data.apiUrl || ''
+          apiUrl: data.apiUrl || '',
+          isScrollingTextEnabled: data.isScrollingTextEnabled !== undefined ? data.isScrollingTextEnabled : true,
+          scrollingTextBn: data.scrollingTextBn || "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
+          scrollingTextEn: data.scrollingTextEn || "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes."
         }));
       }
       loaded.settings = true;
@@ -1439,6 +1454,20 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
+  const updateScrollingTextSettings = async (enabled: boolean, textBn: string, textEn: string) => {
+    try {
+      await setDoc(doc(db, 'settings', 'global'), { 
+        isScrollingTextEnabled: enabled,
+        scrollingTextBn: textBn,
+        scrollingTextEn: textEn
+      }, { merge: true });
+      toast.success('স্ক্রলিং টেক্সট সেটিংস সফলভাবে আপডেট করা হয়েছে');
+    } catch (err) {
+      console.error("Failed to update scrolling text settings:", err);
+      toast.error('স্ক্রলিং টেক্সট সেটিংস আপডেট ব্যর্থ হয়েছে।');
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       ...state,
@@ -1466,7 +1495,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       updateApiUrl: updateApiUrl as any,
       sendRenewalEmailManual: sendRenewalEmailManual as any,
       approveSubscriptionRenewal: approveSubscriptionRenewal as any,
-      rejectSubscriptionRenewal: rejectSubscriptionRenewal as any
+      rejectSubscriptionRenewal: rejectSubscriptionRenewal as any,
+      updateScrollingTextSettings: updateScrollingTextSettings as any
     }}>
       {children}
     </AppContext.Provider>

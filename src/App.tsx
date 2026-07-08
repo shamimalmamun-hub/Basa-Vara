@@ -4,6 +4,7 @@ import { useApp } from './contexts/AppContext';
 
 // Pages
 import Navbar from './components/Navbar';
+import ScrollingText from './components/ScrollingText';
 import Footer from './components/Footer';
 import Home from './pages/Home';
 import Rentals from './pages/Rentals';
@@ -43,6 +44,7 @@ export default function App() {
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <Navbar />
+        <ScrollingText />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
