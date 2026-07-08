@@ -205,8 +205,8 @@ export default function Home() {
         
         {/* Animated Background Blobs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Render background video ONLY on desktop screens (md and larger) to keep mobile extremely fast and smooth */}
-          {!isMobile && heroVideoUrl ? (
+          {/* Render background video on both desktop and mobile/tablet as requested */}
+          {heroVideoUrl ? (
             getYouTubeId(heroVideoUrl) ? (
               <div className="absolute inset-0 w-full h-full opacity-85 md:opacity-65 overflow-hidden pointer-events-none scale-[1.35]">
                 <iframe
@@ -282,7 +282,7 @@ export default function Home() {
           className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10 w-full"
         >
           {/* Header Badge */}
-          {!selectedLocation && (
+          {!selectedLocation && !isMobile && (
             <motion.div 
               variants={itemVariants}
               className="inline-flex items-center space-x-2 bg-indigo-500/10 border border-indigo-400/20 backdrop-blur px-3 py-1.5 rounded-full mb-6 md:mb-8"
