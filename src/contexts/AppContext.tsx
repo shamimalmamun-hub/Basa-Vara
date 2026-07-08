@@ -249,6 +249,34 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   useEffect(() => {
     let active = true;
 
+    // Tracker to guarantee the loader displays until the database is seeded AND every essential listener is fully loaded
+    const loaded = {
+      seeding: false,
+      users: false,
+      properties: false,
+      tutors: false,
+      invoices: false,
+      banners: false,
+      settings: false,
+      visitors: false,
+    };
+
+    const checkAllLoaded = () => {
+      if (!active) return;
+      if (
+        loaded.seeding &&
+        loaded.users &&
+        loaded.properties &&
+        loaded.tutors &&
+        loaded.invoices &&
+        loaded.banners &&
+        loaded.settings &&
+        loaded.visitors
+      ) {
+        setState(prev => ({ ...prev, isLoading: false }));
+      }
+    };
+
     // Helper to seed database if empty
     const seedIfEmpty = async () => {
       try {
@@ -340,11 +368,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           }
         }
 
-        const settingsSnap = await getDoc(doc(db, 'settings', 'global')).catch(err => {
-          handleFirestoreError(err, OperationType.GET, 'settings/global');
-          throw err;
-        });
-        if (!settingsSnap.exists()) {
+        const settingsSnap = await getDoc(doc(db, 'settings', 'global')).catch(() => null);
+        if (!settingsSnap || !settingsSnap.exists()) {
           await setDoc(doc(db, 'settings', 'global'), { heroVideoUrl: DEFAULT_VIDEO_URL }).catch(err => {
             handleFirestoreError(err, OperationType.WRITE, 'settings/global');
             throw err;
@@ -355,7 +380,12 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       }
     };
 
-    seedIfEmpty();
+    seedIfEmpty().then(() => {
+      if (active) {
+        loaded.seeding = true;
+        checkAllLoaded();
+      }
+    });
 
     // Setup active listeners
     const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
@@ -367,6 +397,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (active) {
         setState(prev => ({ ...prev, users: usersList }));
       }
+      loaded.users = true;
+      checkAllLoaded();
     }, (err) => {
       console.error('DEBUG: Error loading users', err);
       handleFirestoreError(err, OperationType.GET, 'users');
@@ -381,6 +413,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (active) {
         setState(prev => ({ ...prev, properties: propertiesList }));
       }
+      loaded.properties = true;
+      checkAllLoaded();
     }, (err) => {
       console.error('DEBUG: Error loading properties', err);
       handleFirestoreError(err, OperationType.GET, 'properties');
@@ -395,6 +429,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (active) {
         setState(prev => ({ ...prev, tutors: tutorsList }));
       }
+      loaded.tutors = true;
+      checkAllLoaded();
     }, (err) => {
       console.error('DEBUG: Error loading tutors', err);
       handleFirestoreError(err, OperationType.GET, 'tutors');
@@ -408,6 +444,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (active) {
         setState(prev => ({ ...prev, invoices: invoicesList }));
       }
+      loaded.invoices = true;
+      checkAllLoaded();
     }, (err) => {
       handleFirestoreError(err, OperationType.GET, 'invoices');
     });
@@ -424,6 +462,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           banners: bannersList.length > 0 ? bannersList : DEFAULT_BANNERS
         }));
       }
+      loaded.banners = true;
+      checkAllLoaded();
     }, (err) => {
       console.error('DEBUG: Error loading banners', err);
       handleFirestoreError(err, OperationType.GET, 'banners');
@@ -438,6 +478,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           apiUrl: data.apiUrl || ''
         }));
       }
+      loaded.settings = true;
+      checkAllLoaded();
     }, (err) => {
       handleFirestoreError(err, OperationType.GET, 'settings/global');
     });
@@ -450,11 +492,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       if (active) {
         setState(prev => ({ ...prev, visitors: visitorsList }));
       }
+      loaded.visitors = true;
+      checkAllLoaded();
     }, (err) => {
       console.error('DEBUG: Error loading visitors', err);
     });
-
-    setState(prev => ({ ...prev, isLoading: false }));
 
     return () => {
       active = false;
