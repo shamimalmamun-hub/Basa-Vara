@@ -5,6 +5,21 @@
 @theme {
   --font-sans: "Noto Sans Bengali", "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Noto Sans Bengali", "Anek Bangla", ui-sans-serif, system-ui, sans-serif;
+  
+  /* Custom color variables used across the application to ensure accurate cross-device rendering */
+  --color-indigo-650: #4f46e5;
+  --color-indigo-555: #6366f1;
+  --color-indigo-455: #818cf8;
+  --color-indigo-150: #e0e7ff;
+  --color-purple-555: #a855f7;
+  --color-pink-650: #db2777;
+  --color-pink-555: #ec4899;
+  --color-red-650: #dc2626;
+  --color-red-555: #ef4444;
+  --color-red-400: #f87171;
+  --color-red-150: #fee2e2;
+  --color-slate-650: #475569;
+  --color-slate-250: #e2e8f0;
 }
 
 @keyframes marquee {

@@ -85,9 +85,23 @@ export default function Home() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if screen is mobile to disable expensive features and make scrolling silky smooth
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Robust, progressive instant autoplay for background video on load
   useEffect(() => {
+    // If we're on mobile, don't execute any heavy video players to save performance and data
+    if (isMobile) return;
+
     // Debug: Log all unique property locations to help diagnose filter issues
     const uniqueLocations = Array.from(new Set(properties.map(p => p.location)));
     console.log("Unique property locations:", uniqueLocations);
@@ -135,7 +149,7 @@ export default function Home() {
       document.removeEventListener('touchstart', playVideoImmediately);
       document.removeEventListener('scroll', playVideoImmediately);
     };
-  }, [heroVideoUrl]);
+  }, [heroVideoUrl, isMobile]);
 
   // Loading state
   if (isLoading) {
@@ -187,7 +201,8 @@ export default function Home() {
         
         {/* Animated Background Blobs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {heroVideoUrl ? (
+          {/* Render background video ONLY on desktop screens (md and larger) to keep mobile extremely fast and smooth */}
+          {!isMobile && heroVideoUrl ? (
             getYouTubeId(heroVideoUrl) ? (
               <div className="absolute inset-0 w-full h-full opacity-85 md:opacity-65 overflow-hidden pointer-events-none scale-[1.35]">
                 <iframe
@@ -223,9 +238,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-indigo-950/40 md:bg-indigo-950/20"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-indigo-950/65 md:via-indigo-950/60 to-indigo-950/20"></div>
           
-          {/* Drifting fluid circle light shapes */}
+          {/* Drifting fluid circle light shapes - Animation disabled on mobile to prevent layout re-render & scroll lag */}
           <motion.div 
-            animate={{ 
+            animate={isMobile ? undefined : { 
               x: [0, 40, -30, 0], 
               y: [0, -50, 40, 0],
               scale: [1, 1.15, 0.9, 1] 
@@ -239,7 +254,7 @@ export default function Home() {
           />
           
           <motion.div 
-            animate={{ 
+            animate={isMobile ? undefined : { 
               x: [0, -50, 30, 0], 
               y: [0, 40, -50, 0],
               scale: [1, 0.9, 1.2, 1] 
@@ -255,7 +270,7 @@ export default function Home() {
         
         <motion.div 
           variants={containerVariants}
-          initial="hidden"
+          initial={isMobile ? "visible" : "hidden"}
           animate="visible"
           className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10 w-full"
         >
@@ -319,9 +334,9 @@ export default function Home() {
       {/* Banner Ad Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
         <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
+          variants={isMobile ? undefined : containerVariants}
+          initial={isMobile ? "visible" : "hidden"}
+          whileInView={isMobile ? undefined : "visible"}
           viewport={{ once: true, margin: '-50px' }}
           className="grid grid-cols-1 gap-6"
         >
@@ -347,8 +362,8 @@ export default function Home() {
             return (
               <motion.div 
                 key={banner.id || `banner-${index}`}
-                variants={itemVariants}
-                whileHover={{ 
+                variants={isMobile ? undefined : itemVariants}
+                whileHover={isMobile ? undefined : { 
                   y: -6, 
                   scale: 1.015,
                   boxShadow: '0 25px 30px -10px rgba(59, 130, 246, 0.15)'
@@ -507,14 +522,14 @@ export default function Home() {
         
         {/* Animated slide up cells */}
         <motion.div 
-          variants={listGridVariants}
-          initial="hidden"
-          whileInView="visible"
+          variants={isMobile ? undefined : listGridVariants}
+          initial={isMobile ? "visible" : "hidden"}
+          whileInView={isMobile ? undefined : "visible"}
           viewport={{ once: true, margin: '-80px' }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           {featuredProperties.map(p => (
-            <motion.div key={p.id} variants={listCardVariants}>
+            <motion.div key={p.id} variants={isMobile ? undefined : listCardVariants}>
               <PropertyCard property={p} />
             </motion.div>
           ))}
@@ -631,14 +646,14 @@ export default function Home() {
         
         {/* Animated list cells */}
         <motion.div 
-          variants={listGridVariants}
-          initial="hidden"
-          whileInView="visible"
+          variants={isMobile ? undefined : listGridVariants}
+          initial={isMobile ? "visible" : "hidden"}
+          whileInView={isMobile ? undefined : "visible"}
           viewport={{ once: true, margin: '-80px' }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           {featuredTutors.map(t => (
-            <motion.div key={t.id} variants={listCardVariants}>
+            <motion.div key={t.id} variants={isMobile ? undefined : listCardVariants}>
               <TutorCard tutor={t} />
             </motion.div>
           ))}
