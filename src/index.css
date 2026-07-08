@@ -45,3 +45,15 @@ body {
 h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: "Noto Sans Bengali", "Anek Bangla", sans-serif;
 }
+
+/* Mobile Optimization: Disable all decorative animations and transitions on mobile to prevent scroll lagging and ensure extreme performance, EXCEPT for vital UI indicators like the announcement marquee, announcement icon bounce, and loading spinners */
+@media (max-width: 767px) {
+  *:not(.animate-marquee):not(.animate-bounce):not(.animate-spin):not([class*="marquee"]) {
+    animation-name: none !important;
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-property: none !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+}
