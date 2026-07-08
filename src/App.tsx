@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useApp } from './contexts/AppContext';
+import { MotionConfig } from 'motion/react';
 
 // Pages
 import Navbar from './components/Navbar';
@@ -26,46 +27,67 @@ function ProtectedRoute({ children, roleRequired }: { children: React.ReactNode,
 }
 
 export default function App() {
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0A0F1C] font-sans text-slate-800 dark:text-slate-200 transition-colors duration-500 relative selection:bg-indigo-500/30">
-      {/* Modern Background Elements - Light Mode */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden dark:hidden flex justify-center">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-100/60 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDuration: '8s' }}></div>
-        <div className="absolute bottom-0 right-1/4 w-[30rem] h-[30rem] bg-violet-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDuration: '10s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] mix-blend-overlay"></div>
-      </div>
-      
-      {/* Modern Background Elements - Dark Mode */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden hidden dark:flex justify-center">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/20 blur-[100px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-violet-900/20 blur-[100px]"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
-      </div>
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
 
-      <div className="relative z-10 flex flex-col min-h-screen">
-        <div className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
-          <Navbar />
-          <ScrollingText />
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return (
+    <MotionConfig reducedMotion={isMobile ? "always" : "user"}>
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0A0F1C] font-sans text-slate-800 dark:text-slate-200 transition-colors duration-500 relative selection:bg-indigo-500/30">
+        {/* Modern Background Elements - Light Mode (Hidden on mobile to ensure fast performance and prevent scroll lagging) */}
+        {!isMobile && (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden dark:hidden flex justify-center">
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-100/60 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDuration: '8s' }}></div>
+            <div className="absolute bottom-0 right-1/4 w-[30rem] h-[30rem] bg-violet-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-pulse" style={{ animationDuration: '10s' }}></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.015] mix-blend-overlay"></div>
+          </div>
+        )}
+        
+        {/* Modern Background Elements - Dark Mode (Hidden on mobile to ensure fast performance and prevent scroll lagging) */}
+        {!isMobile && (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden hidden dark:flex justify-center">
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/20 blur-[100px]"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-violet-900/20 blur-[100px]"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay"></div>
+          </div>
+        )}
+
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <div className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
+            <Navbar />
+            <ScrollingText />
+          </div>
+          <main className="flex-grow">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/rentals" element={<Rentals />} />
+              <Route path="/tutors" element={<Tutors />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/admin" element={<AdminLogin />} />
+              <Route path="/pending" element={<PendingApproval />} />
+              
+              <Route path="/dashboard/*" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </main>
+          <Footer />
+          <WhatsAppWidget />
         </div>
-        <main className="flex-grow">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/rentals" element={<Rentals />} />
-            <Route path="/tutors" element={<Tutors />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/pending" element={<PendingApproval />} />
-            
-            <Route path="/dashboard/*" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-          </Routes>
-        </main>
-        <Footer />
-        <WhatsAppWidget />
       </div>
-    </div>
+    </MotionConfig>
   );
 }

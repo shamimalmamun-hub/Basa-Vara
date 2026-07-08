@@ -242,34 +242,37 @@ export default function Home() {
           <div className="absolute inset-0 bg-indigo-950/40 md:bg-indigo-950/20"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-indigo-950/65 md:via-indigo-950/60 to-indigo-950/20"></div>
           
-          {/* Drifting fluid circle light shapes - Animation disabled on mobile to prevent layout re-render & scroll lag */}
-          <motion.div 
-            animate={isMobile ? undefined : { 
-              x: [0, 40, -30, 0], 
-              y: [0, -50, 40, 0],
-              scale: [1, 1.15, 0.9, 1] 
-            }}
-            transition={{ 
-              duration: 18, 
-              repeat: Infinity, 
-              ease: 'easeInOut' 
-            }}
-            className="absolute top-1/4 -left-20 w-[450px] h-[450px] bg-indigo-555/15 rounded-full blur-3xl pointer-events-none"
-          />
-          
-          <motion.div 
-            animate={isMobile ? undefined : { 
-              x: [0, -50, 30, 0], 
-              y: [0, 40, -50, 0],
-              scale: [1, 0.9, 1.2, 1] 
-            }}
-            transition={{ 
-              duration: 22, 
-              repeat: Infinity, 
-              ease: 'easeInOut' 
-            }}
-            className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-purple-555/15 rounded-full blur-3xl pointer-events-none"
-          />
+          {/* Drifting fluid circle light shapes - Completely disabled on mobile to prevent layout re-render & scroll lag */}
+          {!isMobile && (
+            <>
+              <motion.div 
+                animate={{ 
+                  x: [0, 40, -30, 0], 
+                  y: [0, -50, 40, 0],
+                  scale: [1, 1.15, 0.9, 1] 
+                }}
+                transition={{ 
+                  duration: 18, 
+                  repeat: Infinity, 
+                  ease: 'easeInOut' 
+                }}
+                className="absolute top-1/4 -left-20 w-[450px] h-[450px] bg-indigo-555/15 rounded-full blur-3xl pointer-events-none"
+              />
+              <motion.div 
+                animate={{ 
+                  x: [0, -50, 30, 0], 
+                  y: [0, 40, -50, 0],
+                  scale: [1, 0.9, 1.2, 1] 
+                }}
+                transition={{ 
+                  duration: 22, 
+                  repeat: Infinity, 
+                  ease: 'easeInOut' 
+                }}
+                className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-purple-555/15 rounded-full blur-3xl pointer-events-none"
+              />
+            </>
+          )}
         </div>
         
         <motion.div 
