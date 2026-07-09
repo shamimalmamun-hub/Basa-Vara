@@ -438,23 +438,7 @@ export default function Home() {
                     {desc}
                   </p>
                   
-                  {banner.link.startsWith('http') ? (
-                    <a 
-                      href={banner.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="inline-flex items-center text-xs font-extrabold px-5 py-2.5 rounded-xl transition-all hover:gap-1.5 gap-1 text-slate-950 bg-white hover:bg-slate-100 shadow-md transform active:scale-95 duration-150"
-                    >
-                      {btnText} <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
-                  ) : (
-                    <Link 
-                      to={banner.link || '/'} 
-                      className="inline-flex items-center text-xs font-extrabold px-5 py-2.5 rounded-xl transition-all hover:gap-1.5 gap-1 text-slate-950 bg-white hover:bg-slate-100 shadow-md transform active:scale-95 duration-150"
-                    >
-                      {btnText} <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  )}
+
                 </div>
                 {!hasImage && (
                   <div className="absolute right-6 bottom-6 text-6xl opacity-20 pointer-events-none group-hover:scale-120 group-hover:rotate-12 transition-transform duration-500 z-10">
