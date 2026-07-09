@@ -100,7 +100,7 @@ export default function Home() {
     if (isPopupEnabled && popupImageUrl) {
       const timer = setTimeout(() => {
         setShowPopup(true);
-      }, 1000);
+      }, 2000);
       return () => clearTimeout(timer);
     }
   }, [isPopupEnabled, popupImageUrl]);
@@ -929,17 +929,6 @@ export default function Home() {
                 className="max-h-full max-w-full object-contain rounded-2xl transition-all hover:scale-[1.02]"
                 referrerPolicy="no-referrer"
               />
-            </div>
-
-            {/* Bottom confirmation action */}
-            <div className="p-3 text-center">
-              <button
-                id="btn-confirm-popup"
-                onClick={() => setShowPopup(false)}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-extrabold rounded-xl transition-all shadow-md cursor-pointer hover:shadow-indigo-500/25 active:scale-[0.98]"
-              >
-                {language === 'bn' ? 'ঠিক আছে' : 'Okay'}
-              </button>
             </div>
           </motion.div>
         </div>
