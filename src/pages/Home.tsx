@@ -103,9 +103,6 @@ export default function Home() {
 
   // Robust, progressive instant autoplay for background video on load
   useEffect(() => {
-    // If we're on mobile, don't execute any heavy video players to save performance and data
-    if (isMobile) return;
-
     // Debug: Log all unique property locations to help diagnose filter issues
     const uniqueLocations = Array.from(new Set(properties.map(p => p.location)));
     console.log("Unique property locations:", uniqueLocations);
