@@ -900,28 +900,33 @@ export default function Home() {
 
       {/* Dynamic Image Popup */}
       {showPopup && isPopupEnabled && popupImageUrl && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+        <div 
+          onClick={() => setShowPopup(false)}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50 dark:border-slate-800/50 p-2"
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside card
+            className="relative max-w-lg w-full bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50 dark:border-slate-800/50 p-2 md:p-3"
           >
-            {/* Close button */}
+            {/* Close button - Highly prominent red button with white X */}
             <button
               id="btn-close-popup"
               onClick={() => setShowPopup(false)}
-              className="absolute top-4 right-4 z-50 p-1.5 bg-slate-950/60 hover:bg-slate-950/80 text-white rounded-full transition-all focus:outline-none shadow-md cursor-pointer"
+              className="absolute top-4 right-4 z-50 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all focus:outline-none shadow-lg shadow-red-600/30 cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center border border-red-500"
               title={language === 'bn' ? 'বন্ধ করুন' : 'Close'}
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 stroke-[3]" />
             </button>
 
             {/* Popup Image */}
-            <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
+            <div className="relative aspect-[4/5] sm:aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
               <img
                 src={popupImageUrl}
                 alt="Notification Popup"
-                className="max-h-full max-w-full object-contain rounded-2xl"
+                className="max-h-full max-w-full object-contain rounded-2xl transition-all hover:scale-[1.02]"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -931,7 +936,7 @@ export default function Home() {
               <button
                 id="btn-confirm-popup"
                 onClick={() => setShowPopup(false)}
-                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-extrabold rounded-xl transition-all shadow-md cursor-pointer"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-extrabold rounded-xl transition-all shadow-md cursor-pointer hover:shadow-indigo-500/25 active:scale-[0.98]"
               >
                 {language === 'bn' ? 'ঠিক আছে' : 'Okay'}
               </button>

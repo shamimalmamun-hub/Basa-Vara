@@ -155,8 +155,8 @@ const defaultState: AppState = {
   isScrollingTextEnabled: true,
   scrollingTextBn: "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
   scrollingTextEn: "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.",
-  popupImageUrl: '',
-  isPopupEnabled: false
+  popupImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+  isPopupEnabled: true
 };
 
 export const DEFAULT_BANNERS: AdBanner[] = [
@@ -445,14 +445,22 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           await setDoc(doc(db, 'settings', 'global'), { 
             heroVideoUrl: DEFAULT_VIDEO_URL,
             isScrollingTextEnabled: true,
-            scrollingTextBn: "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
+            scrollingTextBn: "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
             scrollingTextEn: "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.",
-            popupImageUrl: '',
-            isPopupEnabled: false
+            popupImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+            isPopupEnabled: true
           }).catch(err => {
             handleFirestoreError(err, OperationType.WRITE, 'settings/global');
             throw err;
           });
+        } else {
+          const data = settingsSnap.data();
+          if (data && (!data.popupImageUrl || data.isPopupEnabled === undefined)) {
+            await setDoc(doc(db, 'settings', 'global'), {
+              popupImageUrl: data.popupImageUrl || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
+              isPopupEnabled: data.isPopupEnabled !== undefined ? data.isPopupEnabled : true
+            }, { merge: true }).catch(() => null);
+          }
         }
 
         safeLocalStorage.setItem('basavara_db_seeded', 'true');
@@ -557,8 +565,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         const scrollingTextBn = data.scrollingTextBn || "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।";
         const scrollingTextEn = data.scrollingTextEn || "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.";
         const apiUrl = data.apiUrl || '';
-        const popupImageUrl = data.popupImageUrl || '';
-        const isPopupEnabled = data.isPopupEnabled !== undefined ? data.isPopupEnabled : false;
+        const popupImageUrl = data.popupImageUrl || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80';
+        const isPopupEnabled = data.isPopupEnabled !== undefined ? data.isPopupEnabled : true;
 
         setState(prev => ({ 
           ...prev, 
