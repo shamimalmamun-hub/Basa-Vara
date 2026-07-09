@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PropertyCard, TutorCard } from '../components/Cards';
-import { Home as HomeIcon, GraduationCap, CheckCircle2, MapPin, ChevronRight, ArrowRight, Sparkles, ChevronDown } from 'lucide-react';
+import { Home as HomeIcon, GraduationCap, CheckCircle2, MapPin, ChevronRight, ArrowRight, Sparkles, ChevronDown, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { getYouTubeId } from '../lib/utils';
 import { DEFAULT_BANNERS } from '../contexts/AppContext';
@@ -80,7 +80,7 @@ const listCardVariants = {
 };
 
 export default function Home() {
-  const { currentUser, properties, tutors, selectedLocation, setSelectedLocation, banners, heroVideoUrl, isLoading } = useApp();
+  const { currentUser, properties, tutors, selectedLocation, setSelectedLocation, banners, heroVideoUrl, isLoading, popupImageUrl, isPopupEnabled } = useApp();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -91,6 +91,45 @@ export default function Home() {
     }
     return false;
   });
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [videoQuality, setVideoQuality] = useState<'small' | 'medium' | 'hd720' | 'default'>('default');
+
+  // Trigger popup after 1 second
+  useEffect(() => {
+    if (isPopupEnabled && popupImageUrl) {
+      const timer = setTimeout(() => {
+        setShowPopup(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isPopupEnabled, popupImageUrl]);
+
+  // Connection speed adaptive video resolution detection
+  useEffect(() => {
+    const conn = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    if (conn) {
+      const updateQuality = () => {
+        if (conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType)) {
+          setVideoQuality('small'); // 240p/360p lower resolution
+        } else if (conn.effectiveType === '4g') {
+          if (conn.rtt > 300 || conn.downlink < 2) {
+            setVideoQuality('medium'); // 360p/480p medium quality
+          } else {
+            setVideoQuality('hd720'); // 720p HD quality
+          }
+        } else {
+          setVideoQuality('default'); // Default/Auto quality
+        }
+      };
+
+      updateQuality();
+      if (typeof conn.addEventListener === 'function') {
+        conn.addEventListener('change', updateQuality);
+        return () => conn.removeEventListener('change', updateQuality);
+      }
+    }
+  }, []);
 
   // Check if screen is mobile to disable expensive features and make scrolling silky smooth
   useEffect(() => {
@@ -209,7 +248,7 @@ export default function Home() {
                 <iframe
                   ref={iframeRef}
                   className="absolute top-0 left-0 w-full h-full border-0 pointer-events-none cursor-default"
-                  src={`https://www.youtube-nocookie.com/embed/${getYouTubeId(heroVideoUrl)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeId(heroVideoUrl)}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1`}
+                  src={`https://www.youtube-nocookie.com/embed/${getYouTubeId(heroVideoUrl)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeId(heroVideoUrl)}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&vq=${videoQuality}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   title="Background YouTube Video"
                 />
@@ -857,6 +896,48 @@ export default function Home() {
             
           </div>
         </section>
+      )}
+
+      {/* Dynamic Image Popup */}
+      {showPopup && isPopupEnabled && popupImageUrl && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="relative max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50 dark:border-slate-800/50 p-2"
+          >
+            {/* Close button */}
+            <button
+              id="btn-close-popup"
+              onClick={() => setShowPopup(false)}
+              className="absolute top-4 right-4 z-50 p-1.5 bg-slate-950/60 hover:bg-slate-950/80 text-white rounded-full transition-all focus:outline-none shadow-md cursor-pointer"
+              title={language === 'bn' ? 'বন্ধ করুন' : 'Close'}
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Popup Image */}
+            <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
+              <img
+                src={popupImageUrl}
+                alt="Notification Popup"
+                className="max-h-full max-w-full object-contain rounded-2xl"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+            {/* Bottom confirmation action */}
+            <div className="p-3 text-center">
+              <button
+                id="btn-confirm-popup"
+                onClick={() => setShowPopup(false)}
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-extrabold rounded-xl transition-all shadow-md cursor-pointer"
+              >
+                {language === 'bn' ? 'ঠিক আছে' : 'Okay'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );

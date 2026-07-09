@@ -15,14 +15,20 @@ export default function ManageHomepage() {
     isScrollingTextEnabled,
     scrollingTextBn,
     scrollingTextEn,
-    updateScrollingTextSettings
+    updateScrollingTextSettings,
+    popupImageUrl,
+    isPopupEnabled,
+    updatePopupSettings
   } = useApp();
   
-  const [activeSubTab, setActiveSubTab] = useState<'logo' | 'menu' | 'hero' | 'sections' | 'scrolling' | 'sync'>('logo');
+  const [activeSubTab, setActiveSubTab] = useState<'logo' | 'menu' | 'hero' | 'sections' | 'scrolling' | 'popup' | 'sync'>('logo');
 
   const [tempScrollingEnabled, setTempScrollingEnabled] = useState(isScrollingTextEnabled);
   const [tempScrollingTextBn, setTempScrollingTextBn] = useState(scrollingTextBn);
   const [tempScrollingTextEn, setTempScrollingTextEn] = useState(scrollingTextEn);
+
+  const [tempPopupEnabled, setTempPopupEnabled] = useState(isPopupEnabled || false);
+  const [tempPopupImageUrl, setTempPopupImageUrl] = useState(popupImageUrl || '');
 
   React.useEffect(() => {
     setTempScrollingEnabled(isScrollingTextEnabled);
@@ -35,6 +41,14 @@ export default function ManageHomepage() {
   React.useEffect(() => {
     setTempScrollingTextEn(scrollingTextEn);
   }, [scrollingTextEn]);
+
+  React.useEffect(() => {
+    setTempPopupEnabled(isPopupEnabled || false);
+  }, [isPopupEnabled]);
+
+  React.useEffect(() => {
+    setTempPopupImageUrl(popupImageUrl || '');
+  }, [popupImageUrl]);
 
   // Copy overrides to local state
   const [tempOverrides, setTempOverrides] = useState<Record<Language, Record<string, string>>>(() => {
@@ -93,10 +107,35 @@ export default function ManageHomepage() {
     toast.success('কাস্টম লোগো সরানো হয়েছে (Reverted to default Home Icon)');
   };
 
+  const handlePopupImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file);
+        setTempPopupImageUrl(compressed);
+        toast.success(language === 'bn' ? 'পপআপ ছবি সফলভাবে লোড করা হয়েছে! পরিবর্তন সেভ করতে নিচের সেভ বাটনে চাপুন।' : 'Popup image loaded successfully! Press save below to submit.');
+      } catch (err) {
+        console.error("Popup image compression failed, reading raw file:", err);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setTempPopupImageUrl(reader.result as string);
+          toast.success(language === 'bn' ? 'পপআপ ছবি লোড করা হয়েছে! পরিবর্তন সেভ করতে নিচের সেভ বাটনে চাপুন।' : 'Popup image loaded! Press save below to submit.');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+  };
+
+  const removePopupImage = () => {
+    setTempPopupImageUrl('');
+    toast.success(language === 'bn' ? 'পপআপ ছবি সরানো হয়েছে! পরিবর্তন সেভ করতে নিচের সেভ বাটনে চাপুন।' : 'Popup image removed! Press save below to submit.');
+  };
+
   const handleSave = async () => {
     try {
       updateOverrides(tempOverrides);
       await updateScrollingTextSettings(tempScrollingEnabled, tempScrollingTextBn, tempScrollingTextEn);
+      await updatePopupSettings(tempPopupEnabled, tempPopupImageUrl);
     } catch (err) {
       console.error("Failed to save settings:", err);
     }
@@ -154,6 +193,12 @@ export default function ManageHomepage() {
           className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeSubTab === 'scrolling' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-650 dark:text-slate-400 hover:bg-slate-200/40 dark:hover:bg-slate-700/40'}`}
         >
           <Megaphone className="w-3.5 h-3.5" /> স্ক্রলিং টেক্সট হেডার
+        </button>
+        <button
+          onClick={() => setActiveSubTab('popup')}
+          className={`flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${activeSubTab === 'popup' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-650 dark:text-slate-400 hover:bg-slate-200/40 dark:hover:bg-slate-700/40'}`}
+        >
+          <Image className="w-3.5 h-3.5" /> প্রবেশকালীন পপআপ
         </button>
         <button
           onClick={() => setActiveSubTab('sync')}
@@ -682,6 +727,67 @@ export default function ManageHomepage() {
           </div>
         )}
 
+        {/* TAB: Entry Popup Image Settings */}
+        {activeSubTab === 'popup' && (
+          <div className="space-y-6 animate-fade-in text-left">
+            <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm border-b border-slate-200 dark:border-slate-800 pb-2 flex items-center gap-2">
+              <Megaphone className="w-4 h-4 text-indigo-500 animate-pulse" /> প্রবেশকালীন ইমেজ পপআপ বিজ্ঞাপন (Entry Image Popup Advertisement)
+            </h3>
+
+            {/* Toggle switch for Popup Enabling/Disabling */}
+            <div className="flex items-center justify-between p-4 bg-white dark:bg-[#0c1222] border border-slate-200/50 dark:border-slate-800/60 rounded-2xl">
+              <div>
+                <p className="text-xs font-bold text-slate-800 dark:text-white">পপআপ অন/অফ করুন (Toggle Popup)</p>
+                <p className="text-[10px] text-slate-400 mt-1">ব্যবহারকারী ওয়েবসাইটটিতে ঢোকার ১ সেকেন্ড পরে এই বিজ্ঞাপন পপআপটি দেখতে পারবে কি না তা চালু বা বন্ধ করুন।</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  checked={tempPopupEnabled} 
+                  onChange={(e) => setTempPopupEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-250 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-650 peer-checked:bg-indigo-650"></div>
+              </label>
+            </div>
+
+            {/* Popup Image Upload */}
+            <div className="space-y-3 p-4 bg-white dark:bg-[#0c1222] border border-slate-200/50 dark:border-slate-800/60 rounded-2xl">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-400">পপআপ বিজ্ঞাপন ছবি (Popup Image Asset)</label>
+              <div className="flex items-start gap-4 flex-wrap">
+                <div className="w-40 aspect-[4/5] sm:aspect-[3/4] rounded-2xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center overflow-hidden">
+                  {tempPopupImageUrl ? (
+                    <img src={tempPopupImageUrl} alt="Popup image preview" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span className="text-xs text-slate-400 text-center px-1 font-medium">কোনো ছবি নেই (No Image Selected)</span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <span className="text-[11px] font-black tracking-wider uppercase text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-md max-w-fit">কন্ট্রোল প্যানেল (Control Options)</span>
+                  <div className="flex gap-2 flex-wrap">
+                    <label className="cursor-pointer px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-colors shadow-sm">
+                      নতুন ছবি আপলোড করুন
+                      <input type="file" accept="image/*" className="hidden" onChange={handlePopupImageUpload} />
+                    </label>
+                    {tempPopupImageUrl && (
+                      <button
+                        type="button"
+                        onClick={removePopupImage}
+                        className="px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-950 dark:hover:bg-red-900 text-red-650 dark:text-red-400 rounded-xl text-xs font-black transition-colors border border-red-150 dark:border-red-900 cursor-pointer"
+                      >
+                        ছবি মুছে ফেলুন
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 max-w-xs leading-relaxed">
+                    পপআপের জন্য আকর্ষণীয় ৪:৫ বা ৩:৪ সাইজের ইমেজ (অফার পোস্টার, নোটিশ বা লোগো ব্যানার) আপলোড করুন। সাইট লোড হওয়ার ১ সেকেন্ড পর এটি সুন্দর অ্যানিমেশনের মাধ্যমে ভিজিটরের সামনে ভেসে উঠবে।
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TAB 5: Production Sync */}
         {activeSubTab === 'sync' && (
           <div className="space-y-6 animate-fade-in text-left">
@@ -722,6 +828,10 @@ export default function ManageHomepage() {
                       isScrollingTextEnabled: tempScrollingEnabled,
                       scrollingTextBn: tempScrollingTextBn,
                       scrollingTextEn: tempScrollingTextEn
+                    },
+                    popupSettings: {
+                      isPopupEnabled: tempPopupEnabled,
+                      popupImageUrl: tempPopupImageUrl
                     }
                   };
                   
@@ -754,6 +864,10 @@ export default function ManageHomepage() {
                       isScrollingTextEnabled: tempScrollingEnabled,
                       scrollingTextBn: tempScrollingTextBn,
                       scrollingTextEn: tempScrollingTextEn
+                    },
+                    popupSettings: {
+                      isPopupEnabled: tempPopupEnabled,
+                      popupImageUrl: tempPopupImageUrl
                     }
                   }, null, 2)}
                   className="w-full text-xs font-mono p-4 bg-slate-900 text-slate-100 rounded-2xl border border-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-550"

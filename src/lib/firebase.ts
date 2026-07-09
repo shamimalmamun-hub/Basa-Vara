@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore, enableMultiTabIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, enableMultiTabIndexedDbPersistence, setLogLevel } from 'firebase/firestore';
 import firebaseConfigJson from '../../firebase-applet-config.json';
 
 // Support both environment variables (for GitHub / Cloud Workers / custom deploys)
@@ -19,6 +19,13 @@ const databaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || fireba
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, databaseId); /* CRITICAL: The app will break without this line */
+
+// Set Firestore log level to 'error' to suppress harmless future update time/clock skew warning logs
+try {
+  setLogLevel('error');
+} catch (e) {
+  console.warn('Failed to set Firestore log level:', e);
+}
 
 // Enable multi-tab offline persistence for maximum load speed, caching and smooth UI
 try {
