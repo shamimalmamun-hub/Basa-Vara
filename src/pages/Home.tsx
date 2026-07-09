@@ -100,7 +100,7 @@ export default function Home() {
     if (isPopupEnabled && popupImageUrl) {
       const timer = setTimeout(() => {
         setShowPopup(true);
-      }, 2000);
+      }, 5000);
       return () => clearTimeout(timer);
     }
   }, [isPopupEnabled, popupImageUrl]);
