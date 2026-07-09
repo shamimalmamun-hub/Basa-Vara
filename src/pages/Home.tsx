@@ -233,6 +233,7 @@ export default function Home() {
               alt="Hero Background" 
               className="w-full h-full object-cover opacity-25 mix-blend-overlay"
               referrerPolicy="no-referrer"
+              loading="lazy"
             />
           )}
           {/* Dual-layer dark overlay to guarantee excellent text readability on smaller viewports */}

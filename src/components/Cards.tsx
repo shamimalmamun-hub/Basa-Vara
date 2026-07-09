@@ -55,6 +55,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
           alt={`${property.title} - ${currentImgIndex + 1}`}
           className="w-full h-full object-cover transition-all duration-500"
           referrerPolicy="no-referrer"
+          loading="lazy"
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=80';
           }}
@@ -233,6 +234,7 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
             alt={tutor.name} 
             className="w-full h-full object-cover" 
             referrerPolicy="no-referrer"
+            loading="lazy"
           />
         </div>
         <div className="min-w-0">

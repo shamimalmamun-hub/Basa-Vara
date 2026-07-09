@@ -46,7 +46,7 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   font-family: "Noto Sans Bengali", "Anek Bangla", sans-serif;
 }
 
-/* Mobile Optimization: Disable all decorative animations and transitions on mobile to prevent scroll lagging and ensure extreme performance, EXCEPT for vital UI indicators like the announcement marquee, announcement icon bounce, and loading spinners */
+/* Mobile Optimization: Disable all decorative animations, transitions, heavy backdrop-filters, and multi-layered box-shadows on mobile to prevent scroll lagging and ensure extreme performance, EXCEPT for vital UI indicators like the announcement marquee, announcement icon bounce, and loading spinners */
 @media (max-width: 767px) {
   *:not(.animate-marquee):not(.animate-bounce):not(.animate-spin):not([class*="marquee"]) {
     animation-name: none !important;
@@ -55,5 +55,25 @@ h1, h2, h3, h4, h5, h6, .font-heading {
     transition-property: none !important;
     transition-duration: 0s !important;
     transition-delay: 0s !important;
+  }
+
+  /* Disable expensive backdrop-filters on mobile to eliminate GPU compositing bottlenecks */
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.98) !important;
+  }
+  
+  .dark [class*="backdrop-blur"] {
+    background-color: rgba(15, 23, 42, 0.98) !important;
+  }
+
+  /* Simplify complex box-shadows on mobile to keep scrolling perfectly smooth and light on memory */
+  [class*="shadow-"] {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  .dark [class*="shadow-"] {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.25) !important;
   }
 }
