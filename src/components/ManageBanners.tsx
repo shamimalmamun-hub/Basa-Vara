@@ -206,25 +206,23 @@ export default function ManageBanners() {
                 <div className="text-[11px] text-indigo-700 dark:text-indigo-300 font-medium mb-3.5 bg-indigo-50/60 dark:bg-indigo-950/20 px-3.5 py-3 rounded-xl border border-indigo-100/80 dark:border-indigo-900/40 leading-relaxed space-y-1">
                   <div className="font-bold flex items-center gap-1.5 text-indigo-800 dark:text-indigo-200 text-xs mb-1">
                     <span>💡</span> 
-                    {language === 'bn' ? 'আদর্শ ব্যানার সাইজ নির্দেশিকা:' : 'Ideal Banner Size Guidelines:'}
+                    {language === 'bn' ? 'ব্যানার সাইজ নির্দেশিকা:' : 'Banner Size Guidelines:'}
                   </div>
                   <div>
-                    • <strong>{language === 'bn' ? 'চওড়া বা Width:' : 'Width:'}</strong> ১৬০০px - ২০০০px
+                    • <strong>Width:</strong> 1000px
                   </div>
                   <div>
-                    • <strong>{language === 'bn' ? 'উচ্চতা বা Height:' : 'Height:'}</strong> ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)
+                    • <strong>Height:</strong> 400px
                   </div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 pt-1.5 border-t border-indigo-100/50 dark:border-indigo-900/30">
-                    {language === 'bn' 
-                      ? 'এই মাপে আপলোড করলে ব্যানারটি কম্পিউটার ও মোবাইল সব ডিভাইসে নিখুঁতভাবে ফিট হবে।' 
-                      : 'Uploading in this dimension guarantees a perfect responsive fit on both mobile and PC.'}
+                  <div>
+                    • <strong>{language === 'bn' ? 'সর্বোচ্চ ফটো সাইজ:' : 'Max Photo Size:'}</strong> 1 MB
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <label className="flex-1 cursor-pointer flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-2xl p-4 bg-white dark:bg-slate-800 transition-all">
                     <Upload className="w-5 h-5 text-indigo-500 mb-1" />
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 text-center">
-                      {newBanner.image ? (language === 'bn' ? 'ছবি পরিবর্তন করুন' : 'Change Image') : (language === 'bn' ? 'ছবি আপলোড করুন (৩ মেগাবাইট সর্বোচ্চ)' : 'Upload Image (Max 3MB)')}
+                      {newBanner.image ? (language === 'bn' ? 'ছবি পরিবর্তন করুন' : 'Change Image') : (language === 'bn' ? 'ছবি আপলোড করুন (সর্বোচ্চ ১ মেগাবাইট)' : 'Upload Image (Max 1MB)')}
                     </span>
                     <input
                       type="file"
@@ -410,25 +408,23 @@ export default function ManageBanners() {
                         <div className="text-[11px] text-indigo-700 dark:text-indigo-300 font-medium mb-3.5 bg-indigo-50/60 dark:bg-indigo-950/20 px-3.5 py-3 rounded-xl border border-indigo-100/80 dark:border-indigo-900/40 leading-relaxed space-y-1">
                           <div className="font-bold flex items-center gap-1.5 text-indigo-800 dark:text-indigo-200 text-xs mb-1">
                             <span>💡</span> 
-                            {language === 'bn' ? 'আদর্শ ব্যানার সাইজ নির্দেশিকা:' : 'Ideal Banner Size Guidelines:'}
+                            {language === 'bn' ? 'ব্যানার সাইজ নির্দেশিকা:' : 'Banner Size Guidelines:'}
                           </div>
                           <div>
-                            • <strong>{language === 'bn' ? 'চওড়া বা Width:' : 'Width:'}</strong> ১৬০০px - ২০০০px
+                            • <strong>Width:</strong> 1000px
                           </div>
                           <div>
-                            • <strong>{language === 'bn' ? 'উচ্চতা বা Height:' : 'Height:'}</strong> ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)
+                            • <strong>Height:</strong> 400px
                           </div>
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 pt-1.5 border-t border-indigo-100/50 dark:border-indigo-900/30">
-                            {language === 'bn' 
-                              ? 'এই মাপে আপলোড করলে ব্যানারটি কম্পিউটার ও মোবাইল সব ডিভাইসে নিখুঁতভাবে ফিট হবে।' 
-                              : 'Uploading in this dimension guarantees a perfect responsive fit on both mobile and PC.'}
+                          <div>
+                            • <strong>{language === 'bn' ? 'সর্বোচ্চ ফটো সাইজ:' : 'Max Photo Size:'}</strong> 1 MB
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
                           <label className="flex-1 cursor-pointer flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-2xl p-4 bg-slate-50 dark:bg-slate-800 transition-all">
                             <Upload className="w-5 h-5 text-indigo-500 mb-1" />
                             <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                              {editingBanner.image ? (language === 'bn' ? 'ছবি পরিবর্তন করুন' : 'Change Image') : (language === 'bn' ? 'ছবি আপলোড করুন (৩ মেগাবাইট সর্বোচ্চ)' : 'Upload Image (Max 3MB)')}
+                              {editingBanner.image ? (language === 'bn' ? 'ছবি পরিবর্তন করুন' : 'Change Image') : (language === 'bn' ? 'ছবি আপলোড করুন (সর্বোচ্চ ১ মেগাবাইট)' : 'Upload Image (Max 1MB)')}
                             </span>
                             <input
                               type="file"

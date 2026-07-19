@@ -75,7 +75,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2 justify-start">
                 <Mail className="w-3.5 h-3.5 text-indigo-400" />
-                <span>support@basavara.com</span>
+                <span>xfixbd@gmail.com</span>
               </li>
               <li className="flex items-center gap-2 justify-start">
                 <Phone className="w-3.5 h-3.5 text-indigo-400" />
