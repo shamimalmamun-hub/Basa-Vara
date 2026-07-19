@@ -337,7 +337,7 @@ export default function Home() {
       </section>
 
       {/* Banner Ad Section */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 mt-16">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
         <motion.div 
           variants={isMobile ? undefined : containerVariants}
           initial={isMobile ? "visible" : "hidden"}
@@ -369,23 +369,23 @@ export default function Home() {
                 {...linkProps}
                 variants={isMobile ? undefined : itemVariants}
                 whileHover={isMobile ? undefined : { 
-                  y: -4, 
-                  scale: 1.01,
-                  boxShadow: '0 15px 25px -5px rgba(59, 130, 246, 0.12)'
+                  y: -5, 
+                  scale: 1.008,
+                  boxShadow: '0 20px 35px -8px rgba(59, 130, 246, 0.16)'
                 }}
-                className="relative block rounded-2xl overflow-hidden shadow-md group w-full cursor-pointer border border-slate-200/10 dark:border-slate-800/50 bg-slate-50 dark:bg-slate-900"
+                className="relative block rounded-2xl md:rounded-[1.75rem] overflow-hidden shadow-lg group w-full cursor-pointer border border-slate-200/10 dark:border-slate-800/50 bg-slate-50 dark:bg-slate-900"
               >
                 {hasImage ? (
-                  <div className="w-full aspect-[21/8] sm:aspect-[21/6] md:aspect-[21/5.5] lg:aspect-[21/5] max-h-[120px] sm:max-h-[160px] md:max-h-[180px] overflow-hidden">
+                  <div className="w-full aspect-[16/7] sm:aspect-[16/5] md:aspect-[16/4.5] lg:aspect-[16/4] max-h-[180px] sm:max-h-[250px] md:max-h-[300px] lg:max-h-[320px] overflow-hidden">
                     <img 
                       src={banner.image} 
                       alt="Advertisement Banner" 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.015]"
                       referrerPolicy="no-referrer"
                     />
                   </div>
                 ) : (
-                  <div className="w-full aspect-[21/8] sm:aspect-[21/6] md:aspect-[21/5.5] lg:aspect-[21/5] max-h-[120px] sm:max-h-[160px] md:max-h-[180px] flex items-center justify-center text-white bg-gradient-to-r from-teal-500 to-emerald-600">
+                  <div className="w-full aspect-[16/7] sm:aspect-[16/5] md:aspect-[16/4.5] lg:aspect-[16/4] max-h-[180px] sm:max-h-[250px] md:max-h-[300px] lg:max-h-[320px] flex items-center justify-center text-white bg-gradient-to-r from-teal-500 to-emerald-600">
                     <span className="text-sm font-bold tracking-wider opacity-60">
                       {language === 'bn' ? 'বিজ্ঞাপন ব্যানার' : 'Advertisement Banner'}
                     </span>

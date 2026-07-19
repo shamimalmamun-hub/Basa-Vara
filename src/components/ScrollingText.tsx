@@ -12,7 +12,7 @@ export default function ScrollingText() {
   const text = language === 'bn' ? scrollingTextBn : scrollingTextEn;
 
   return (
-    <div className="w-full bg-indigo-50/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-indigo-100/50 dark:border-slate-800/60 shadow-sm relative z-40 overflow-hidden transition-all duration-300">
+    <div className="w-full bg-indigo-50 dark:bg-slate-950 border-b border-indigo-100 dark:border-slate-800 shadow-sm relative z-40 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-10 text-xs sm:text-sm font-semibold text-indigo-900 dark:text-indigo-200">
           
