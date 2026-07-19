@@ -7,7 +7,7 @@ interface LanguageContextType {
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
   overrides: Record<Language, Record<string, string>>;
-  updateOverrides: (newOverrides: Record<Language, Record<string, string>>) => void;
+  updateOverrides: (newOverrides: Record<Language, Record<string, string>>, saveToLocalStorage?: boolean) => void;
 }
 
 const translations: Record<Language, Record<string, string>> = {
@@ -279,9 +279,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('basavara-language', 'bn');
   }, []);
 
-  const updateOverrides = (newOverrides: Record<Language, Record<string, string>>) => {
+  const updateOverrides = (newOverrides: Record<Language, Record<string, string>>, saveToLocalStorage = true) => {
     setOverrides(newOverrides);
-    localStorage.setItem('basavara_translation_overrides', JSON.stringify(newOverrides));
+    if (saveToLocalStorage) {
+      localStorage.setItem('basavara_translation_overrides', JSON.stringify(newOverrides));
+    }
   };
 
   const t = (key: string): string => {

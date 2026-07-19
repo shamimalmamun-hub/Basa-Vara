@@ -15,7 +15,8 @@ export default function ManageHomepage() {
     isScrollingTextEnabled,
     scrollingTextBn,
     scrollingTextEn,
-    updateScrollingTextSettings
+    updateScrollingTextSettings,
+    updateGlobalOverrides
   } = useApp();
   
   const [activeSubTab, setActiveSubTab] = useState<'logo' | 'menu' | 'hero' | 'sections' | 'scrolling' | 'sync'>('logo');
@@ -105,16 +106,18 @@ export default function ManageHomepage() {
     try {
       updateOverrides(tempOverrides);
       await updateScrollingTextSettings(tempScrollingEnabled, tempScrollingTextBn, tempScrollingTextEn);
+      await updateGlobalOverrides(tempOverrides);
     } catch (err) {
       console.error("Failed to save settings:", err);
     }
   };
 
-  const handleResetDefaults = () => {
+  const handleResetDefaults = async () => {
     if (window.confirm('আপনি কি নিশ্চিত যে আসল টেক্সট পুনরুদ্ধার করতে চান? কাস্টম সকল পরিবর্তন মুছে যাবে।')) {
       const resetState = { bn: {}, en: {} };
       setTempOverrides(resetState);
       updateOverrides(resetState);
+      await updateGlobalOverrides(resetState);
       toast.success('ডিফল্ট সিস্টেমে ফেরত যাওয়া হয়েছে।');
     }
   };

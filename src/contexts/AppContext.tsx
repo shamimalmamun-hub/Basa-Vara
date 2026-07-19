@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
+import { useLanguage, Language } from './LanguageContext';
 import { User, Property, Tutor, Invoice, AdBanner, Visitor } from '../types';
 import { db, auth } from '../lib/firebase';
 import { generateId } from '../lib/utils';
@@ -134,6 +135,7 @@ interface AppContextType extends AppState {
   approveSubscriptionRenewal: (userId: string) => Promise<boolean>;
   rejectSubscriptionRenewal: (userId: string) => Promise<boolean>;
   updateScrollingTextSettings: (enabled: boolean, textBn: string, textEn: string) => Promise<void>;
+  updateGlobalOverrides: (newOverrides: Record<Language, Record<string, string>>) => Promise<void>;
 }
 
 const DEFAULT_VIDEO_URL = 'https://www.youtube.com/watch?v=c0yFdX4VRKI&t=127s';
@@ -282,6 +284,7 @@ const getInitialState = (): AppState => {
 
 export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [state, setState] = useState<AppState>(getInitialState);
+  const { updateOverrides } = useLanguage();
 
   const [selectedLocation, setSelectedLocationState] = useState<string | null>(null);
 
@@ -556,6 +559,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         const scrollingTextBn = data.scrollingTextBn || "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।";
         const scrollingTextEn = data.scrollingTextEn || "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.";
         const apiUrl = data.apiUrl || '';
+
+        // Synchronize Firestore overrides with LanguageContext
+        if (data.overrides) {
+          updateOverrides(data.overrides, true);
+        }
 
         setState(prev => ({ 
           ...prev, 
@@ -1546,6 +1554,18 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
+  const updateGlobalOverrides = async (newOverrides: Record<Language, Record<string, string>>) => {
+    try {
+      await setDoc(doc(db, 'settings', 'global'), { 
+        overrides: newOverrides
+      }, { merge: true });
+      toast.success('লোগো ও ব্র্যান্ড নাম সফলভাবে সার্ভারে চিরতরে সেভ করা হয়েছে');
+    } catch (err) {
+      console.error("Failed to save overrides on Firestore:", err);
+      toast.error('সার্ভারে সেভ করা ব্যর্থ হয়েছে।');
+    }
+  };
+
 
   return (
     <AppContext.Provider value={{
@@ -1575,7 +1595,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       sendRenewalEmailManual: sendRenewalEmailManual as any,
       approveSubscriptionRenewal: approveSubscriptionRenewal as any,
       rejectSubscriptionRenewal: rejectSubscriptionRenewal as any,
-      updateScrollingTextSettings: updateScrollingTextSettings as any
+      updateScrollingTextSettings: updateScrollingTextSettings as any,
+      updateGlobalOverrides: updateGlobalOverrides as any
     }}>
       {children}
     </AppContext.Provider>
