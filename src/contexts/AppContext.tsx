@@ -106,8 +106,6 @@ interface AppState {
   isScrollingTextEnabled: boolean;
   scrollingTextBn: string;
   scrollingTextEn: string;
-  popupImageUrl?: string;
-  isPopupEnabled?: boolean;
 }
 
 interface AppContextType extends AppState {
@@ -136,7 +134,6 @@ interface AppContextType extends AppState {
   approveSubscriptionRenewal: (userId: string) => Promise<boolean>;
   rejectSubscriptionRenewal: (userId: string) => Promise<boolean>;
   updateScrollingTextSettings: (enabled: boolean, textBn: string, textEn: string) => Promise<void>;
-  updatePopupSettings: (enabled: boolean, imageUrl: string) => Promise<void>;
 }
 
 const DEFAULT_VIDEO_URL = 'https://www.youtube.com/watch?v=c0yFdX4VRKI&t=127s';
@@ -155,8 +152,6 @@ const defaultState: AppState = {
   isScrollingTextEnabled: true,
   scrollingTextBn: "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
   scrollingTextEn: "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.",
-  popupImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-  isPopupEnabled: true
 };
 
 export const DEFAULT_BANNERS: AdBanner[] = [
@@ -446,9 +441,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
             heroVideoUrl: DEFAULT_VIDEO_URL,
             isScrollingTextEnabled: true,
             scrollingTextBn: "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।",
-            scrollingTextEn: "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.",
-            popupImageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-            isPopupEnabled: true
+            scrollingTextEn: "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes."
           }).catch(err => {
             handleFirestoreError(err, OperationType.WRITE, 'settings/global');
             throw err;
@@ -456,10 +449,8 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         } else {
           const data = settingsSnap.data();
           if (data && (!data.popupImageUrl || data.isPopupEnabled === undefined)) {
-            await setDoc(doc(db, 'settings', 'global'), {
-              popupImageUrl: data.popupImageUrl || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80',
-              isPopupEnabled: data.isPopupEnabled !== undefined ? data.isPopupEnabled : true
-            }, { merge: true }).catch(() => null);
+            // Cleanup old popup data if exists in old settings
+            // This logic is simplified to just keep it clean.
           }
         }
 
@@ -565,8 +556,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
         const scrollingTextBn = data.scrollingTextBn || "নতুন অফার! বাসাভাড়া ও হোম টিউটর সাবস্ক্রিপশনে পাচ্ছেন ২৫% পর্যন্ত ছাড়! লিমিটেড সময়ের জন্য ফ্যামিলি ফ্ল্যাট এবং ছাত্র মেসে আকর্ষণীয় অফার চলছে।";
         const scrollingTextEn = data.scrollingTextEn || "Special Offer! Get up to 25% off on rentals and tutor subscriptions! Limited time offer is running for family flats and male/female student messes.";
         const apiUrl = data.apiUrl || '';
-        const popupImageUrl = data.popupImageUrl || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80';
-        const isPopupEnabled = data.isPopupEnabled !== undefined ? data.isPopupEnabled : true;
 
         setState(prev => ({ 
           ...prev, 
@@ -574,17 +563,13 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
           apiUrl,
           isScrollingTextEnabled,
           scrollingTextBn,
-          scrollingTextEn,
-          popupImageUrl,
-          isPopupEnabled
+          scrollingTextEn
         }));
 
         safeLocalStorage.setItem('basavara_scrolling_enabled', String(isScrollingTextEnabled));
         safeLocalStorage.setItem('basavara_scrolling_bn', scrollingTextBn);
         safeLocalStorage.setItem('basavara_scrolling_en', scrollingTextEn);
         safeLocalStorage.setItem('basavara_hero_video_url', heroVideoUrl);
-        safeLocalStorage.setItem('basavara_popup_image_url', popupImageUrl);
-        safeLocalStorage.setItem('basavara_is_popup_enabled', String(isPopupEnabled));
       }
       loaded.settings = true;
       checkAllLoaded();
@@ -1561,18 +1546,6 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
     }
   };
 
-  const updatePopupSettings = async (enabled: boolean, imageUrl: string) => {
-    try {
-      await setDoc(doc(db, 'settings', 'global'), { 
-        isPopupEnabled: enabled,
-        popupImageUrl: imageUrl
-      }, { merge: true });
-      toast.success('পপআপ সেটিংস সফলভাবে আপডেট করা হয়েছে');
-    } catch (err) {
-      console.error("Failed to update popup settings:", err);
-      toast.error('পপআপ সেটিংস আপডেট করতে ব্যর্থ হয়েছে।');
-    }
-  };
 
   return (
     <AppContext.Provider value={{
@@ -1602,8 +1575,7 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       sendRenewalEmailManual: sendRenewalEmailManual as any,
       approveSubscriptionRenewal: approveSubscriptionRenewal as any,
       rejectSubscriptionRenewal: rejectSubscriptionRenewal as any,
-      updateScrollingTextSettings: updateScrollingTextSettings as any,
-      updatePopupSettings: updatePopupSettings as any
+      updateScrollingTextSettings: updateScrollingTextSettings as any
     }}>
       {children}
     </AppContext.Provider>

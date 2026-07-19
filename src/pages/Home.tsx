@@ -80,7 +80,7 @@ const listCardVariants = {
 };
 
 export default function Home() {
-  const { currentUser, properties, tutors, selectedLocation, setSelectedLocation, banners, heroVideoUrl, isLoading, popupImageUrl, isPopupEnabled } = useApp();
+  const { currentUser, properties, tutors, selectedLocation, setSelectedLocation, banners, heroVideoUrl, isLoading } = useApp();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -92,18 +92,7 @@ export default function Home() {
     return false;
   });
 
-  const [showPopup, setShowPopup] = useState(false);
   const [videoQuality, setVideoQuality] = useState<'small' | 'medium' | 'hd720' | 'default'>('default');
-
-  // Trigger popup after 1 second
-  useEffect(() => {
-    if (isPopupEnabled && popupImageUrl) {
-      const timer = setTimeout(() => {
-        setShowPopup(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isPopupEnabled, popupImageUrl]);
 
   // Connection speed adaptive video resolution detection
   useEffect(() => {
@@ -189,7 +178,7 @@ export default function Home() {
       document.removeEventListener('touchstart', playVideoImmediately);
       document.removeEventListener('scroll', playVideoImmediately);
     };
-  }, [heroVideoUrl, isMobile]);
+  }, [heroVideoUrl]);
 
   // Loading state
   if (isLoading) {
@@ -279,37 +268,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-indigo-950/40 md:bg-indigo-950/20"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-indigo-950 via-indigo-950/65 md:via-indigo-950/60 to-indigo-950/20"></div>
           
-          {/* Drifting fluid circle light shapes - Completely disabled on mobile to prevent layout re-render & scroll lag */}
-          {!isMobile && (
-            <>
-              <motion.div 
-                animate={{ 
-                  x: [0, 40, -30, 0], 
-                  y: [0, -50, 40, 0],
-                  scale: [1, 1.15, 0.9, 1] 
-                }}
-                transition={{ 
-                  duration: 18, 
-                  repeat: Infinity, 
-                  ease: 'easeInOut' 
-                }}
-                className="absolute top-1/4 -left-20 w-[450px] h-[450px] bg-indigo-555/15 rounded-full blur-3xl pointer-events-none"
-              />
-              <motion.div 
-                animate={{ 
-                  x: [0, -50, 30, 0], 
-                  y: [0, 40, -50, 0],
-                  scale: [1, 0.9, 1.2, 1] 
-                }}
-                transition={{ 
-                  duration: 22, 
-                  repeat: Infinity, 
-                  ease: 'easeInOut' 
-                }}
-                className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-purple-555/15 rounded-full blur-3xl pointer-events-none"
-              />
-            </>
-          )}
+          {/* Optimized static beautiful fluid circle light shapes - Completely prevents rendering bottleneck & scroll lag on desktop/laptop views */}
+          <div className="absolute top-1/4 -left-20 w-[450px] h-[450px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         </div>
         
         <motion.div 
@@ -727,7 +688,7 @@ export default function Home() {
                 boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.12)'
               }}
               transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-              className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/70 dark:border-slate-800/70 rounded-[2.5rem] p-8 hover:border-slate-300 dark:hover:border-slate-700 transition-all relative group overflow-hidden flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800/70 rounded-[2.5rem] p-8 hover:border-slate-300 dark:hover:border-slate-700 transition-all relative group overflow-hidden flex flex-col justify-between"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-50/10 via-transparent to-white/10 dark:from-indigo-900/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
               <div>
@@ -782,7 +743,7 @@ export default function Home() {
                 boxShadow: '0 30px 60px -15px rgba(99, 102, 241, 0.25)'
               }}
               transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-              className="bg-gradient-to-b from-indigo-50/50 to-white/90 dark:from-indigo-950/20 dark:to-slate-900/80 backdrop-blur-md border-2 border-indigo-500/40 dark:border-indigo-500/30 rounded-[2.5rem] p-8 relative group overflow-hidden shadow-xl shadow-indigo-500/[0.03] flex flex-col justify-between"
+              className="bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-950/20 dark:to-slate-900 border-2 border-indigo-500/40 dark:border-indigo-500/30 rounded-[2.5rem] p-8 relative group overflow-hidden shadow-xl shadow-indigo-500/[0.03] flex flex-col justify-between"
             >
               {/* Soft pulsing halo */}
               <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -839,7 +800,7 @@ export default function Home() {
                 boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.12)'
               }}
               transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-              className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/70 dark:border-slate-800/70 rounded-[2.5rem] p-8 hover:border-slate-300 dark:hover:border-slate-700 transition-all relative group overflow-hidden flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800/70 rounded-[2.5rem] p-8 hover:border-slate-300 dark:hover:border-slate-700 transition-all relative group overflow-hidden flex flex-col justify-between"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-50/20 via-transparent to-white/10 dark:from-indigo-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
               <div>
@@ -882,41 +843,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Dynamic Image Popup */}
-      {showPopup && isPopupEnabled && popupImageUrl && (
-        <div 
-          onClick={() => setShowPopup(false)}
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside card
-            className="relative max-w-lg w-full bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50 dark:border-slate-800/50 p-2 md:p-3"
-          >
-            {/* Close button - Highly prominent red button with white X */}
-            <button
-              id="btn-close-popup"
-              onClick={() => setShowPopup(false)}
-              className="absolute top-4 right-4 z-50 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full transition-all focus:outline-none shadow-lg shadow-red-600/30 cursor-pointer hover:scale-110 active:scale-95 flex items-center justify-center border border-red-500"
-              title={language === 'bn' ? 'বন্ধ করুন' : 'Close'}
-            >
-              <X className="w-5 h-5 stroke-[3]" />
-            </button>
-
-            {/* Popup Image */}
-            <div className="relative aspect-[4/5] sm:aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
-              <img
-                src={popupImageUrl}
-                alt="Notification Popup"
-                className="max-h-full max-w-full object-contain rounded-2xl transition-all hover:scale-[1.02]"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-          </motion.div>
-        </div>
-      )}
     </div>
   );
 }
