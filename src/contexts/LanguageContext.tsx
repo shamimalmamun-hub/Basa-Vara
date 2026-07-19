@@ -257,9 +257,7 @@ const DEFAULT_OVERRIDES: Record<Language, Record<string, string>> = {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>(() => {
-    return (localStorage.getItem('basavara-language') as Language) || 'bn';
-  });
+  const [language] = useState<Language>('bn');
 
   const [overrides, setOverrides] = useState<Record<Language, Record<string, string>>>(() => {
     try {
@@ -278,8 +276,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('basavara-language', language);
-  }, [language]);
+    localStorage.setItem('basavara-language', 'bn');
+  }, []);
 
   const updateOverrides = (newOverrides: Record<Language, Record<string, string>>) => {
     setOverrides(newOverrides);
@@ -307,7 +305,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, overrides, updateOverrides }}>
+    <LanguageContext.Provider value={{ language: 'bn', setLanguage: () => {}, t, overrides, updateOverrides }}>
       {children}
     </LanguageContext.Provider>
   );
