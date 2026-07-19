@@ -141,7 +141,7 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
             <div className="space-y-1">
               <div className="flex items-start text-sm">
                 <MapPin className="w-4 h-4 text-indigo-500 mr-1.5 mt-0.5 shrink-0" />
-                <span className="text-slate-800 dark:text-slate-200 font-bold truncate">{property.address}</span>
+                <span className="text-slate-800 dark:text-slate-200 font-bold break-words leading-tight">{property.address}</span>
               </div>
               {(property.contactNumber || property.ownerPhoneNumber) && (
                 <div className="flex flex-col gap-1.5 pt-0.5">

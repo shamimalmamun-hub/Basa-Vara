@@ -377,9 +377,9 @@ export default function ManagePosts() {
                   <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{property.description}</p>
 
                   <div className="grid grid-cols-1 gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-                    <div className="flex items-center text-slate-600 dark:text-slate-400">
-                      <MapPin className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
-                      <span className="truncate">{property.location} • {property.address}</span>
+                    <div className="flex items-start text-slate-600 dark:text-slate-400">
+                      <MapPin className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0 mt-0.5" />
+                      <span className="break-words leading-tight">{property.location} • {property.address}</span>
                     </div>
 
                     {property.contactNumber && (
