@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useApp } from './contexts/AppContext';
+import { useLanguage } from './contexts/LanguageContext';
 import { MotionConfig } from 'motion/react';
 
 // Pages
@@ -33,6 +34,50 @@ export default function App() {
     }
     return false;
   });
+
+  const { t, language } = useLanguage();
+
+  // Dynamically update browser tab title and favicon when brand name or logo changes
+  useEffect(() => {
+    // 1. Dynamic document/tab title update
+    const brandName = t('brandName');
+    if (brandName && brandName !== 'brandName' && brandName !== '') {
+      document.title = `${brandName} | ${language === 'bn' ? 'বাসা ভাড়া ও হোম টিউটর' : 'Basa Bhara & Home Tutor BD'}`;
+    } else {
+      document.title = language === 'bn' 
+        ? "বাসা ভাড়া ও হোম টিউটর | Basa Bhara & Home Tutor BD"
+        : "Basa Bhara & Home Tutor BD";
+    }
+
+    // 2. Dynamic favicon / browser tab icon update (combats browser aggressive caching with timestamp version)
+    const customLogo = t('customLogoImage');
+    const targetLogo = customLogo && customLogo !== '' ? customLogo : `/logo.png?v=${Date.now()}`;
+
+    // Find and update all shortcut/favicon links in HTML head
+    const iconLinks = document.querySelectorAll("link[rel*='icon']");
+    if (iconLinks.length > 0) {
+      iconLinks.forEach((link: any) => {
+        link.href = targetLogo;
+      });
+    } else {
+      const link = document.createElement('link');
+      link.rel = 'icon';
+      link.type = 'image/png';
+      link.href = targetLogo;
+      document.head.appendChild(link);
+    }
+
+    // Find and update apple touch icon
+    const appleLink = document.querySelector("link[rel='apple-touch-icon']");
+    if (appleLink) {
+      (appleLink as any).href = targetLogo;
+    } else {
+      const link = document.createElement('link');
+      link.rel = 'apple-touch-icon';
+      link.href = targetLogo;
+      document.head.appendChild(link);
+    }
+  }, [t, language]);
 
   useEffect(() => {
     const handleResize = () => {
