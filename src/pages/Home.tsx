@@ -737,7 +737,7 @@ export default function Home() {
               
               <div className="absolute top-5 right-6 z-20">
                 <span className="bg-indigo-600 text-white text-[9px] font-black uppercase tracking-widest py-1 px-3 rounded-full shadow-lg shadow-indigo-650/30">
-                  {language === 'bn' ? 'টিউটর' : 'Popular'}
+                  {language === 'bn' ? 'জনপ্রিয়' : 'Popular'}
                 </span>
               </div>
               
