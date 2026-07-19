@@ -27,7 +27,7 @@ export const MAIN_LOCATIONS = [
 
 export const PROPERTY_TYPES = ["Family Flat", "Female Mess", "Male Mess", "Bachelor Flat"];
 
-export function compressImage(file: File, maxWidth = 600, maxHeight = 450): Promise<string> {
+export function compressImage(file: File, maxWidth = 800, maxHeight = 600, quality = 0.8): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -57,8 +57,8 @@ export function compressImage(file: File, maxWidth = 600, maxHeight = 450): Prom
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // Convert to quality 0.5 JPEG to keep size extremely small (avg 15-25KB) but clean
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
+        // Convert with adjustable quality
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
         resolve(compressedBase64);
       };
       img.onerror = (err) => reject(err);
