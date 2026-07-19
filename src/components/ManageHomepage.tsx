@@ -37,6 +37,13 @@ export default function ManageHomepage() {
     setTempScrollingTextEn(scrollingTextEn);
   }, [scrollingTextEn]);
 
+  React.useEffect(() => {
+    setTempOverrides({
+      bn: { ...(overrides.bn || {}) },
+      en: { ...(overrides.en || {}) },
+    });
+  }, [overrides]);
+
   // Copy overrides to local state
   const [tempOverrides, setTempOverrides] = useState<Record<Language, Record<string, string>>>(() => {
     return {
