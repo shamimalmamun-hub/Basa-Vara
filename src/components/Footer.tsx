@@ -17,11 +17,7 @@ export default function Footer() {
           {/* Brand Col */}
           <div className="space-y-4 flex flex-col items-start text-left">
             <Link to="/" className="flex items-center space-x-2.5 justify-start">
-              {t('customLogoImage') ? (
-                <img src={t('customLogoImage')} alt="Logo" className="w-6 h-6 object-contain rounded-md" referrerPolicy="no-referrer" />
-              ) : (
-                <Home className="w-5 h-5 text-indigo-400" />
-              )}
+              <img src={t('customLogoImage') || "/logo.png"} alt="Logo" className="w-6 h-6 object-contain rounded-md" referrerPolicy="no-referrer" />
               <span className="font-bold text-lg tracking-tight text-white">
                 {t('brandName') !== 'brandName' ? t('brandName') : (
                   language === 'bn' ? (

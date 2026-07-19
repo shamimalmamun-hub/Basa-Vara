@@ -19,11 +19,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2.5">
-            {t('customLogoImage') ? (
-              <img src={t('customLogoImage')} alt="Logo" className="w-8 h-8 object-contain rounded-lg shadow-sm" referrerPolicy="no-referrer" />
-            ) : (
-              <Home className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-            )}
+            <img src={t('customLogoImage') || "/logo.png"} alt="Logo" className="w-8 h-8 object-contain rounded-lg shadow-sm" referrerPolicy="no-referrer" />
             <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 dark:text-white">
               {t('brandName') !== 'brandName' ? t('brandName') : (
                 language === 'bn' ? (

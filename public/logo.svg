@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Vibrant Indigo to Pink-Purple Gradient -->
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="30%" stop-color="#7c3aed" />
+      <stop offset="70%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.15" flood-color="#4f46e5"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#subtleShadow)">
+    <!-- 1. Graduation Cap (Mortarboard) -->
+    <!-- Cap Diamond -->
+    <polygon points="250,45 460,115 250,185 40,115" fill="url(#logoGrad)" />
+    
+    <!-- Skull Cap Under Structure -->
+    <path d="M140,150 L140,205 C140,230 360,230 360,205 L360,150" fill="none" stroke="url(#logoGrad)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- Tassel on the left -->
+    <path d="M250,115 L100,160 L92,230" fill="none" stroke="url(#logoGrad)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M77,230 L107,230 L100,270 L84,270 Z" fill="url(#logoGrad)" />
+
+    <!-- 2. House Structure underneath -->
+    <!-- House Outline (Outer Wall & Roof) -->
+    <path d="M110,285 L250,185 L390,285 L390,430 C390,442 380,452 368,452 L132,452 C120,452 110,442 110,430 Z" 
+          fill="none" stroke="url(#logoGrad)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- 3. Window (2x2 Grid) in the center -->
+    <rect x="222" y="275" width="24" height="24" rx="4" fill="url(#logoGrad)" />
+    <rect x="254" y="275" width="24" height="24" rx="4" fill="url(#logoGrad)" />
+    <rect x="222" y="307" width="24" height="24" rx="4" fill="url(#logoGrad)" />
+    <rect x="254" y="307" width="24" height="24" rx="4" fill="url(#logoGrad)" />
+
+    <!-- 4. Modern Stylized Checkmark inside at the bottom -->
+    <path d="M175,370 L235,425 L325,310" fill="none" stroke="url(#logoGrad)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>
