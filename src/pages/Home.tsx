@@ -373,17 +373,17 @@ export default function Home() {
                   scale: 1.015,
                   boxShadow: '0 25px 30px -10px rgba(59, 130, 246, 0.15)'
                 }}
-                className="relative block rounded-[2rem] overflow-hidden shadow-lg group w-full aspect-[21/9] sm:aspect-[16/5] cursor-pointer border border-slate-200/10 dark:border-slate-800"
+                className="relative block rounded-2xl md:rounded-[2rem] overflow-hidden shadow-lg group w-full cursor-pointer border border-slate-200/10 dark:border-slate-800"
               >
                 {hasImage ? (
                   <img 
                     src={banner.image} 
                     alt="Advertisement Banner" 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    className="w-full h-auto block transition-transform duration-700 group-hover:scale-[1.03]"
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className={`w-full h-full flex items-center justify-center text-white ${gradientClass}`}>
+                  <div className={`w-full aspect-[21/9] sm:aspect-[16/5] flex items-center justify-center text-white ${gradientClass}`}>
                     <span className="text-sm font-bold tracking-wider opacity-60">
                       {language === 'bn' ? 'বিজ্ঞাপন ব্যানার' : 'Advertisement Banner'}
                     </span>
