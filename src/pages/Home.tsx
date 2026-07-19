@@ -347,12 +347,6 @@ export default function Home() {
         >
           {(banners && banners.length > 0 ? [banners[0]] : DEFAULT_BANNERS.slice(0, 1)).map((banner, index) => {
             const hasImage = !!banner.image;
-            const badge = language === 'bn' ? banner.badgeBn : banner.badgeEn;
-            const title = language === 'bn' ? banner.titleBn : banner.titleEn;
-            const desc = language === 'bn' ? banner.descBn : banner.descEn;
-            const btnText = language === 'bn' ? banner.buttonTextBn : banner.buttonTextEn;
-            const iconEmoji = banner.iconEmoji || '🏡';
-            const secEmoji = banner.secondaryEmoji || '⚡';
 
             // Fallback gradients
             let gradientClass = 'bg-gradient-to-r from-slate-750 to-slate-950';
@@ -364,49 +358,40 @@ export default function Home() {
               }
             }
 
+            const isExternal = banner.link && (banner.link.startsWith('http://') || banner.link.startsWith('https://'));
+            const linkProps = isExternal 
+              ? { href: banner.link, target: '_blank', rel: 'noopener noreferrer' } 
+              : { href: banner.link || '#' };
+
             return (
-              <motion.div 
+              <motion.a 
                 key={banner.id || `banner-${index}`}
+                {...linkProps}
                 variants={isMobile ? undefined : itemVariants}
                 whileHover={isMobile ? undefined : { 
                   y: -6, 
                   scale: 1.015,
                   boxShadow: '0 25px 30px -10px rgba(59, 130, 246, 0.15)'
                 }}
-                style={hasImage ? { backgroundImage: `url(${banner.image})` } : {}}
-                className={`relative rounded-[2rem] p-8 text-white overflow-hidden shadow-lg group ${
-                  hasImage ? 'bg-cover bg-center min-h-[240px] flex flex-col justify-end' : gradientClass
-                }`}
+                className="relative block rounded-[2rem] overflow-hidden shadow-lg group w-full aspect-[21/9] sm:aspect-[16/5] cursor-pointer border border-slate-200/10 dark:border-slate-800"
               >
-                {/* Visual background decorations */}
-                <div className="absolute -right-10 -bottom-10 w-44 h-44 bg-white/10 rounded-full blur-2xl group-hover:scale-135 transition-transform duration-700"></div>
-                {hasImage && (
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-slate-900/35 z-0"></div>
-                )}
-                
-                <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md text-[9px] uppercase tracking-widest font-black px-3 py-1.5 rounded-full text-white/95 select-none z-10 border border-white/10">
-                  {language === 'bn' ? 'বিজ্ঞাপন / স্পন্সরড' : 'Ad / Sponsored'}
-                </div>
-                
-                <div className="relative z-10 max-w-[85%]">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl mb-3 inline-block">
-                    {iconEmoji} {badge}
-                  </span>
-                  <h3 className="text-xl font-extrabold leading-snug mb-1.5 drop-shadow-sm line-clamp-1">
-                    {title}
-                  </h3>
-                  <p className="text-xs text-white/90 mb-5 line-clamp-2 drop-shadow-sm font-light leading-relaxed">
-                    {desc}
-                  </p>
-                  
-
-                </div>
-                {!hasImage && (
-                  <div className="absolute right-6 bottom-6 text-6xl opacity-20 pointer-events-none group-hover:scale-120 group-hover:rotate-12 transition-transform duration-500 z-10">
-                    {secEmoji}
+                {hasImage ? (
+                  <img 
+                    src={banner.image} 
+                    alt="Advertisement Banner" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className={`w-full h-full flex items-center justify-center text-white ${gradientClass}`}>
+                    <span className="text-sm font-bold tracking-wider opacity-60">
+                      {language === 'bn' ? 'বিজ্ঞাপন ব্যানার' : 'Advertisement Banner'}
+                    </span>
                   </div>
                 )}
-              </motion.div>
+                {/* Subtle Hover Overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 pointer-events-none" />
+              </motion.a>
             );
           })}
         </motion.div>
