@@ -688,7 +688,7 @@ export default function Home() {
                 boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.12)'
               }}
               transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800/70 rounded-[2.5rem] p-8 hover:border-slate-300 dark:hover:border-slate-700 transition-all relative group overflow-hidden flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-[2.5rem] p-8 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all relative group overflow-hidden flex flex-col justify-between"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-50/10 via-transparent to-white/10 dark:from-indigo-900/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
               <div>
@@ -743,7 +743,7 @@ export default function Home() {
                 boxShadow: '0 30px 60px -15px rgba(99, 102, 241, 0.25)'
               }}
               transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-              className="bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-950/20 dark:to-slate-900 border-2 border-indigo-500/40 dark:border-indigo-500/30 rounded-[2.5rem] p-8 relative group overflow-hidden shadow-xl shadow-indigo-500/[0.03] flex flex-col justify-between"
+              className="bg-gradient-to-b from-indigo-50/50 to-white dark:from-indigo-950/20 dark:to-slate-900 border-2 border-indigo-500 dark:border-indigo-400 rounded-[2.5rem] p-8 relative group overflow-hidden shadow-xl shadow-indigo-500/[0.03] flex flex-col justify-between"
             >
               {/* Soft pulsing halo */}
               <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -800,7 +800,7 @@ export default function Home() {
                 boxShadow: '0 25px 50px -12px rgba(99, 102, 241, 0.12)'
               }}
               transition={{ type: 'spring', stiffness: 80, damping: 15 }}
-              className="bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800/70 rounded-[2.5rem] p-8 hover:border-slate-300 dark:hover:border-slate-700 transition-all relative group overflow-hidden flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-700 rounded-[2.5rem] p-8 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all relative group overflow-hidden flex flex-col justify-between"
             >
               <div className="absolute inset-0 bg-gradient-to-tr from-indigo-50/20 via-transparent to-white/10 dark:from-indigo-900/10 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
               <div>
