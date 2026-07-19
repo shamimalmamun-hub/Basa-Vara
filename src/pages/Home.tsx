@@ -376,11 +376,11 @@ export default function Home() {
                 className="relative block rounded-2xl md:rounded-[1.75rem] overflow-hidden shadow-lg group w-full cursor-pointer border border-slate-200/10 dark:border-slate-800/50 bg-slate-50 dark:bg-slate-900"
               >
                 {hasImage ? (
-                  <div className="w-full aspect-[16/7] sm:aspect-[16/5] md:aspect-[16/4.5] lg:aspect-[16/4] max-h-[180px] sm:max-h-[250px] md:max-h-[300px] lg:max-h-[320px] overflow-hidden">
+                  <div className="w-full overflow-hidden flex justify-center bg-slate-50 dark:bg-slate-950/40 rounded-2xl md:rounded-[1.75rem]">
                     <img 
                       src={banner.image} 
                       alt="Advertisement Banner" 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.015]"
+                      className="w-full h-auto max-h-[160px] sm:max-h-[260px] md:max-h-[360px] lg:max-h-[450px] object-contain transition-transform duration-700 group-hover:scale-[1.015]"
                       referrerPolicy="no-referrer"
                     />
                   </div>

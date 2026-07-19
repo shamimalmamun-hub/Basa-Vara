@@ -61,8 +61,8 @@ export default function ManageBanners() {
     }
 
     try {
-      // Banners are wide display ads, compress them with high resolution and high quality (2000x800, quality 0.9)
-      const compressed = await compressImage(file, 2000, 800, 0.9);
+      // Banners can be any size/aspect ratio, compress them with ultra-high resolution (4000x4000, quality 0.9) to preserve original aspect ratio and high details of any uploaded size
+      const compressed = await compressImage(file, 4000, 4000, 0.9);
       if (isNew) {
         setNewBanner(prev => ({ ...prev, image: compressed }));
       } else {
@@ -287,11 +287,11 @@ export default function ManageBanners() {
 
                   {/* Simulated rendered real banner widget - Only displaying the image or fallback gradient placeholder */}
                   {currentEditingData.image ? (
-                    <div className="relative rounded-3xl overflow-hidden shadow-md aspect-[16/6] w-full group">
+                    <div className="relative rounded-3xl overflow-hidden shadow-md w-full bg-slate-50 dark:bg-slate-950/40 flex justify-center group">
                       <img 
                         src={currentEditingData.image} 
                         alt="Banner Preview" 
-                        className="w-full h-full object-cover" 
+                        className="w-full h-auto max-h-[240px] object-contain" 
                       />
                       <div className="absolute top-2 right-3 bg-black/40 backdrop-blur-md text-[8px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded-full text-white/90 select-none border border-white/10">
                         {language === 'bn' ? 'বিজ্ঞাপন প্রিভিউ' : 'Ad Preview'}

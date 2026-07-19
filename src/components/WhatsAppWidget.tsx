@@ -30,8 +30,8 @@ export default function WhatsAppWidget() {
 
   const whatsappNumber = '8801329246833'; // Bangladesh number without prefix or '+'
   const message = language === 'bn' 
-    ? 'হ্যালো, আমি একটি ব্যাপারে কথা বলতে চাই।' 
-    : 'Hello, I would like to make an inquiry.';
+    ? 'হ্যালো, আমি বাসাভাড়া ও হোম টিউটর ওয়েবসাইট থেকে বলছিলাম।' 
+    : 'Hello, I am contacting you from the rent and home tutor website.';
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
   const tooltipText = language === 'bn' 
