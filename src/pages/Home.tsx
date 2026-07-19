@@ -233,10 +233,10 @@ export default function Home() {
           {/* Render background video on both desktop and mobile/tablet as requested */}
           {heroVideoUrl ? (
             getYouTubeId(heroVideoUrl) ? (
-              <div className="absolute inset-0 w-full h-full opacity-85 md:opacity-65 overflow-hidden pointer-events-none scale-[1.35]">
+              <div className="absolute inset-0 w-full h-full opacity-85 md:opacity-65 overflow-hidden pointer-events-none">
                 <iframe
                   ref={iframeRef}
-                  className="absolute top-0 left-0 w-full h-full border-0 pointer-events-none cursor-default"
+                  className="absolute top-1/2 left-1/2 min-w-[177.77vh] min-h-full w-[100vw] h-[56.25vw] -translate-x-1/2 -translate-y-1/2 scale-[1.05] sm:scale-100 border-0 pointer-events-none cursor-default"
                   src={`https://www.youtube-nocookie.com/embed/${getYouTubeId(heroVideoUrl)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeId(heroVideoUrl)}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&enablejsapi=1&vq=${videoQuality}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   title="Background YouTube Video"
