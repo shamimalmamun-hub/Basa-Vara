@@ -184,11 +184,23 @@ export default function ManageBanners() {
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
                   <Upload className="w-3.5 h-3.5 text-slate-400" /> বিজ্ঞাপন ব্যানার ছবি (PNG, JPG, JPEG, GIF সমর্থিত)
                 </label>
-                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold mb-2 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/50 leading-relaxed">
-                  💡 {language === 'bn' 
-                    ? 'প্রস্তাবিত সাইজ: চওড়া বা Width: ১৬০০px - ২০০০px এবং উচ্চতা বা Height: ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)। এই সাইজে ব্যানারটি পিসি ও মোবাইল সব স্ক্রিনে পারফেক্ট দেখাবে।' 
-                    : 'Recommended Size: Width: 1600px - 2000px and Height: 400px - 500px (Ratio 16:4 or 16:5). This ensures perfect fit on all desktop & mobile screens.'}
-                </p>
+                <div className="text-[11px] text-indigo-700 dark:text-indigo-300 font-medium mb-3.5 bg-indigo-50/60 dark:bg-indigo-950/20 px-3.5 py-3 rounded-xl border border-indigo-100/80 dark:border-indigo-900/40 leading-relaxed space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-indigo-800 dark:text-indigo-200 text-xs mb-1">
+                    <span>💡</span> 
+                    {language === 'bn' ? 'আদর্শ ব্যানার সাইজ নির্দেশিকা:' : 'Ideal Banner Size Guidelines:'}
+                  </div>
+                  <div>
+                    • <strong>{language === 'bn' ? 'চওড়া বা Width:' : 'Width:'}</strong> ১৬০০px - ২০০০px
+                  </div>
+                  <div>
+                    • <strong>{language === 'bn' ? 'উচ্চতা বা Height:' : 'Height:'}</strong> ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)
+                  </div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 pt-1.5 border-t border-indigo-100/50 dark:border-indigo-900/30">
+                    {language === 'bn' 
+                      ? 'এই মাপে আপলোড করলে ব্যানারটি কম্পিউটার ও মোবাইল সব ডিভাইসে নিখুঁতভাবে ফিট হবে।' 
+                      : 'Uploading in this dimension guarantees a perfect responsive fit on both mobile and PC.'}
+                  </div>
+                </div>
                 <div className="flex items-center gap-4">
                   <label className="flex-1 cursor-pointer flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-2xl p-4 bg-white dark:bg-slate-800 transition-all">
                     <Upload className="w-5 h-5 text-indigo-500 mb-1" />
@@ -376,11 +388,23 @@ export default function ManageBanners() {
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
                           <Upload className="w-3.5 h-3.5 text-slate-400" /> বিজ্ঞাপন ব্যানার ছবি (PNG, JPG, JPEG, GIF সমর্থিত)
                         </label>
-                        <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold mb-2 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/50 leading-relaxed">
-                          💡 {language === 'bn' 
-                            ? 'প্রস্তাবিত সাইজ: চওড়া বা Width: ১৬০০px - ২০০০px এবং উচ্চতা বা Height: ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)। এই সাইজে ব্যানারটি পিসি ও মোবাইল সব স্ক্রিনে পারফেক্ট দেখাবে।' 
-                            : 'Recommended Size: Width: 1600px - 2000px and Height: 400px - 500px (Ratio 16:4 or 16:5). This ensures perfect fit on all desktop & mobile screens.'}
-                        </p>
+                        <div className="text-[11px] text-indigo-700 dark:text-indigo-300 font-medium mb-3.5 bg-indigo-50/60 dark:bg-indigo-950/20 px-3.5 py-3 rounded-xl border border-indigo-100/80 dark:border-indigo-900/40 leading-relaxed space-y-1">
+                          <div className="font-bold flex items-center gap-1.5 text-indigo-800 dark:text-indigo-200 text-xs mb-1">
+                            <span>💡</span> 
+                            {language === 'bn' ? 'আদর্শ ব্যানার সাইজ নির্দেশিকা:' : 'Ideal Banner Size Guidelines:'}
+                          </div>
+                          <div>
+                            • <strong>{language === 'bn' ? 'চওড়া বা Width:' : 'Width:'}</strong> ১৬০০px - ২০০০px
+                          </div>
+                          <div>
+                            • <strong>{language === 'bn' ? 'উচ্চতা বা Height:' : 'Height:'}</strong> ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)
+                          </div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 pt-1.5 border-t border-indigo-100/50 dark:border-indigo-900/30">
+                            {language === 'bn' 
+                              ? 'এই মাপে আপলোড করলে ব্যানারটি কম্পিউটার ও মোবাইল সব ডিভাইসে নিখুঁতভাবে ফিট হবে।' 
+                              : 'Uploading in this dimension guarantees a perfect responsive fit on both mobile and PC.'}
+                          </div>
+                        </div>
                         <div className="flex items-center gap-4">
                           <label className="flex-1 cursor-pointer flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-2xl p-4 bg-slate-50 dark:bg-slate-800 transition-all">
                             <Upload className="w-5 h-5 text-indigo-500 mb-1" />
