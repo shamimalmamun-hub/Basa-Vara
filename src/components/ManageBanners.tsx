@@ -186,8 +186,8 @@ export default function ManageBanners() {
                 </label>
                 <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold mb-2 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/50 leading-relaxed">
                   💡 {language === 'bn' 
-                    ? 'পরামর্শ: ব্যানারের জন্য চওড়া বা আড়াআড়ি (Landscape) ছবি ব্যবহার করুন (অনুপাত ২১:৫ বা ১৬:৫, যেমন: ২০০০x৫০০ পিক্সেল)। এটি পিসি ও মোবাইল সব স্ক্রিনে সুন্দরভাবে ফিট হবে।' 
-                    : 'Tip: Use a wide landscape image (Ratio 21:5 or 16:5, e.g., 2000x500px) for the banner to fit beautifully on both desktop and mobile screens.'}
+                    ? 'প্রস্তাবিত সাইজ: চওড়া বা Width: ১৬০০px - ২০০০px এবং উচ্চতা বা Height: ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)। এই সাইজে ব্যানারটি পিসি ও মোবাইল সব স্ক্রিনে পারফেক্ট দেখাবে।' 
+                    : 'Recommended Size: Width: 1600px - 2000px and Height: 400px - 500px (Ratio 16:4 or 16:5). This ensures perfect fit on all desktop & mobile screens.'}
                 </p>
                 <div className="flex items-center gap-4">
                   <label className="flex-1 cursor-pointer flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-2xl p-4 bg-white dark:bg-slate-800 transition-all">
@@ -378,8 +378,8 @@ export default function ManageBanners() {
                         </label>
                         <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold mb-2 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-2 rounded-xl border border-indigo-100 dark:border-indigo-900/50 leading-relaxed">
                           💡 {language === 'bn' 
-                            ? 'পরামর্শ: ব্যানারের জন্য চওড়া বা আড়াআড়ি (Landscape) ছবি ব্যবহার করুন (অনুপাত ২১:৫ বা ১৬:৫, যেমন: ২০০০x৫০০ পিক্সেল)। এটি পিসি ও মোবাইল সব স্ক্রিনে সুন্দরভাবে ফিট হবে।' 
-                            : 'Tip: Use a wide landscape image (Ratio 21:5 or 16:5, e.g., 2000x500px) for the banner to fit beautifully on both desktop and mobile screens.'}
+                            ? 'প্রস্তাবিত সাইজ: চওড়া বা Width: ১৬০০px - ২০০০px এবং উচ্চতা বা Height: ৪০০px - ৫০০px (অনুপাত ১৬:৪ বা ১৬:৫)। এই সাইজে ব্যানারটি পিসি ও মোবাইল সব স্ক্রিনে পারফেক্ট দেখাবে।' 
+                            : 'Recommended Size: Width: 1600px - 2000px and Height: 400px - 500px (Ratio 16:4 or 16:5). This ensures perfect fit on all desktop & mobile screens.'}
                         </p>
                         <div className="flex items-center gap-4">
                           <label className="flex-1 cursor-pointer flex flex-col items-center justify-center border border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-2xl p-4 bg-slate-50 dark:bg-slate-800 transition-all">
