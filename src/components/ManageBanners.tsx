@@ -45,7 +45,7 @@ export default function ManageBanners() {
     setEditingBanner(prev => prev ? { ...prev, ...data } : null);
   };
 
-  // File upload reader function
+  // File upload reader function with adaptive compression to strictly respect Firestore's 1MB document limit
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isNew: boolean) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -60,29 +60,48 @@ export default function ManageBanners() {
       return;
     }
 
+    const toastId = toast.loading(language === 'bn' ? 'ছবি প্রসেস করা হচ্ছে...' : 'Processing image...');
+
     try {
-      // Banners can be any size/aspect ratio, compress them with ultra-high resolution (4000x4000, quality 0.9) to preserve original aspect ratio and high details of any uploaded size
-      const compressed = await compressImage(file, 4000, 4000, 0.9);
+      let maxWidth = 1920;
+      let maxHeight = 1920;
+      let quality = 0.8;
+      let compressed = "";
+      let success = false;
+
+      // Adaptively compress image until the resulting base64 string is under the Firestore document limit (~1MB total document size, so base64 < 800KB or 800,000 chars is extremely safe)
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          compressed = await compressImage(file, maxWidth, maxHeight, quality);
+          if (compressed.length < 800000) {
+            success = true;
+            break;
+          }
+        } catch (err) {
+          console.error(`Compression attempt ${attempt} failed:`, err);
+        }
+        // Scale down size and quality for the next iteration to find a safe sweet spot
+        maxWidth = Math.round(maxWidth * 0.7);
+        maxHeight = Math.round(maxHeight * 0.7);
+        quality = Math.max(0.4, quality - 0.15);
+      }
+
+      // If all trials failed or still too big, use a highly aggressive compact size fallback
+      if (!success || compressed.length >= 800000) {
+        compressed = await compressImage(file, 800, 800, 0.5);
+      }
+
       if (isNew) {
         setNewBanner(prev => ({ ...prev, image: compressed }));
       } else {
         setEditingBanner(prev => prev ? { ...prev, image: compressed } : null);
       }
+      toast.dismiss(toastId);
+      toast.success(language === 'bn' ? 'ছবি সফলভাবে প্রসেস হয়েছে!' : 'Image processed successfully!');
     } catch (err) {
-      console.error("Banner image compression failed:", err);
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64String = reader.result as string;
-        if (isNew) {
-          setNewBanner(prev => ({ ...prev, image: base64String }));
-        } else {
-          setEditingBanner(prev => prev ? { ...prev, image: base64String } : null);
-        }
-      };
-      reader.onerror = () => {
-        toast.error('Error reading file!');
-      };
-      reader.readAsDataURL(file);
+      console.error("Banner image compression failed completely:", err);
+      toast.dismiss(toastId);
+      toast.error(language === 'bn' ? 'ছবি প্রসেস করতে ব্যর্থ হয়েছে!' : 'Failed to process image!');
     }
   };
 
