@@ -4,5 +4,4 @@
 /login / 200
 /admin / 200
 /dashboard/* / 200
-/* /index.html 200
 
