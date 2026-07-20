@@ -1,7 +1,2 @@
-# Specific routing rules for SPA paths to avoid infinite loop checks and protect asset loading
-/rentals / 200
-/tutors / 200
-/login / 200
-/admin / 200
-/dashboard/* / 200
+/* /index.html 200
 
