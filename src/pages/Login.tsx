@@ -385,7 +385,7 @@ export default function Login() {
                         <>Send money (Personal) via 🔀 <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold text-xs sm:text-sm">{paymentMethod === 'bkash' ? 'bKash' : paymentMethod === 'nagad' ? 'Nagad' : 'Rocket'}</strong> to:</>
                       )}
                     </p>
-                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-indigo-100/50 dark:border-indigo-950/80">
+                    <div className="flex items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-indigo-100/50 dark:border-indigo-950/80">
                       <p className="text-base sm:text-lg font-black text-indigo-600 dark:text-indigo-400 tracking-wider select-all font-mono">০১৪০১৯৯৬৬৭৪</p>
                       <button 
                         type="button" 
@@ -393,9 +393,9 @@ export default function Login() {
                           navigator.clipboard.writeText('01401996674');
                           toast.success(language === 'bn' ? 'নাম্বার কপি করা হয়েছে!' : 'Number copied!');
                         }}
-                        className="px-2.5 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 rounded-md hover:bg-indigo-100 transition-colors"
+                        className="shrink-0 px-3 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 rounded-md hover:bg-indigo-100 transition-colors"
                       >
-                        {language === 'bn' ? 'কপি করুন' : 'Copy'}
+                        {language === 'bn' ? 'কপি' : 'Copy'}
                       </button>
                     </div>
                  </div>

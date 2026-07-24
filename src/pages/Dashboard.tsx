@@ -1471,7 +1471,7 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
                       navigator.clipboard.writeText('01401996674');
                       toast.success(language === 'bn' ? 'নাম্বার কপি করা হয়েছে!' : 'Number copied!');
                     }}
-                    className="ml-2 px-2 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-950 rounded hover:bg-indigo-200 transition-colors"
+                    className="ml-2.5 mr-1 px-2.5 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-950 rounded-md hover:bg-indigo-200 transition-colors inline-flex items-center"
                   >
                     {language === 'bn' ? 'কপি' : 'Copy'}
                   </button>
