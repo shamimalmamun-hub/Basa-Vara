@@ -4,7 +4,7 @@ import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Eye, Globe, Users, FileText } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, uploadImageToFirebase } from '../lib/utils';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, uploadImageToFirebase, deleteImageFromFirebase } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
 import ManageBanners from '../components/ManageBanners';
 import ManageVideo from '../components/ManageVideo';
@@ -18,6 +18,13 @@ export default function Dashboard() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
   const [userFilter, setUserFilter] = useState<'all' | 'pending-renew' | 'pending-nid' | 'pending-approval' | 'user' | 'tutor' | 'visitor'>('all');
+  const [userListPage, setUserListPage] = useState(1);
+  const USERS_PER_PAGE = 8;
+
+  useEffect(() => {
+    setUserListPage(1);
+  }, [userFilter]);
+
   const [deleteConfirmUserId, setDeleteConfirmUserId] = useState<string | null>(null);
   const [inputApiUrl, setInputApiUrl] = useState('');
 
@@ -484,212 +491,251 @@ export default function Dashboard() {
               ))}
             </div>
 
-            <div className="space-y-4">
-              {users
-                .filter(user => {
-                  if (userFilter === 'all') return true;
-                  if (userFilter === 'pending-renew') return user.pendingRenewStatus === 'pending';
-                  if (userFilter === 'pending-nid') return user.nidStatus === 'pending';
-                  if (userFilter === 'pending-approval') return !user.isApproved && user.role !== 'admin';
-                  if (userFilter === 'user') return user.role === 'user';
-                  if (userFilter === 'tutor') return user.role === 'tutor';
-                  if (userFilter === 'visitor') return user.role === 'visitor';
-                  return true;
-                })
-                .map(user => (
-                <div key={user.id} className="flex flex-col md:flex-row justify-between md:items-start gap-4 p-5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm">
-                  <div className="flex-1">
-                    <h4 className="font-bold text-slate-900 dark:text-white flex items-center flex-wrap gap-2 text-lg">
-                      {user.name} 
-                      <span className="text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-full capitalize">{user.role === 'user' ? 'প্রপার্টি মালিক' : user.role === 'tutor' ? 'টিউটর' : user.role === 'visitor' ? 'সাধারণ ভিজিটর' : 'এডমিন'}</span>
-                    </h4>
-                    
-                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-slate-600 dark:text-slate-300">
-                      <p><span className="font-extrabold text-slate-950 dark:text-white">ইমেইল:</span> {user.email}</p>
-                      <p><span className="font-extrabold text-slate-950 dark:text-white">পাসওয়ার্ড:</span> <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs text-slate-700 dark:text-slate-300">{user.password || 'N/A'}</span></p>
-                      {user.role !== 'admin' && (
-                        <p>
-                          <span className="font-extrabold text-slate-950 dark:text-white">ট্রানজ্যাকশন আইডি:</span>{' '}
-                          <span className="font-mono font-bold bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded select-all shadow-sm">
-                            {user.transactionId || 'N/A'}
-                          </span>
-                        </p>
-                      )}
-                      {user.role !== 'admin' && (
-                        <p>
-                          <span className="font-extrabold text-slate-950 dark:text-white">পেমেন্ট মাধ্যম:</span>{' '}
-                          {user.paymentMethod ? (
-                            <span className="capitalize font-extrabold text-pink-650 bg-pink-50 dark:bg-pink-950/20 px-2 py-0.5 rounded shadow-sm border border-pink-100/35">
-                              {user.paymentMethod === 'bkash' ? 'বিকাশ (bKash)' : user.paymentMethod === 'nagad' ? 'নগদ (Nagad)' : 'রকেট (Rocket)'}
-                            </span>
-                          ) : <span className="text-slate-400 italic">N/A</span>}
-                        </p>
-                      )}
-                      {user.role !== 'admin' && (
-                        <p>
-                          <span className="font-extrabold text-slate-950 dark:text-white">সাবস্ক্রিপশন প্যাকেজ:</span>{' '}
-                          <span className="text-indigo-650 dark:text-indigo-400 font-extrabold bg-indigo-50 dark:bg-indigo-950/20 px-2.5 py-0.5 rounded shadow-sm border border-indigo-100/30">
-                            {user.subscriptionType || 'কোনো সচল প্ল্যান নেই'}
-                          </span>
-                        </p>
-                      )}
-                      {user.role !== 'admin' && (
-                        <p className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-extrabold text-slate-950 dark:text-white">অনুমোদন স্ট্যাটাস:</span>{' '}
-                          <span className={`font-black px-2.5 py-1 rounded-full text-xs shadow-sm ${user.isApproved ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-450 animate-pulse'}`}>
-                            {user.isApproved ? '✓ অনুমোদিত (Approved / Active)' : '⏳ এডমিন অনুমোদনের অপেক্ষমাণ (Pending)'}
-                          </span>
-                        </p>
-                      )}
-                    </div>
+            {(() => {
+              const filteredUsers = users.filter(user => {
+                if (userFilter === 'all') return true;
+                if (userFilter === 'pending-renew') return user.pendingRenewStatus === 'pending';
+                if (userFilter === 'pending-nid') return user.nidStatus === 'pending';
+                if (userFilter === 'pending-approval') return !user.isApproved && user.role !== 'admin';
+                if (userFilter === 'user') return user.role === 'user';
+                if (userFilter === 'tutor') return user.role === 'tutor';
+                if (userFilter === 'visitor') return user.role === 'visitor';
+                return true;
+              });
 
-                    {/* Joint NID copies preview container */}
-                    {(user.nidFrontBase64 || user.nidBackBase64) && (
-                      <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl max-w-md">
-                        <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 block mb-2">সংযুক্ত এনআইডি ডকুমেন্ট কপি:</span>
-                        <div className="flex gap-4">
-                          {user.nidFrontBase64 && (
-                            <div className="flex-1 text-center scale-95 hover:scale-100 transition-all">
-                              <span className="text-[10px] text-slate-500 font-semibold block mb-1">সামনের পৃষ্ঠা</span>
-                              <img src={user.nidFrontBase64} alt="NID Front" className="h-16 w-full object-cover rounded border border-slate-300 dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => window.open(user.nidFrontBase64, '_blank')} />
-                              <a href={user.nidFrontBase64} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline mt-1 inline-block">পূর্ণাঙ্গ ভিউ (Front)</a>
-                            </div>
-                          )}
-                          {user.nidBackBase64 && (
-                            <div className="flex-1 text-center scale-95 hover:scale-100 transition-all">
-                              <span className="text-[10px] text-slate-500 font-semibold block mb-1">পেছনের পৃষ্ঠা</span>
-                              <img src={user.nidBackBase64} alt="NID Back" className="h-16 w-full object-cover rounded border border-slate-300 dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => window.open(user.nidBackBase64, '_blank')} />
-                              <a href={user.nidBackBase64} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline mt-1 inline-block">পূর্ণাঙ্গ ভিউ (Back)</a>
-                            </div>
-                          )}
-                        </div>
+              const totalUserPages = Math.ceil(filteredUsers.length / USERS_PER_PAGE);
+              const paginatedUsers = filteredUsers.slice((userListPage - 1) * USERS_PER_PAGE, userListPage * USERS_PER_PAGE);
+
+              return (
+                <>
+                  <div className="space-y-4">
+                    {paginatedUsers.length === 0 ? (
+                      <div className="text-center py-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+                        <p className="text-slate-500 font-bold">কোনো ব্যবহারকারী পাওয়া যায়নি!</p>
                       </div>
-                    )}
+                    ) : (
+                      paginatedUsers.map(user => (
+                        <div key={user.id} className="flex flex-col md:flex-row justify-between md:items-start gap-4 p-5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm">
+                          <div className="flex-1">
+                            <h4 className="font-bold text-slate-900 dark:text-white flex items-center flex-wrap gap-2 text-lg">
+                              {user.name} 
+                              <span className="text-xs bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 font-bold px-2.5 py-1 rounded-full capitalize">{user.role === 'user' ? 'প্রপার্টি মালিক' : user.role === 'tutor' ? 'টিউটর' : user.role === 'visitor' ? 'সাধারণ ভিজিটর' : 'এডমিন'}</span>
+                            </h4>
+                            
+                            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5 text-sm text-slate-600 dark:text-slate-300">
+                              <p><span className="font-extrabold text-slate-950 dark:text-white">ইমেইল:</span> {user.email}</p>
+                              <p><span className="font-extrabold text-slate-950 dark:text-white">পাসওয়ার্ড:</span> <span className="font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-xs text-slate-700 dark:text-slate-300">{user.password || 'N/A'}</span></p>
+                              {user.role !== 'admin' && (
+                                <p>
+                                  <span className="font-extrabold text-slate-950 dark:text-white">ট্রানজ্যাকশন আইডি:</span>{' '}
+                                  <span className="font-mono font-bold bg-indigo-50 dark:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded select-all shadow-sm">
+                                    {user.transactionId || 'N/A'}
+                                  </span>
+                                </p>
+                              )}
+                              {user.role !== 'admin' && (
+                                <p>
+                                  <span className="font-extrabold text-slate-950 dark:text-white">পেমেন্ট মাধ্যম:</span>{' '}
+                                  {user.paymentMethod ? (
+                                    <span className="capitalize font-extrabold text-pink-650 bg-pink-50 dark:bg-pink-950/20 px-2 py-0.5 rounded shadow-sm border border-pink-100/35">
+                                      {user.paymentMethod === 'bkash' ? 'বিকাশ (bKash)' : user.paymentMethod === 'nagad' ? 'নগদ (Nagad)' : 'রকেট (Rocket)'}
+                                    </span>
+                                  ) : <span className="text-slate-400 italic">N/A</span>}
+                                </p>
+                              )}
+                              {user.role !== 'admin' && (
+                                <p>
+                                  <span className="font-extrabold text-slate-950 dark:text-white">সাবস্ক্রিপশন প্যাকেজ:</span>{' '}
+                                  <span className="text-indigo-650 dark:text-indigo-400 font-extrabold bg-indigo-50 dark:bg-indigo-950/20 px-2.5 py-0.5 rounded shadow-sm border border-indigo-100/30">
+                                    {user.subscriptionType || 'কোনো সচল প্ল্যান নেই'}
+                                  </span>
+                                </p>
+                              )}
+                              {user.role !== 'admin' && (
+                                <p className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-extrabold text-slate-950 dark:text-white">অনুমোদন স্ট্যাটাস:</span>{' '}
+                                  <span className={`font-black px-2.5 py-1 rounded-full text-xs shadow-sm ${user.isApproved ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400' : 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-450 animate-pulse'}`}>
+                                    {user.isApproved ? '✓ অনুমোদিত (Approved / Active)' : '⏳ এডমিন অনুমোদনের অপেক্ষমাণ (Pending)'}
+                                  </span>
+                                </p>
+                              )}
+                            </div>
 
-                    {user.role !== 'admin' && user.pendingRenewStatus === 'pending' && (
-                      <div className="mt-4 p-5 bg-amber-50/70 dark:bg-amber-950/25 border-2 border-amber-500/30 dark:border-amber-500/20 rounded-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 shadow-sm">
-                        <div className="space-y-2">
-                          <p className="font-black text-amber-850 dark:text-amber-300 flex items-center gap-1.5 text-sm">
-                            <span className="relative flex h-2.5 w-2.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                            </span>
-                            ⏳ অপেক্ষমান সাবস্ক্রিপশন নবায়ন অনুরোধ (Pending Renewal Request):
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs font-semibold text-slate-705 dark:text-slate-300 mt-2">
-                            <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
-                              <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">প্যাকেজ (Package)</p>
-                              <p className="font-black text-indigo-600 dark:text-indigo-400">{user.pendingRenewPackage}</p>
-                            </div>
-                            <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
-                              <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">পেমেন্ট মাধ্যম (Gateway)</p>
-                              <p className="font-black uppercase text-pink-600 dark:text-pink-400">{user.pendingRenewMethod}</p>
-                            </div>
-                            <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
-                              <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">পরিমাণ (Amount)</p>
-                              <p className="font-black text-emerald-600 dark:text-emerald-400">৳{user.pendingRenewAmount}</p>
-                            </div>
-                          </div>
-                          <div className="pt-2 flex flex-wrap gap-x-6 gap-y-1.5 items-center text-xs text-slate-700 dark:text-slate-300">
-                            <p className="font-bold">
-                              TrxID: <span className="font-mono bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded select-all font-black border border-indigo-100/30 underline decoration-pink-500 decoration-2">{user.pendingRenewTrxId}</span>
-                            </p>
-                            {user.pendingRenewSubmittedAt && (
-                              <p className="text-[10px] text-slate-500 font-bold">
-                                অনুরোধের সময়: {new Date(user.pendingRenewSubmittedAt).toLocaleString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </p>
+                            {/* Joint NID copies preview container */}
+                            {(user.nidFrontBase64 || user.nidBackBase64) && (
+                              <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl max-w-md">
+                                <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 block mb-2">সংযুক্ত এনআইডি ডকুমেন্ট কপি:</span>
+                                <div className="flex gap-4">
+                                  {user.nidFrontBase64 && (
+                                    <div className="flex-1 text-center scale-95 hover:scale-100 transition-all">
+                                      <span className="text-[10px] text-slate-500 font-semibold block mb-1">সামনের পৃষ্ঠা</span>
+                                      <img src={user.nidFrontBase64} alt="NID Front" className="h-16 w-full object-cover rounded border border-slate-300 dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => window.open(user.nidFrontBase64, '_blank')} />
+                                      <a href={user.nidFrontBase64} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline mt-1 inline-block">পূর্ণাঙ্গ ভিউ (Front)</a>
+                                    </div>
+                                  )}
+                                  {user.nidBackBase64 && (
+                                    <div className="flex-1 text-center scale-95 hover:scale-100 transition-all">
+                                      <span className="text-[10px] text-slate-500 font-semibold block mb-1">পেছনের পৃষ্ঠা</span>
+                                      <img src={user.nidBackBase64} alt="NID Back" className="h-16 w-full object-cover rounded border border-slate-300 dark:border-slate-700 shadow-sm cursor-pointer" onClick={() => window.open(user.nidBackBase64, '_blank')} />
+                                      <a href={user.nidBackBase64} target="_blank" rel="noreferrer" className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold hover:underline mt-1 inline-block">পূর্ণাঙ্গ ভিউ (Back)</a>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {user.role !== 'admin' && user.pendingRenewStatus === 'pending' && (
+                              <div className="mt-4 p-5 bg-amber-50/70 dark:bg-amber-950/25 border-2 border-amber-500/30 dark:border-amber-500/20 rounded-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 shadow-sm">
+                                <div className="space-y-2">
+                                  <p className="font-black text-amber-850 dark:text-amber-300 flex items-center gap-1.5 text-sm">
+                                    <span className="relative flex h-2.5 w-2.5">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                                    </span>
+                                    ⏳ অপেক্ষমান সাবস্ক্রিপশন নবায়ন অনুরোধ (Pending Renewal Request):
+                                  </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs font-semibold text-slate-705 dark:text-slate-300 mt-2">
+                                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
+                                      <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">প্যাকেজ (Package)</p>
+                                      <p className="font-black text-indigo-600 dark:text-indigo-400">{user.pendingRenewPackage}</p>
+                                    </div>
+                                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
+                                      <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">পেমেন্ট মাধ্যম (Gateway)</p>
+                                      <p className="font-black uppercase text-pink-600 dark:text-pink-400">{user.pendingRenewMethod}</p>
+                                    </div>
+                                    <div className="bg-white/80 dark:bg-slate-900/60 p-2 rounded-xl border border-amber-200/50 dark:border-amber-900/20 shadow-xs">
+                                      <p className="text-[10px] text-slate-450 block uppercase tracking-wider mb-0.5">পরিমাণ (Amount)</p>
+                                      <p className="font-black text-emerald-600 dark:text-emerald-400">৳{user.pendingRenewAmount}</p>
+                                    </div>
+                                  </div>
+                                  <div className="pt-2 flex flex-wrap gap-x-6 gap-y-1.5 items-center text-xs text-slate-700 dark:text-slate-300">
+                                    <p className="font-bold">
+                                      TrxID: <span className="font-mono bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded select-all font-black border border-indigo-100/30 underline decoration-pink-500 decoration-2">{user.pendingRenewTrxId}</span>
+                                    </p>
+                                    {user.pendingRenewSubmittedAt && (
+                                      <p className="text-[10px] text-slate-500 font-bold">
+                                        অনুরোধের সময়: {new Date(user.pendingRenewSubmittedAt).toLocaleString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 shrink-0 w-full lg:w-auto">
+                                  <button
+                                    onClick={async () => {
+                                      await approveSubscriptionRenewal(user.id);
+                                    }}
+                                    className="flex-1 lg:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    <span>নবায়ন এপ্রুভ করুন</span>
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      await rejectSubscriptionRenewal(user.id);
+                                    }}
+                                    className="flex-1 lg:flex-none px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/20 dark:text-rose-450 rounded-xl text-xs font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                  >
+                                    <XCircle className="w-3.5 h-3.5" />
+                                    <span>বাতিল</span>
+                                  </button>
+                                </div>
+                              </div>
                             )}
                           </div>
+
+                          {user.id !== currentUser.id && (
+                            <div className="flex flex-wrap gap-2 text-sm mt-4 md:mt-0 shrink-0">
+                                {user.role !== 'admin' && (
+                                  <button
+                                    onClick={async () => {
+                                      await sendRenewalEmailManual(user.id);
+                                    }}
+                                    className="px-3.5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-655 hover:from-violet-700 hover:to-indigo-700 hover:shadow-indigo-500/10 text-white rounded-xl font-bold text-xs shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 transform active:scale-95"
+                                  >
+                                    <Send className="w-3.5 h-3.5 animate-pulse" />
+                                    <span>রিনিউ ইমেইল পাঠান</span>
+                                  </button>
+                                )}
+                                {!user.isApproved ? (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        updateProfile(user.id, { isApproved: true, nidStatus: user.nidStatus === 'pending' ? 'verified' : user.nidStatus });
+                                        toast.success('ব্যবহারকারী সফলভাবে অনুমোদিত হয়েছে!');
+                                      }}
+                                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm transition-all cursor-pointer"
+                                    >
+                                      অনুমোদন
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        deleteUser(user.id);
+                                        toast.success('ব্যবহারকারী বাতিল ও সফলভাবে মুছে ফেলা হয়েছে।');
+                                      }}
+                                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-sm hover:shadow-rose-600/10 transition-all cursor-pointer"
+                                    >
+                                      বাতিল করুন
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    {deleteConfirmUserId === user.id ? (
+                                      <div className="flex items-center gap-1.5 border border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20 px-2.5 py-1.5 rounded-xl">
+                                        <span className="text-xs text-red-600 dark:text-red-400 font-bold">মুছে ফেলবেন?</span>
+                                        <button
+                                          onClick={() => {
+                                            deleteUser(user.id);
+                                            setDeleteConfirmUserId(null);
+                                          }}
+                                          className="px-2 py-1 bg-red-600 text-white rounded text-xs font-bold hover:bg-red-700 transition-colors"
+                                        >
+                                          হ্যাঁ
+                                        </button>
+                                        <button
+                                          onClick={() => setDeleteConfirmUserId(null)}
+                                          className="px-2 py-1 bg-slate-200 dark:bg-slate-705 text-slate-750 dark:text-slate-300 rounded text-xs font-medium hover:bg-slate-300 transition-colors"
+                                        >
+                                          না
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button onClick={() => setDeleteConfirmUserId(user.id)} className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-semibold transition-all cursor-pointer">মুছে ফেলুন</button>
+                                    )}
+                                  </>
+                                )}
+                            </div>
+                          )}
                         </div>
-                        <div className="flex gap-2 shrink-0 w-full lg:w-auto">
-                          <button
-                            onClick={async () => {
-                              await approveSubscriptionRenewal(user.id);
-                            }}
-                            className="flex-1 lg:flex-none px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                            <span>নবায়ন এপ্রুভ করুন</span>
-                          </button>
-                          <button
-                            onClick={async () => {
-                              await rejectSubscriptionRenewal(user.id);
-                            }}
-                            className="flex-1 lg:flex-none px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 dark:bg-rose-950/20 dark:text-rose-450 rounded-xl text-xs font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                            <span>বাতিল</span>
-                          </button>
-                        </div>
-                      </div>
+                      ))
                     )}
                   </div>
 
-                  {user.id !== currentUser.id && (
-                    <div className="flex flex-wrap gap-2 text-sm mt-4 md:mt-0 shrink-0">
-                        {user.role !== 'admin' && (
-                          <button
-                            onClick={async () => {
-                              await sendRenewalEmailManual(user.id);
-                            }}
-                            className="px-3.5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-655 hover:from-violet-700 hover:to-indigo-700 hover:shadow-indigo-500/10 text-white rounded-xl font-bold text-xs shadow-sm transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 transform active:scale-95"
-                          >
-                            <Send className="w-3.5 h-3.5 animate-pulse" />
-                            <span>রিনিউ ইমেইল পাঠান</span>
-                          </button>
-                        )}
-                        {!user.isApproved ? (
-                          <>
-                            <button
-                              onClick={() => {
-                                updateProfile(user.id, { isApproved: true, nidStatus: user.nidStatus === 'pending' ? 'verified' : user.nidStatus });
-                                toast.success('ব্যবহারকারী সফলভাবে অনুমোদিত হয়েছে!');
-                              }}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm transition-all cursor-pointer"
-                            >
-                              অনুমোদন
-                            </button>
-                            <button
-                              onClick={() => {
-                                deleteUser(user.id);
-                                toast.success('ব্যবহারকারী বাতিল ও সফলভাবে মুছে ফেলা হয়েছে।');
-                              }}
-                              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-sm hover:shadow-rose-600/10 transition-all cursor-pointer"
-                            >
-                              বাতিল করুন
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            {deleteConfirmUserId === user.id ? (
-                              <div className="flex items-center gap-1.5 border border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20 px-2.5 py-1.5 rounded-xl">
-                                <span className="text-xs text-red-600 dark:text-red-400 font-bold">মুছে ফেলবেন?</span>
-                                <button
-                                  onClick={() => {
-                                    deleteUser(user.id);
-                                    setDeleteConfirmUserId(null);
-                                  }}
-                                  className="px-2 py-1 bg-red-600 text-white rounded text-xs font-bold hover:bg-red-700 transition-colors"
-                                >
-                                  হ্যাঁ
-                                </button>
-                                <button
-                                  onClick={() => setDeleteConfirmUserId(null)}
-                                  className="px-2 py-1 bg-slate-200 dark:bg-slate-705 text-slate-750 dark:text-slate-300 rounded text-xs font-medium hover:bg-slate-300 transition-colors"
-                                >
-                                  না
-                                </button>
-                              </div>
-                            ) : (
-                              <button onClick={() => setDeleteConfirmUserId(user.id)} className="px-3.5 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-xl font-semibold transition-all cursor-pointer">মুছে ফেলুন</button>
-                            )}
-                          </>
-                        )}
+                  {totalUserPages > 1 && (
+                    <div className="flex justify-center items-center gap-2 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => setUserListPage(p => Math.max(1, p - 1))}
+                        disabled={userListPage === 1}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                      >
+                        পূর্ববর্তী
+                      </button>
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                        পৃষ্ঠা {userListPage} / {totalUserPages}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setUserListPage(p => Math.min(totalUserPages, p + 1))}
+                        disabled={userListPage >= totalUserPages}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 cursor-pointer"
+                      >
+                        পরবর্তী
+                      </button>
                     </div>
                   )}
-                </div>
-              ))}
-            </div>
+                </>
+              );
+            })()}
           </div>
         )}
 
@@ -927,10 +973,17 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
     }
   };
 
-  const removeSelectedImage = (index?: number) => {
+  const removeSelectedImage = async (index?: number) => {
     if (isTutor) {
+      if (formData.image) {
+        await deleteImageFromFirebase(formData.image);
+      }
       setFormData((prev: any) => ({ ...prev, image: '' }));
     } else if (typeof index === 'number') {
+      const imgToDelete = uploadedImages[index];
+      if (imgToDelete) {
+        await deleteImageFromFirebase(imgToDelete);
+      }
       setUploadedImages(prev => prev.filter((_, i) => i !== index));
     }
   };

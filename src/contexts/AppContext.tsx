@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { useLanguage, Language } from './LanguageContext';
 import { User, Property, Tutor, Invoice, AdBanner, Visitor } from '../types';
 import { db, auth } from '../lib/firebase';
-import { generateId } from '../lib/utils';
+import { generateId, deleteImageFromFirebase } from '../lib/utils';
 import {   collection, 
   doc, 
   setDoc, 
@@ -1412,6 +1412,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const deleteUser = async (userId: string) => {
     try {
       const u = state.users.find(user => user.id === userId);
+      if (u) {
+        if (u.avatar) await deleteImageFromFirebase(u.avatar);
+        if (u.nidFront) await deleteImageFromFirebase(u.nidFront);
+        if (u.nidBack) await deleteImageFromFirebase(u.nidBack);
+      }
       await deleteDoc(doc(db, 'users', userId));
       toast.success('ব্যবহারকারী মুচে ফেলা হয়েছে (User deleted).');
       
@@ -1459,6 +1464,10 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const deleteBanner = async (id: string) => {
     try {
+      const bannerToDelete = state.banners.find(b => b.id === id);
+      if (bannerToDelete && bannerToDelete.image) {
+        await deleteImageFromFirebase(bannerToDelete.image);
+      }
       await deleteDoc(doc(db, 'banners', id));
       toast.success('বিজ্ঞাপন ব্যানার সফলভাবে মুছে ফেলা হয়েছে');
     } catch (err) {
@@ -1491,7 +1500,23 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const deleteProperty = async (propertyId: string) => {
     try {
-      await deleteDoc(doc(db, 'properties', propertyId));
+      const propToDelete = state.properties.find(p => p.id === propertyId);
+      const deletePromises: Promise<any>[] = [deleteDoc(doc(db, 'properties', propertyId))];
+
+      if (propToDelete) {
+        if (Array.isArray(propToDelete.images)) {
+          for (const imgUrl of propToDelete.images) {
+            if (imgUrl && typeof imgUrl === 'string') {
+              deletePromises.push(deleteImageFromFirebase(imgUrl));
+            }
+          }
+        }
+        if ((propToDelete as any).image && typeof (propToDelete as any).image === 'string') {
+          deletePromises.push(deleteImageFromFirebase((propToDelete as any).image));
+        }
+      }
+
+      await Promise.all(deletePromises);
       toast.success('Property deleted successfully.');
     } catch (err) {
       console.error("Failed to delete property:", err);
@@ -1512,6 +1537,10 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
   const deleteTutor = async (tutorId: string) => {
     try {
+      const tutorToDelete = state.tutors.find(t => t.id === tutorId);
+      if (tutorToDelete && tutorToDelete.image) {
+        await deleteImageFromFirebase(tutorToDelete.image);
+      }
       await deleteDoc(doc(db, 'tutors', tutorId));
       toast.success('Tutor profile deleted successfully.');
     } catch (err) {

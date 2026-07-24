@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { ref, uploadBytes, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, uploadString, getDownloadURL, deleteObject } from "firebase/storage";
 import { storage } from "./firebase";
 
 export function cn(...inputs: ClassValue[]) {
@@ -29,13 +29,20 @@ export const MAIN_LOCATIONS = [
 
 export const PROPERTY_TYPES = ["Family Flat", "Female Mess", "Male Mess", "Bachelor Flat"];
 
-export function compressImage(file: File, maxWidth = 800, maxHeight = 600, quality = 0.8): Promise<string> {
+/**
+ * Compresses any File, Blob or base64 Data URL string to a lightweight JPEG Data URL before storage.
+ */
+export function compressImage(
+  fileOrBlobOrString: File | Blob | string,
+  maxWidth = 1200,
+  maxHeight = 1200,
+  quality = 0.8
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
+    const processImageSource = (src: string) => {
       const img = new Image();
-      img.src = event.target?.result as string;
+      img.crossOrigin = "anonymous";
+      img.src = src;
       img.onload = () => {
         const canvas = document.createElement('canvas');
         let width = img.width;
@@ -57,20 +64,34 @@ export function compressImage(file: File, maxWidth = 800, maxHeight = 600, quali
         canvas.height = height;
 
         const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
+        if (ctx) {
+          // Fill white background for transparent PNGs converted to JPEG
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+        }
 
-        // Convert with adjustable quality
         const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
         resolve(compressedBase64);
       };
       img.onerror = (err) => reject(err);
     };
-    reader.onerror = (err) => reject(err);
+
+    if (typeof fileOrBlobOrString === 'string') {
+      processImageSource(fileOrBlobOrString);
+    } else {
+      const reader = new FileReader();
+      reader.readAsDataURL(fileOrBlobOrString);
+      reader.onload = (event) => {
+        processImageSource(event.target?.result as string);
+      };
+      reader.onerror = (err) => reject(err);
+    }
   });
 }
 
 /**
- * Uploads an image (File, Blob or Data URL string) to Firebase Storage and returns the permanent HTTPS download URL.
+ * Compresses image first, then uploads to Firebase Storage and returns the permanent HTTPS download URL.
  */
 export async function uploadImageToFirebase(
   fileOrString: File | Blob | string,
@@ -78,7 +99,7 @@ export async function uploadImageToFirebase(
 ): Promise<string> {
   if (!fileOrString) return '';
 
-  // 1. If it's already an HTTP/HTTPS URL, return directly
+  // 1. If it's already a hosted HTTP/HTTPS URL, return as is
   if (typeof fileOrString === 'string') {
     if (fileOrString.startsWith('http://') || fileOrString.startsWith('https://')) {
       return fileOrString;
@@ -88,35 +109,29 @@ export async function uploadImageToFirebase(
   const timestamp = Date.now();
   const randomStr = Math.random().toString(36).substring(2, 9);
   const fileName = `${timestamp}_${randomStr}.jpg`;
+  const storageRef = ref(storage, `${folder}/${fileName}`);
 
   try {
-    // 2. Data URL (Base64)
-    if (typeof fileOrString === 'string' && fileOrString.startsWith('data:')) {
-      const storageRef = ref(storage, `${folder}/${fileName}`);
-      const snapshot = await uploadString(storageRef, fileOrString, 'data_url');
+    // MANDATORY COMPRESSION: Compress all images before uploading
+    let compressedDataUrl = '';
+    try {
+      compressedDataUrl = await compressImage(fileOrString, 1200, 1200, 0.8);
+    } catch (compressErr) {
+      console.warn("Pre-upload compression warning, proceeding with raw data:", compressErr);
+    }
+
+    if (compressedDataUrl && compressedDataUrl.startsWith('data:')) {
+      const snapshot = await uploadString(storageRef, compressedDataUrl, 'data_url');
       return await getDownloadURL(snapshot.ref);
     }
 
-    // 3. File or Blob
+    // Fallbacks
     if (fileOrString instanceof File || fileOrString instanceof Blob) {
-      let dataUrlToUpload = '';
-      if (fileOrString instanceof File) {
-        try {
-          dataUrlToUpload = await compressImage(fileOrString, 1200, 1200, 0.82);
-        } catch (e) {
-          console.warn("Pre-compression failed, uploading raw file:", e);
-        }
-      }
-
-      const storageRef = ref(storage, `${folder}/${fileName}`);
-
-      if (dataUrlToUpload && dataUrlToUpload.startsWith('data:')) {
-        const snapshot = await uploadString(storageRef, dataUrlToUpload, 'data_url');
-        return await getDownloadURL(snapshot.ref);
-      } else {
-        const snapshot = await uploadBytes(storageRef, fileOrString);
-        return await getDownloadURL(snapshot.ref);
-      }
+      const snapshot = await uploadBytes(storageRef, fileOrString);
+      return await getDownloadURL(snapshot.ref);
+    } else if (typeof fileOrString === 'string' && fileOrString.startsWith('data:')) {
+      const snapshot = await uploadString(storageRef, fileOrString, 'data_url');
+      return await getDownloadURL(snapshot.ref);
     }
   } catch (err) {
     console.error("Firebase Storage upload failed:", err);
@@ -124,5 +139,23 @@ export async function uploadImageToFirebase(
   }
 
   return '';
+}
+
+/**
+ * Deletes an image from Firebase Storage using its full HTTPS download URL or GS path.
+ */
+export async function deleteImageFromFirebase(url: string): Promise<void> {
+  if (!url || typeof url !== 'string') return;
+
+  // Only attempt deletion for Firebase Storage hosted files
+  if (url.includes('firebasestorage.googleapis.com') || url.startsWith('gs://')) {
+    try {
+      const imageRef = ref(storage, url);
+      await deleteObject(imageRef);
+      console.log('Successfully deleted image from Firebase Storage:', url);
+    } catch (err) {
+      console.warn('Could not delete image from Firebase Storage:', err);
+    }
+  }
 }
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Search, MapPin, Phone, Trash2, Edit2, CheckCircle, XCircle, FileText, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, Image as ImageIcon, X, Upload, Plus } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES, uploadImageToFirebase } from '../lib/utils';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, uploadImageToFirebase, deleteImageFromFirebase } from '../lib/utils';
 import { Property, Tutor } from '../types';
 import toast from 'react-hot-toast';
 
@@ -22,6 +22,14 @@ export default function ManagePosts() {
   const [selectedLocationFilter, setSelectedLocationFilter] = useState<string>('all');
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('all');
   const [sortByPrice, setSortByPrice] = useState<'asc' | 'desc' | 'none'>('none');
+  const [propertiesPage, setPropertiesPage] = useState(1);
+  const [tutorsPage, setTutorsPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
+  React.useEffect(() => {
+    setPropertiesPage(1);
+    setTutorsPage(1);
+  }, [searchTerm, selectedLocationFilter, selectedTypeFilter, sortByPrice, activeSubTab]);
 
   // Edit and Create states
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
@@ -346,239 +354,297 @@ export default function ManagePosts() {
 
       {/* Main List Display */}
       {activeSubTab === 'properties' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sortedProperties.length === 0 ? (
-            <div className="col-span-2 text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
-              <span className="text-4xl">🏜️</span>
-              <p className="mt-3 text-slate-500 font-bold">কোনো বাসা ভাড়ার পোস্ট খুঁজে পাওয়া যায়নি!</p>
-            </div>
-          ) : (
-            sortedProperties.map(property => (
-              <div 
-                key={property.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4.5 shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider font-sans">
-                          {getPropertyTypeLabel(property.type)}
-                        </span>
-                        <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider font-sans ${property.isAvailable === false ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450' : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'}`}>
-                          {property.isAvailable === false ? 'ভাড়া হয়ে গেছে 🛑' : 'খালি আছে ✅'}
-                        </span>
-                      </div>
-                      <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1.5 leading-snug line-clamp-1">{property.title}</h4>
-                    </div>
-                    <span className="text-lg font-black text-indigo-600 dark:text-indigo-400 font-sans whitespace-nowrap">
-                      ৳{property.price}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{property.description}</p>
-
-                  <div className="grid grid-cols-1 gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-                    <div className="flex items-start text-slate-600 dark:text-slate-400">
-                      <MapPin className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0 mt-0.5" />
-                      <span className="break-words leading-tight">{property.location} • {property.address}</span>
-                    </div>
-
-                    {property.contactNumber && (
-                      <div className="flex items-center text-slate-600 dark:text-slate-400">
-                        <Phone className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
-                        <span>ভোক্তা ফোন: {property.contactNumber}</span>
-                      </div>
-                    )}
-
-                    {property.ownerPhoneNumber && (
-                      <div className="flex items-center text-slate-600 dark:text-slate-400 font-medium">
-                        <Phone className="w-3.5 h-3.5 mr-1.5 text-emerald-500 shrink-0" />
-                        <span>মালিক ফোন: {property.ownerPhoneNumber}</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center mt-1">
-                      {property.isAvailable ? (
-                        <span className="inline-flex items-center text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-md font-bold">
-                          <CheckCircle className="w-3 h-3 mr-1" /> এভেইলেবল (Available)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center text-[10px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 px-2 py-0.5 rounded-md font-bold">
-                          <XCircle className="w-3 h-3 mr-1" /> বুকড (Booked/Unavailable)
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800">
-                  {deleteConfirmId === property.id ? (
-                    <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 px-3 py-1.5 rounded-xl w-full justify-between">
-                      <span className="text-xs text-rose-600 dark:text-rose-400 font-bold">চিরতরে ডিলিট?</span>
-                      <div className="flex gap-1.5">
-                        <button 
-                          onClick={() => handleDeletePropertyConfirm(property.id)}
-                          className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black rounded-lg cursor-pointer transition-colors"
-                        >
-                          হ্যাঁ
-                        </button>
-                        <button 
-                          onClick={() => setDeleteConfirmId(null)}
-                          className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-bold rounded-lg cursor-pointer transition-colors"
-                        >
-                          না
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setEditingProperty(property)}
-                        className="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>সম্পাদনা করুন</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteConfirmId(property.id)}
-                        className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 transition-all cursor-pointer flex items-center justify-center"
-                        title="ডিলিট করুন"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </>
-                  )}
-                </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sortedProperties.length === 0 ? (
+              <div className="col-span-2 text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+                <span className="text-4xl">🏜️</span>
+                <p className="mt-3 text-slate-500 font-bold">কোনো বাসা ভাড়ার পোস্ট খুঁজে পাওয়া যায়নি!</p>
               </div>
-            ))
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {sortedTutors.length === 0 ? (
-            <div className="col-span-2 text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
-              <span className="text-4xl">🏜️</span>
-              <p className="mt-3 text-slate-500 font-bold">কোনো হোম টিউটর পোস্ট খুঁজে পাওয়া যায়নি!</p>
-            </div>
-          ) : (
-            sortedTutors.map(tutor => (
-              <div 
-                key={tutor.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4.5 shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start gap-3">
-                    <img 
-                      src={tutor.image || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200'} 
-                      referrerPolicy="no-referrer"
-                      alt={tutor.name}
-                      className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-1">
-                        <h4 className="text-base font-bold text-slate-900 dark:text-white truncate">{tutor.name}</h4>
-                        <span className="text-lg font-black text-indigo-600 dark:text-indigo-400 font-sans whitespace-nowrap">
-                          ৳{tutor.salaryExpected}
-                        </span>
+            ) : (
+              sortedProperties
+                .slice((propertiesPage - 1) * ITEMS_PER_PAGE, propertiesPage * ITEMS_PER_PAGE)
+                .map(property => (
+                <div 
+                  key={property.id}
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4.5 shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider font-sans">
+                            {getPropertyTypeLabel(property.type)}
+                          </span>
+                          <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider font-sans ${property.isAvailable === false ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-450' : 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'}`}>
+                            {property.isAvailable === false ? 'ভাড়া হয়ে গেছে 🛑' : 'খালি আছে ✅'}
+                          </span>
+                        </div>
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white mt-1.5 leading-snug line-clamp-1">{property.title}</h4>
                       </div>
-                      <p className="text-xs text-slate-500 truncate leading-relaxed mt-0.5">{tutor.education}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1 mt-2.5">
-                    {tutor.subjects.map((sub, i) => (
-                      <span key={i} className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400">
-                        {sub}
+                      <span className="text-lg font-black text-indigo-600 dark:text-indigo-400 font-sans whitespace-nowrap">
+                        ৳{property.price}
                       </span>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
-                    <div className="flex items-center">
-                      <MapPin className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
-                      <span>এলাকা: {tutor.location}</span>
                     </div>
 
-                    <div className="flex items-center">
-                      <Calendar className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
-                      <span>মেয়াদ/সপ্তাহ: {tutor.daysPerWeek || '৩ দিন'} | {tutor.availableTime}</span>
-                    </div>
+                    <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{property.description}</p>
 
-                    {(tutor.phonenumber || tutor.phoneNumber || tutor.contactNumber) && (
-                      <div className="flex items-center">
-                        <Phone className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
-                        <span>ফোন নম্বর: {tutor.phoneNumber || tutor.contactNumber || tutor.phonenumber}</span>
+                    <div className="grid grid-cols-1 gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+                      <div className="flex items-start text-slate-600 dark:text-slate-400">
+                        <MapPin className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0 mt-0.5" />
+                        <span className="break-words leading-tight">{property.location} • {property.address}</span>
                       </div>
-                    )}
 
-                    {tutor.whatsappNumber && (
-                      <div className="flex items-center font-semibold text-emerald-600 dark:text-emerald-400">
-                        <span className="w-3.5 h-3.5 mr-1.5 inline-block text-center text-xs">🟢</span>
-                        <span>হোয়াটসঅ্যাপ: {tutor.whatsappNumber}</span>
-                      </div>
-                    )}
-
-                    <div className="flex items-center mt-1">
-                      {tutor.isVerified ? (
-                        <span className="inline-flex items-center text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-md font-bold">
-                          <CheckCircle className="w-3 h-3 mr-1" /> যাচাই করা (Verified Tutor)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-850 px-2 py-0.5 rounded-md font-bold">
-                          <XCircle className="w-3 h-3 mr-1" /> নট ভেরিফাইড (Unverified)
-                        </span>
+                      {property.contactNumber && (
+                        <div className="flex items-center text-slate-600 dark:text-slate-400">
+                          <Phone className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
+                          <span>ভোক্তা ফোন: {property.contactNumber}</span>
+                        </div>
                       )}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800">
-                  {deleteConfirmId === tutor.id ? (
-                    <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 px-3 py-1.5 rounded-xl w-full justify-between">
-                      <span className="text-xs text-rose-600 dark:text-rose-400 font-bold">চিরতরে ডিলিট?</span>
-                      <div className="flex gap-1.5">
-                        <button 
-                          onClick={() => handleDeleteTutorConfirm(tutor.id)}
-                          className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black rounded-lg cursor-pointer transition-colors"
-                        >
-                          হ্যাঁ
-                        </button>
-                        <button 
-                          onClick={() => setDeleteConfirmId(null)}
-                          className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-bold rounded-lg cursor-pointer transition-colors"
-                        >
-                          না
-                        </button>
+                      {property.ownerPhoneNumber && (
+                        <div className="flex items-center text-slate-600 dark:text-slate-400 font-medium">
+                          <Phone className="w-3.5 h-3.5 mr-1.5 text-emerald-500 shrink-0" />
+                          <span>মালিক ফোন: {property.ownerPhoneNumber}</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center mt-1">
+                        {property.isAvailable ? (
+                          <span className="inline-flex items-center text-[10px] text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-md font-bold">
+                            <CheckCircle className="w-3 h-3 mr-1" /> এভেইলেবল (Available)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 px-2 py-0.5 rounded-md font-bold">
+                            <XCircle className="w-3 h-3 mr-1" /> বুকড (Booked/Unavailable)
+                          </span>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setEditingTutor(tutor)}
-                        className="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                        <span>সম্পাদনা করুন</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteConfirmId(tutor.id)}
-                        className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 transition-all cursor-pointer flex items-center justify-center"
-                        title="ডিলিট করুন"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </>
-                  )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    {deleteConfirmId === property.id ? (
+                      <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 px-3 py-1.5 rounded-xl w-full justify-between">
+                        <span className="text-xs text-rose-600 dark:text-rose-400 font-bold">চিরতরে ডিলিট?</span>
+                        <div className="flex gap-1.5">
+                          <button 
+                            onClick={() => handleDeletePropertyConfirm(property.id)}
+                            className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black rounded-lg cursor-pointer transition-colors"
+                          >
+                            হ্যাঁ
+                          </button>
+                          <button 
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-bold rounded-lg cursor-pointer transition-colors"
+                          >
+                            না
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setEditingProperty(property)}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          <span>সম্পাদনা করুন</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmId(property.id)}
+                          className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 transition-all cursor-pointer flex items-center justify-center"
+                          title="ডিলিট করুন"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
+            )}
+          </div>
+
+          {/* Property Pagination Controls */}
+          {Math.ceil(sortedProperties.length / ITEMS_PER_PAGE) > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setPropertiesPage(p => Math.max(1, p - 1))}
+                disabled={propertiesPage === 1}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 cursor-pointer"
+              >
+                পূর্ববর্তী
+              </button>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                পৃষ্ঠা {propertiesPage} / {Math.ceil(sortedProperties.length / ITEMS_PER_PAGE)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPropertiesPage(p => Math.min(Math.ceil(sortedProperties.length / ITEMS_PER_PAGE), p + 1))}
+                disabled={propertiesPage >= Math.ceil(sortedProperties.length / ITEMS_PER_PAGE)}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 cursor-pointer"
+              >
+                পরবর্তী
+              </button>
+            </div>
           )}
-        </div>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sortedTutors.length === 0 ? (
+              <div className="col-span-2 text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+                <span className="text-4xl">🏜️</span>
+                <p className="mt-3 text-slate-500 font-bold">কোনো হোম টিউটর পোস্ট খুঁজে পাওয়া যায়নি!</p>
+              </div>
+            ) : (
+              sortedTutors
+                .slice((tutorsPage - 1) * ITEMS_PER_PAGE, tutorsPage * ITEMS_PER_PAGE)
+                .map(tutor => (
+                <div 
+                  key={tutor.id}
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4.5 shadow-sm space-y-4 hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-start gap-3">
+                      <img 
+                        src={tutor.image || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200'} 
+                        referrerPolicy="no-referrer"
+                        alt={tutor.name}
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-800 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-1">
+                          <h4 className="text-base font-bold text-slate-900 dark:text-white truncate">{tutor.name}</h4>
+                          <span className="text-lg font-black text-indigo-600 dark:text-indigo-400 font-sans whitespace-nowrap">
+                            ৳{tutor.salaryExpected}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 truncate leading-relaxed mt-0.5">{tutor.education}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1 mt-2.5">
+                      {tutor.subjects.map((sub, i) => (
+                        <span key={i} className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400">
+                          {sub}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-1.5 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+                      <div className="flex items-center">
+                        <MapPin className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
+                        <span>এলাকা: {tutor.location}</span>
+                      </div>
+
+                      <div className="flex items-center">
+                        <Calendar className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
+                        <span>মেয়াদ/সপ্তাহ: {tutor.daysPerWeek || '৩ দিন'} | {tutor.availableTime}</span>
+                      </div>
+
+                      {(tutor.phonenumber || tutor.phoneNumber || tutor.contactNumber) && (
+                        <div className="flex items-center">
+                          <Phone className="w-3.5 h-3.5 mr-1.5 text-indigo-500 shrink-0" />
+                          <span>ফোন নম্বর: {tutor.phoneNumber || tutor.contactNumber || tutor.phonenumber}</span>
+                        </div>
+                      )}
+
+                      {tutor.whatsappNumber && (
+                        <div className="flex items-center font-semibold text-emerald-600 dark:text-emerald-400">
+                          <span className="w-3.5 h-3.5 mr-1.5 inline-block text-center text-xs">🟢</span>
+                          <span>হোয়াটসঅ্যাপ: {tutor.whatsappNumber}</span>
+                        </div>
+                      )}
+
+                      <div className="flex items-center mt-1">
+                        {tutor.isVerified ? (
+                          <span className="inline-flex items-center text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-md font-bold">
+                            <CheckCircle className="w-3 h-3 mr-1" /> যাচাই করা (Verified Tutor)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-850 px-2 py-0.5 rounded-md font-bold">
+                            <XCircle className="w-3 h-3 mr-1" /> নট ভেরিফাইড (Unverified)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                    {deleteConfirmId === tutor.id ? (
+                      <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900 px-3 py-1.5 rounded-xl w-full justify-between">
+                        <span className="text-xs text-rose-600 dark:text-rose-400 font-bold">চিরতরে ডিলিট?</span>
+                        <div className="flex gap-1.5">
+                          <button 
+                            onClick={() => handleDeleteTutorConfirm(tutor.id)}
+                            className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black rounded-lg cursor-pointer transition-colors"
+                          >
+                            হ্যাঁ
+                          </button>
+                          <button 
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-bold rounded-lg cursor-pointer transition-colors"
+                          >
+                            না
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setEditingTutor(tutor)}
+                          className="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          <span>সম্পাদনা করুন</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirmId(tutor.id)}
+                          className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400 transition-all cursor-pointer flex items-center justify-center"
+                          title="ডিলিট করুন"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Tutor Pagination Controls */}
+          {Math.ceil(sortedTutors.length / ITEMS_PER_PAGE) > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <button
+                type="button"
+                onClick={() => setTutorsPage(p => Math.max(1, p - 1))}
+                disabled={tutorsPage === 1}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 cursor-pointer"
+              >
+                পূর্ববর্তী
+              </button>
+              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                পৃষ্ঠা {tutorsPage} / {Math.ceil(sortedTutors.length / ITEMS_PER_PAGE)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setTutorsPage(p => Math.min(Math.ceil(sortedTutors.length / ITEMS_PER_PAGE), p + 1))}
+                disabled={tutorsPage >= Math.ceil(sortedTutors.length / ITEMS_PER_PAGE)}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 cursor-pointer"
+              >
+                পরবর্তী
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Property Edit Modal */}
@@ -757,7 +823,10 @@ export default function ManagePosts() {
                         />
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
+                            if (img) {
+                              await deleteImageFromFirebase(img);
+                            }
                             setEditingProperty(prev => {
                               if (!prev) return null;
                               return {
