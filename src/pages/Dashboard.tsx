@@ -1454,16 +1454,16 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
               </div>
             )}
 
-            <div className="bg-indigo-50 dark:bg-indigo-950/30 p-5 sm:p-6 rounded-2xl text-sm sm:text-base text-indigo-950 dark:text-indigo-200 leading-relaxed font-bold border-2 border-indigo-100/70 dark:border-indigo-900/50 shadow-sm">
-              <p className="font-black text-slate-900 dark:text-white mb-3 text-base sm:text-lg flex items-center gap-1.5">
+            <div className="bg-indigo-50 dark:bg-indigo-950/30 p-4 sm:p-5 rounded-xl text-xs sm:text-sm text-indigo-950 dark:text-indigo-200 leading-normal font-medium border border-indigo-100/70 dark:border-indigo-900/50 shadow-sm">
+              <p className="font-bold text-slate-900 dark:text-white mb-2 text-xs sm:text-sm flex items-center gap-1.5">
                 <span>👇</span> {language === 'bn' ? 'ফি পরিশোধের সহজ নির্দেশিকা:' : 'Payment Guide:'}
               </p>
-              <ul className="list-disc list-inside space-y-2.5 text-slate-850 dark:text-slate-350">
+              <ul className="list-disc list-inside space-y-1.5 text-slate-800 dark:text-slate-300">
                 <li>
                   {language === 'bn' ? (
-                    <>বিকাশ/নগদ/রকেট (Personal) নাম্বারঃ <strong className="text-pink-600 dark:text-pink-400 text-lg font-black tracking-wide selection:bg-pink-100 select-all">০১৪০১৯৯৬৬৭৪</strong> এ সেন্ড মানি (Send Money) করুন।</>
+                    <>বিকাশ/নগদ/রকেট (Personal) নাম্বারঃ <strong className="text-pink-600 dark:text-pink-400 text-sm sm:text-base font-extrabold tracking-wide selection:bg-pink-100 select-all">০১৪০১৯৯৬৬৭৪</strong> এ সেন্ড মানি (Send Money) করুন।</>
                   ) : (
-                    <>Send money to (Personal Number): <strong className="text-pink-600 dark:text-pink-400 text-lg font-mono font-black select-all">01401996674</strong> via bKash/Nagad/Rocket.</>
+                    <>Send money to (Personal Number): <strong className="text-pink-600 dark:text-pink-400 text-sm sm:text-base font-mono font-extrabold select-all">01401996674</strong> via bKash/Nagad/Rocket.</>
                   )}
                   <button 
                     type="button" 
@@ -1471,7 +1471,7 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
                       navigator.clipboard.writeText('01401996674');
                       toast.success(language === 'bn' ? 'নাম্বার কপি করা হয়েছে!' : 'Number copied!');
                     }}
-                    className="ml-3 px-2.5 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                    className="ml-2 px-2 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-100/80 dark:bg-indigo-950 rounded hover:bg-indigo-200 transition-colors"
                   >
                     {language === 'bn' ? 'কপি' : 'Copy'}
                   </button>
@@ -1481,40 +1481,40 @@ function SubscriptionPayment({ user, addInvoice, invoices, role, updateSubscript
               </ul>
             </div>
 
-            <form onSubmit={handlePaymentSubmit} className="space-y-6 mt-6">
+            <form onSubmit={handlePaymentSubmit} className="space-y-4 mt-4">
               <div>
-                <label className="block text-sm font-extrabold text-slate-805 dark:text-slate-205 mb-3">
+                <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">
                   {language === 'bn' ? '১. পেমেন্ট মাধ্যম সিলেক্ট করুন' : '1. Select Payment Method'}
                 </label>
-                <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
-                  <button type="button" onClick={() => setMethod('bkash')} className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-3.5 sm:px-5 sm:py-4 rounded-2xl font-black text-xs sm:text-sm md:text-base transition-all focus:outline-none ${method === 'bkash' ? 'bg-[#DF146E] text-white shadow-lg shadow-[#DF146E]/30 ring-4 ring-[#DF146E] ring-offset-2 dark:ring-offset-slate-900 scale-[1.03]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#DF146E] hover:text-[#DF146E] hover:scale-[1.02]'}`}>
-                    <img src="/bkash.png" alt="bKash" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" referrerPolicy="no-referrer" />
+                <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                  <button type="button" onClick={() => setMethod('bkash')} className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:px-4 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all focus:outline-none ${method === 'bkash' ? 'bg-[#DF146E] text-white shadow-md shadow-[#DF146E]/30 ring-2 ring-[#DF146E] ring-offset-1 dark:ring-offset-slate-900 scale-[1.02]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#DF146E] hover:text-[#DF146E]'}`}>
+                    <img src="/bkash.png" alt="bKash" className="h-5 sm:h-6 w-auto object-contain" referrerPolicy="no-referrer" />
                     <span>{language === 'bn' ? 'বিকাশ' : 'bKash'}</span>
                   </button>
-                  <button type="button" onClick={() => setMethod('nagad')} className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-3.5 sm:px-5 sm:py-4 rounded-2xl font-black text-xs sm:text-sm md:text-base transition-all focus:outline-none ${method === 'nagad' ? 'bg-[#EC2227] text-white shadow-lg shadow-[#EC2227]/30 ring-4 ring-[#EC2227] ring-offset-2 dark:ring-offset-slate-900 scale-[1.03]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#EC2227] hover:text-[#EC2227] hover:scale-[1.02]'}`}>
-                    <img src="/nagad.png" alt="Nagad" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" referrerPolicy="no-referrer" />
+                  <button type="button" onClick={() => setMethod('nagad')} className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:px-4 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all focus:outline-none ${method === 'nagad' ? 'bg-[#EC2227] text-white shadow-md shadow-[#EC2227]/30 ring-2 ring-[#EC2227] ring-offset-1 dark:ring-offset-slate-900 scale-[1.02]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#EC2227] hover:text-[#EC2227]'}`}>
+                    <img src="/nagad.png" alt="Nagad" className="h-5 sm:h-6 w-auto object-contain" referrerPolicy="no-referrer" />
                     <span>{language === 'bn' ? 'নগদ' : 'Nagad'}</span>
                   </button>
-                  <button type="button" onClick={() => setMethod('rocket')} className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-3.5 sm:px-5 sm:py-4 rounded-2xl font-black text-xs sm:text-sm md:text-base transition-all focus:outline-none ${method === 'rocket' ? 'bg-[#8C3494] text-white shadow-lg shadow-[#8C3494]/30 ring-4 ring-[#8C3494] ring-offset-2 dark:ring-offset-slate-900 scale-[1.03]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#8C3494] hover:text-[#8C3494] hover:scale-[1.02]'}`}>
-                    <img src="/rocket.png" alt="Rocket" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" referrerPolicy="no-referrer" />
+                  <button type="button" onClick={() => setMethod('rocket')} className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:px-4 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all focus:outline-none ${method === 'rocket' ? 'bg-[#8C3494] text-white shadow-md shadow-[#8C3494]/30 ring-2 ring-[#8C3494] ring-offset-1 dark:ring-offset-slate-900 scale-[1.02]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#8C3494] hover:text-[#8C3494]'}`}>
+                    <img src="/rocket.png" alt="Rocket" className="h-5 sm:h-6 w-auto object-contain" referrerPolicy="no-referrer" />
                     <span>{language === 'bn' ? 'রকেট' : 'Rocket'}</span>
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-extrabold text-slate-805 dark:text-slate-205 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 mb-1.5">
                   {language === 'bn' ? '২. পেমেন্ট ট্রানজ্যাকশন আইডি (TrxID) বসান' : '2. Enter Payment Transaction ID (TrxID)'}
                 </label>
                 <div className="relative">
-                  <input required placeholder={language === 'bn' ? 'যেমন: 8N79OLKWP' : 'Example: 8N79OLKWP'} value={trxId} onChange={e => setTrxId(e.target.value)} className="w-full pl-4 pr-12 py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-950 dark:text-white text-base font-bold uppercase tracking-wider placeholder:tracking-normal focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm placeholder:lowercase" />
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                  <input required placeholder={language === 'bn' ? 'যেমন: 8N79OLKWP' : 'Example: 8N79OLKWP'} value={trxId} onChange={e => setTrxId(e.target.value)} className="w-full pl-3 pr-10 py-2.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-950 dark:text-white text-sm font-bold uppercase tracking-wider placeholder:tracking-normal focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm placeholder:lowercase" />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                     <Send className="w-4 h-4 text-slate-400" />
                   </div>
                 </div>
               </div>
 
-              <button type="submit" className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2 text-base sm:text-lg">
+              <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl font-bold transition-all shadow-md hover:shadow-lg cursor-pointer flex items-center justify-center gap-2 text-sm sm:text-base">
                 <RefreshCw className="w-4 h-4" />
                 {language === 'bn' ? 'নবায়নের অনুরোধ পাঠান' : 'Submit Renewal Request'}
               </button>

@@ -340,60 +340,60 @@ export default function Login() {
               </div>
             )}
             
-            <div className="bg-slate-50 dark:bg-slate-900 border-2 border-indigo-100 dark:border-slate-800 p-5 sm:p-6 rounded-2xl mt-6 shadow-sm">
+            <div className="bg-slate-50 dark:bg-slate-900 border-2 border-indigo-100 dark:border-slate-800 p-4 sm:p-5 rounded-2xl mt-5 shadow-sm">
               <motion.div 
-                className="text-center mb-6"
+                className="text-center mb-4"
                 animate={{ y: [0, -3, 0] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               >
-                <h4 className="inline-block text-lg sm:text-xl font-black text-red-600 dark:text-red-500 relative pb-1.5 tracking-wide">
+                <h4 className="inline-block text-base sm:text-lg font-black text-red-600 dark:text-red-500 relative pb-1 tracking-wide">
                   {language === 'bn' ? '🔒 পেমেন্ট কমপ্লিট করুন' : '🔒 Complete Payment'}
-                  <span className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-red-500 to-transparent"></span>
+                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent"></span>
                 </h4>
               </motion.div>
               
-              <div className="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-150 dark:border-slate-800 mb-5 text-center">
-                <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-2 flex-wrap">
+              <div className="bg-white dark:bg-slate-800/50 p-3 sm:p-3.5 rounded-xl border border-slate-150 dark:border-slate-800 mb-4 text-center">
+                <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 flex-wrap">
                   <span>{language === 'bn' ? 'পেমেন্ট মেথড সিলেক্ট করুন। সাবস্ক্রিপশন ফি:' : 'Select payment method. Subscription Fee:'}</span>
-                  <span className="text-lg sm:text-xl font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+                  <span className="text-xs sm:text-sm font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-0.5 rounded-lg border border-indigo-100 dark:border-indigo-900/40">
                     {role === 'visitor' ? (language === 'bn' ? '৳২৫ / মাস' : '৳25 / Month') : (language === 'bn' ? '৳৫০ / মাস' : '৳50 / Month')}
                   </span>
                 </p>
               </div>
               
-              <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 mb-6">
-                 <button type="button" onClick={() => setPaymentMethod('bkash')} className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-3.5 sm:px-5 sm:py-4 rounded-2xl font-black text-xs sm:text-sm md:text-base transition-all focus:outline-none ${paymentMethod === 'bkash' ? 'bg-[#DF146E] text-white shadow-lg shadow-[#DF146E]/30 ring-4 ring-[#DF146E] ring-offset-2 dark:ring-offset-slate-900 scale-[1.03]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#DF146E] hover:text-[#DF146E] hover:scale-[1.02]'}`}>
-                   <img src="/bkash.png" alt="bKash" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" referrerPolicy="no-referrer" />
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+                 <button type="button" onClick={() => setPaymentMethod('bkash')} className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:px-4 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all focus:outline-none ${paymentMethod === 'bkash' ? 'bg-[#DF146E] text-white shadow-md shadow-[#DF146E]/30 ring-2 ring-[#DF146E] ring-offset-1 dark:ring-offset-slate-900 scale-[1.02]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#DF146E] hover:text-[#DF146E]'}`}>
+                   <img src="/bkash.png" alt="bKash" className="h-5 sm:h-6 w-auto object-contain" referrerPolicy="no-referrer" />
                    <span>{language === 'bn' ? 'বিকাশ' : 'bKash'}</span>
                  </button>
-                 <button type="button" onClick={() => setPaymentMethod('nagad')} className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-3.5 sm:px-5 sm:py-4 rounded-2xl font-black text-xs sm:text-sm md:text-base transition-all focus:outline-none ${paymentMethod === 'nagad' ? 'bg-[#EC2227] text-white shadow-lg shadow-[#EC2227]/30 ring-4 ring-[#EC2227] ring-offset-2 dark:ring-offset-slate-900 scale-[1.03]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#EC2227] hover:text-[#EC2227] hover:scale-[1.02]'}`}>
-                   <img src="/nagad.png" alt="Nagad" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" referrerPolicy="no-referrer" />
+                 <button type="button" onClick={() => setPaymentMethod('nagad')} className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:px-4 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all focus:outline-none ${paymentMethod === 'nagad' ? 'bg-[#EC2227] text-white shadow-md shadow-[#EC2227]/30 ring-2 ring-[#EC2227] ring-offset-1 dark:ring-offset-slate-900 scale-[1.02]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#EC2227] hover:text-[#EC2227]'}`}>
+                   <img src="/nagad.png" alt="Nagad" className="h-5 sm:h-6 w-auto object-contain" referrerPolicy="no-referrer" />
                    <span>{language === 'bn' ? 'নগদ' : 'Nagad'}</span>
                  </button>
-                 <button type="button" onClick={() => setPaymentMethod('rocket')} className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 p-3.5 sm:px-5 sm:py-4 rounded-2xl font-black text-xs sm:text-sm md:text-base transition-all focus:outline-none ${paymentMethod === 'rocket' ? 'bg-[#8C3494] text-white shadow-lg shadow-[#8C3494]/30 ring-4 ring-[#8C3494] ring-offset-2 dark:ring-offset-slate-900 scale-[1.03]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#8C3494] hover:text-[#8C3494] hover:scale-[1.02]'}`}>
-                   <img src="/rocket.png" alt="Rocket" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" referrerPolicy="no-referrer" />
+                 <button type="button" onClick={() => setPaymentMethod('rocket')} className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:px-4 sm:py-3 rounded-xl font-bold text-xs sm:text-sm transition-all focus:outline-none ${paymentMethod === 'rocket' ? 'bg-[#8C3494] text-white shadow-md shadow-[#8C3494]/30 ring-2 ring-[#8C3494] ring-offset-1 dark:ring-offset-slate-900 scale-[1.02]' : 'bg-white border-2 border-slate-200 dark:bg-slate-800 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-[#8C3494] hover:text-[#8C3494]'}`}>
+                   <img src="/rocket.png" alt="Rocket" className="h-5 sm:h-6 w-auto object-contain" referrerPolicy="no-referrer" />
                    <span>{language === 'bn' ? 'রকেট' : 'Rocket'}</span>
                  </button>
               </div>
 
               {paymentMethod && (
-                 <div className="mb-5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-350 p-4 bg-indigo-50/80 dark:bg-indigo-950/30 rounded-2xl border-2 border-indigo-100/70 dark:border-indigo-900/55 leading-relaxed">
-                    <p className="text-slate-900 dark:text-white font-bold text-sm sm:text-base mb-1.5">
+                 <div className="mb-4 text-xs font-semibold text-slate-700 dark:text-slate-350 p-3 sm:p-3.5 bg-indigo-50/80 dark:bg-indigo-950/30 rounded-xl border border-indigo-100/70 dark:border-indigo-900/55 leading-normal">
+                    <p className="text-slate-900 dark:text-white font-bold text-xs sm:text-sm mb-1.5">
                       {language === 'bn' ? (
-                        <>নিচের নাম্বারে 🔀 <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold text-base">{paymentMethod === 'bkash' ? 'বিকাশ' : paymentMethod === 'nagad' ? 'নগদ' : 'রকেট'} (Personal)</strong> সেন্ড মানি করুন:</>
+                        <>নিচের নাম্বারে 🔀 <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold text-xs sm:text-sm">{paymentMethod === 'bkash' ? 'বিকাশ' : paymentMethod === 'nagad' ? 'নগদ' : 'রকেট'} (Personal)</strong> সেন্ড মানি করুন:</>
                       ) : (
-                        <>Send money (Personal) via 🔀 <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold text-base">{paymentMethod === 'bkash' ? 'bKash' : paymentMethod === 'nagad' ? 'Nagad' : 'Rocket'}</strong> to:</>
+                        <>Send money (Personal) via 🔀 <strong className="text-indigo-600 dark:text-indigo-400 font-extrabold text-xs sm:text-sm">{paymentMethod === 'bkash' ? 'bKash' : paymentMethod === 'nagad' ? 'Nagad' : 'Rocket'}</strong> to:</>
                       )}
                     </p>
-                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3 rounded-xl border border-indigo-100/50 dark:border-indigo-950/80">
-                      <p className="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-wider select-all font-mono">০১৪০১৯৯৬৬৭৪</p>
+                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-lg border border-indigo-100/50 dark:border-indigo-950/80">
+                      <p className="text-base sm:text-lg font-black text-indigo-600 dark:text-indigo-400 tracking-wider select-all font-mono">০১৪০১৯৯৬৬৭৪</p>
                       <button 
                         type="button" 
                         onClick={() => {
                           navigator.clipboard.writeText('01401996674');
                           toast.success(language === 'bn' ? 'নাম্বার কপি করা হয়েছে!' : 'Number copied!');
                         }}
-                        className="px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 rounded-lg hover:bg-indigo-100 transition-colors"
+                        className="px-2.5 py-1 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950 rounded-md hover:bg-indigo-100 transition-colors"
                       >
                         {language === 'bn' ? 'কপি করুন' : 'Copy'}
                       </button>
@@ -402,10 +402,10 @@ export default function Login() {
               )}
 
               <div>
-                <label className="block text-sm font-extrabold text-slate-800 dark:text-slate-200 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 mb-1.5">
                   {language === 'bn' ? 'ট্রানজ্যাকশন আইডি (Transaction ID) বসান' : 'Enter Transaction ID'}
                 </label>
-                <input required type="text" value={transactionId} onChange={e => setTransactionId(e.target.value)} disabled={!paymentMethod} className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-base font-bold tracking-wider placeholder:tracking-normal" placeholder={language === 'bn' ? 'যেমন: 8XDF1A384P' : 'Ex: 8XDF1A384P'} />
+                <input required type="text" value={transactionId} onChange={e => setTransactionId(e.target.value)} disabled={!paymentMethod} className="w-full px-3 py-2.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold tracking-wider placeholder:tracking-normal" placeholder={language === 'bn' ? 'যেমন: 8XDF1A384P' : 'Ex: 8XDF1A384P'} />
               </div>
             </div>
 
