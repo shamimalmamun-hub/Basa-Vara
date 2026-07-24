@@ -4,7 +4,7 @@ import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Eye, Globe, Users, FileText } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, compressImage } from '../lib/utils';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, uploadImageToFirebase } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
 import ManageBanners from '../components/ManageBanners';
 import ManageVideo from '../components/ManageVideo';
@@ -768,6 +768,7 @@ export default function Dashboard() {
 }
 
 function ProfileSettings({ user, updateProfile }: { user: User, updateProfile: any }) {
+  const { language } = useLanguage();
   const [formData, setFormData] = useState({
     name: user.name,
     dob: user.dob || '',
@@ -777,16 +778,14 @@ function ProfileSettings({ user, updateProfile }: { user: User, updateProfile: a
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const toastId = toast.loading(language === 'bn' ? 'ছবি আপলোড হচ্ছে...' : 'Uploading avatar...');
       try {
-        const compressed = await compressImage(file);
-        setFormData(prev => ({...prev, avatar: compressed}));
+        const url = await uploadImageToFirebase(file, 'avatars');
+        setFormData(prev => ({...prev, avatar: url}));
+        toast.success(language === 'bn' ? 'প্রোফাইল ছবি আপলোড সম্পূর্ণ!' : 'Avatar uploaded successfully!', { id: toastId });
       } catch (err) {
-        console.error("Profile image compression failed:", err);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setFormData(prev => ({...prev, avatar: reader.result as string}));
-        };
-        reader.readAsDataURL(file);
+        console.error("Profile image upload failed:", err);
+        toast.error(language === 'bn' ? 'ছবি আপলোডে ব্যর্থ হয়েছে' : 'Avatar upload failed', { id: toastId });
       }
     }
   };
@@ -866,19 +865,19 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
         return;
       }
 
+      const toastId = toast.loading('ছবি আপলোড করা হচ্ছে...');
       try {
-        const compressed = await compressImage(file);
-        setFormData((prev: any) => ({ ...prev, image: compressed }));
+        const url = await uploadImageToFirebase(file, 'tutors');
+        setFormData((prev: any) => ({ ...prev, image: url }));
+        toast.success('ছবি আপলোড সম্পূর্ণ!', { id: toastId });
       } catch (err) {
-        console.error("Content image compression failed:", err);
-        const reader = new FileReader();
-        reader.onload = () => {
-          setFormData((prev: any) => ({ ...prev, image: reader.result as string }));
-        };
-        reader.readAsDataURL(file);
+        console.error("Tutor image upload failed:", err);
+        toast.error('ছবি আপলোডে সমস্যা হয়েছে', { id: toastId });
       }
     } else {
       // Multiple image uploads for property
+      const toastId = toast.loading(`${files.length} টি ছবি আপলোড হচ্ছে...`);
+      let count = 0;
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         if (!allowedTypes.includes(file.type)) {
@@ -887,16 +886,17 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
         }
 
         try {
-          const compressed = await compressImage(file);
-          setUploadedImages(prev => [...prev, compressed]);
+          const url = await uploadImageToFirebase(file, 'properties');
+          setUploadedImages(prev => [...prev, url]);
+          count++;
         } catch (err) {
-          console.error("Content image compression failed:", err);
-          const reader = new FileReader();
-          reader.onload = () => {
-            setUploadedImages(prev => [...prev, reader.result as string]);
-          };
-          reader.readAsDataURL(file);
+          console.error("Property image upload failed:", err);
         }
+      }
+      if (count > 0) {
+        toast.success(`${count} টি ছবি আপলোড সম্পূর্ণ!`, { id: toastId });
+      } else {
+        toast.error('ছবি আপলোডে সমস্যা হয়েছে', { id: toastId });
       }
     }
   };

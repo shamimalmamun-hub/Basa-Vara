@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, enableMultiTabIndexedDbPersistence, setLogLevel } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import firebaseConfigJson from '../../firebase-applet-config.json';
 
 // Support both environment variables (for GitHub / Cloud Workers / custom deploys)
@@ -19,6 +20,8 @@ const databaseId = import.meta.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || fireba
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, databaseId); /* CRITICAL: The app will break without this line */
+export const auth = getAuth();
+export const storage = getStorage(app);
 
 // Set Firestore log level to 'error' to suppress harmless future update time/clock skew warning logs
 try {
@@ -39,6 +42,4 @@ try {
 } catch (e) {
   console.warn('Firestore persistence failed to initialize:', e);
 }
-
-export const auth = getAuth();
 

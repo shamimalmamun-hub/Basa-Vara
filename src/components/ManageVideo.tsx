@@ -3,7 +3,7 @@ import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Video, Upload, Link as LinkIcon, Trash2, RotateCcw, AlertTriangle, Play, HelpCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getYouTubeId } from '../lib/utils';
+import { getYouTubeId, uploadImageToFirebase } from '../lib/utils';
 
 const DEFAULT_VIDEO_URL = 'https://assets.mixkit.co/videos/preview/mixkit-realtor-showing-apartment-to-couple-40332-large.mp4';
 
@@ -45,49 +45,38 @@ export default function ManageVideo() {
     updateHeroVideoUrl(videoInputUrl.trim());
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check if it's video
-    if (!file.type.startsWith('video/')) {
+    // Check if it's video or media
+    if (!file.type.startsWith('video/') && !file.type.startsWith('image/')) {
       toast.error(
         language === 'bn'
-          ? 'শুধুমাত্র MP4 বা অন্য যেকোনো ভিডিও ফরম্যাট আপলোড করা সম্ভব!'
-          : 'Only video files are allowed!'
-      );
-      return;
-    }
-
-    // Limit size is 3MB because of LocalStorage limits
-    const maxSizeBytes = 3.5 * 1024 * 1024;
-    if (file.size > maxSizeBytes) {
-      toast.error(
-        language === 'bn'
-          ? 'ভিডিওর সাইজ ৩.৫ মেগাবাইটের বেশি হওয়া যাবে না! (লোকালস্টোরেজ লিমিটেশনের কারণে)'
-          : 'Video size cannot exceed 3.5MB! (Due to LocalStorage limitations)'
+          ? 'শুধুমাত্র ভিডিও অথবা ছবি ফরম্যাট আপলোড করা সম্ভব!'
+          : 'Only video or image files are allowed!'
       );
       return;
     }
 
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64String = reader.result as string;
-      updateHeroVideoUrl(base64String);
-      setVideoInputUrl(base64String);
+    const toastId = toast.loading(language === 'bn' ? 'ফাইল Firebase Storage-এ আপলোড করা হচ্ছে...' : 'Uploading file to Firebase Storage...');
+    try {
+      const storageUrl = await uploadImageToFirebase(file, 'media');
+      updateHeroVideoUrl(storageUrl);
+      setVideoInputUrl(storageUrl);
       setIsUploading(false);
+      toast.dismiss(toastId);
       toast.success(
         language === 'bn'
-          ? 'ভিডিওটি সফলভাবে লোকালস্টোরেজে আপলোড করা হয়েছে।'
-          : 'Video successfully uploaded to local storage.'
+          ? 'ফাইলটি সফলভাবে Firebase Storage-এ আপলোড করা হয়েছে।'
+          : 'File successfully uploaded to Firebase Storage.'
       );
-    };
-    reader.onerror = () => {
+    } catch (err) {
       setIsUploading(false);
-      toast.error('Error reading video file!');
-    };
-    reader.readAsDataURL(file);
+      toast.dismiss(toastId);
+      toast.error(language === 'bn' ? 'ফাইল আপলোডে সমস্যা হয়েছে!' : 'Error uploading file!');
+    }
   };
 
   const handleResetToDefault = () => {

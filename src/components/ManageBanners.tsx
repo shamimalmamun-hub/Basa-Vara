@@ -4,7 +4,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { AdBanner } from '../types';
 import { Trash2, Plus, Upload, Link as LinkIcon, Edit, Eye, Sparkles, X, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { compressImage } from '../lib/utils';
+import { uploadImageToFirebase } from '../lib/utils';
 
 export default function ManageBanners() {
   const { banners, updateBanner, addBanner, deleteBanner } = useApp();
@@ -60,48 +60,22 @@ export default function ManageBanners() {
       return;
     }
 
-    const toastId = toast.loading(language === 'bn' ? 'ছবি প্রসেস করা হচ্ছে...' : 'Processing image...');
+    const toastId = toast.loading(language === 'bn' ? 'ছবি আপলোড করা হচ্ছে...' : 'Uploading image...');
 
     try {
-      let maxWidth = 1920;
-      let maxHeight = 1920;
-      let quality = 0.8;
-      let compressed = "";
-      let success = false;
-
-      // Adaptively compress image until the resulting base64 string is under the Firestore document limit (~1MB total document size, so base64 < 800KB or 800,000 chars is extremely safe)
-      for (let attempt = 1; attempt <= 5; attempt++) {
-        try {
-          compressed = await compressImage(file, maxWidth, maxHeight, quality);
-          if (compressed.length < 800000) {
-            success = true;
-            break;
-          }
-        } catch (err) {
-          console.error(`Compression attempt ${attempt} failed:`, err);
-        }
-        // Scale down size and quality for the next iteration to find a safe sweet spot
-        maxWidth = Math.round(maxWidth * 0.7);
-        maxHeight = Math.round(maxHeight * 0.7);
-        quality = Math.max(0.4, quality - 0.15);
-      }
-
-      // If all trials failed or still too big, use a highly aggressive compact size fallback
-      if (!success || compressed.length >= 800000) {
-        compressed = await compressImage(file, 800, 800, 0.5);
-      }
+      const url = await uploadImageToFirebase(file, 'banners');
 
       if (isNew) {
-        setNewBanner(prev => ({ ...prev, image: compressed }));
+        setNewBanner(prev => ({ ...prev, image: url }));
       } else {
-        setEditingBanner(prev => prev ? { ...prev, image: compressed } : null);
+        setEditingBanner(prev => prev ? { ...prev, image: url } : null);
       }
       toast.dismiss(toastId);
-      toast.success(language === 'bn' ? 'ছবি সফলভাবে প্রসেস হয়েছে!' : 'Image processed successfully!');
+      toast.success(language === 'bn' ? 'ছবি সফলভাবে আপলোড হয়েছে!' : 'Image uploaded successfully!');
     } catch (err) {
-      console.error("Banner image compression failed completely:", err);
+      console.error("Banner image upload failed:", err);
       toast.dismiss(toastId);
-      toast.error(language === 'bn' ? 'ছবি প্রসেস করতে ব্যর্থ হয়েছে!' : 'Failed to process image!');
+      toast.error(language === 'bn' ? 'ছবি আপলোড করতে ব্যর্থ হয়েছে!' : 'Failed to upload image!');
     }
   };
 

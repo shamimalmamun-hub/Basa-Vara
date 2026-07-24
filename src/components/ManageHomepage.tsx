@@ -3,7 +3,7 @@ import { useLanguage, Language } from '../contexts/LanguageContext';
 import { useApp } from '../contexts/AppContext';
 import { FileCode2, Image, Save, RotateCcw, Layout, Compass, Type, Eye, Sparkles, Copy, Megaphone } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { compressImage } from '../lib/utils';
+import { uploadImageToFirebase } from '../lib/utils';
 
 export default function ManageHomepage() {
   const { overrides, updateOverrides, language } = useLanguage();
@@ -65,27 +65,18 @@ export default function ManageHomepage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const toastId = toast.loading(language === 'bn' ? 'লোগো ছবি আপলোড করা হচ্ছে...' : 'Uploading logo...');
       try {
-        const compressed = await compressImage(file);
+        const url = await uploadImageToFirebase(file, 'site_assets');
         setTempOverrides(prev => ({
           ...prev,
-          bn: { ...prev.bn, customLogoImage: compressed },
-          en: { ...prev.en, customLogoImage: compressed }
+          bn: { ...prev.bn, customLogoImage: url },
+          en: { ...prev.en, customLogoImage: url }
         }));
-        toast.success(language === 'bn' ? 'লোগো কম্প্রেসড ও লোড করা হয়েছে, পরিবর্তন সেভ করতে নিচে বাটন চাপুন।' : 'Logo loaded and compressed, press save below to submit.');
+        toast.success(language === 'bn' ? 'লোগো Firebase Storage-এ আপলোড সম্পূর্ণ! সেভ করুন।' : 'Logo uploaded to Firebase Storage, press save to save.', { id: toastId });
       } catch (err) {
-        console.error("Logo compression failed:", err);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          setTempOverrides(prev => ({
-            ...prev,
-            bn: { ...prev.bn, customLogoImage: base64 },
-            en: { ...prev.en, customLogoImage: base64 }
-          }));
-          toast.success('লোগো লোড করা হয়েছে, পরিবর্তন সেভ করতে নিচে বাটন চাপুন।');
-        };
-        reader.readAsDataURL(file);
+        console.error("Logo upload failed:", err);
+        toast.error(language === 'bn' ? 'লোগো আপলোডে সমস্যা হয়েছে' : 'Logo upload failed', { id: toastId });
       }
     }
   };

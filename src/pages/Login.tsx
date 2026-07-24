@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { generateId, compressImage } from '../lib/utils';
+import { generateId, uploadImageToFirebase } from '../lib/utils';
 import { FileBadge } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -59,16 +59,14 @@ export default function Login() {
   const handleFileChangeFront = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const toastId = toast.loading(language === 'bn' ? 'NID ছবি আপলোড হচ্ছে...' : 'Uploading NID front...');
       try {
-        const compressed = await compressImage(file);
-        setNidFront(compressed);
+        const url = await uploadImageToFirebase(file, 'nid_documents');
+        setNidFront(url);
+        toast.success(language === 'bn' ? 'NID প্রথম পাতা আপলোড সম্পূর্ণ!' : 'NID front uploaded successfully!', { id: toastId });
       } catch (err) {
-        console.error("Front image compression failed:", err);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setNidFront(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        console.error("Front NID upload failed:", err);
+        toast.error(language === 'bn' ? 'ছবি আপলোডে সমস্যা হয়েছে' : 'Upload failed', { id: toastId });
       }
     }
   };
@@ -76,16 +74,14 @@ export default function Login() {
   const handleFileChangeBack = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const toastId = toast.loading(language === 'bn' ? 'NID ছবি আপলোড হচ্ছে...' : 'Uploading NID back...');
       try {
-        const compressed = await compressImage(file);
-        setNidBack(compressed);
+        const url = await uploadImageToFirebase(file, 'nid_documents');
+        setNidBack(url);
+        toast.success(language === 'bn' ? 'NID শেষ পাতা আপলোড সম্পূর্ণ!' : 'NID back uploaded successfully!', { id: toastId });
       } catch (err) {
-        console.error("Back image compression failed:", err);
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setNidBack(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+        console.error("Back NID upload failed:", err);
+        toast.error(language === 'bn' ? 'ছবি আপলোডে সমস্যা হয়েছে' : 'Upload failed', { id: toastId });
       }
     }
   };

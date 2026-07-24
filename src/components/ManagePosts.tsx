@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Search, MapPin, Phone, Trash2, Edit2, CheckCircle, XCircle, FileText, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, Image as ImageIcon, X, Upload, Plus } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES, compressImage } from '../lib/utils';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, uploadImageToFirebase } from '../lib/utils';
 import { Property, Tutor } from '../types';
 import toast from 'react-hot-toast';
 
@@ -73,6 +73,7 @@ export default function ManagePosts() {
 
   const processFilesProperty = async (files: FileList | File[]) => {
     if (!files || files.length === 0) return;
+    const toastId = toast.loading(`${files.length} টি ছবি আপলোড করা হচ্ছে...`);
     try {
       const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
       for (let i = 0; i < files.length; i++) {
@@ -81,19 +82,19 @@ export default function ManagePosts() {
           toast.error(`"${file.name}" - শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!`);
           continue;
         }
-        const compressed = await compressImage(file);
+        const url = await uploadImageToFirebase(file, 'properties');
         setEditingProperty(prev => {
           if (!prev) return null;
           const existingImages = prev.images || [];
           return {
             ...prev,
-            images: [...existingImages, compressed]
+            images: [...existingImages, url]
           };
         });
       }
-      toast.success('ছবি আপলোড সম্পন্ন হয়েছে!');
+      toast.success('ছবি আপলোড সম্পন্ন হয়েছে!', { id: toastId });
     } catch (err) {
-      toast.error('ছবি প্রসেস করা সম্ভব হয়নি.');
+      toast.error('ছবি আপলোড করা সম্ভব হয়নি.', { id: toastId });
     }
   };
 
@@ -184,12 +185,13 @@ export default function ManagePosts() {
   const handleFileChangeTutor = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const toastId = toast.loading('ছবি আপলোড করা হচ্ছে...');
       try {
-        const compressed = await compressImage(file);
-        setEditingTutor(prev => prev ? ({ ...prev, image: compressed }) : null);
-        toast.success('ছবি আপলোড হয়েছে!');
+        const url = await uploadImageToFirebase(file, 'tutors');
+        setEditingTutor(prev => prev ? ({ ...prev, image: url }) : null);
+        toast.success('ছবি আপলোড সম্পূর্ণ!', { id: toastId });
       } catch (err) {
-        toast.error('ছবি আপলোড ব্যর্থ হয়েছে.');
+        toast.error('ছবি আপলোড ব্যর্থ হয়েছে.', { id: toastId });
       }
     }
   };

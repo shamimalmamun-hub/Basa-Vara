@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { ref, uploadBytes, uploadString, getDownloadURL } from "firebase/storage";
+import { storage } from "./firebase";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -65,5 +67,62 @@ export function compressImage(file: File, maxWidth = 800, maxHeight = 600, quali
     };
     reader.onerror = (err) => reject(err);
   });
+}
+
+/**
+ * Uploads an image (File, Blob or Data URL string) to Firebase Storage and returns the permanent HTTPS download URL.
+ */
+export async function uploadImageToFirebase(
+  fileOrString: File | Blob | string,
+  folder: string = 'uploads'
+): Promise<string> {
+  if (!fileOrString) return '';
+
+  // 1. If it's already an HTTP/HTTPS URL, return directly
+  if (typeof fileOrString === 'string') {
+    if (fileOrString.startsWith('http://') || fileOrString.startsWith('https://')) {
+      return fileOrString;
+    }
+  }
+
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 9);
+  const fileName = `${timestamp}_${randomStr}.jpg`;
+
+  try {
+    // 2. Data URL (Base64)
+    if (typeof fileOrString === 'string' && fileOrString.startsWith('data:')) {
+      const storageRef = ref(storage, `${folder}/${fileName}`);
+      const snapshot = await uploadString(storageRef, fileOrString, 'data_url');
+      return await getDownloadURL(snapshot.ref);
+    }
+
+    // 3. File or Blob
+    if (fileOrString instanceof File || fileOrString instanceof Blob) {
+      let dataUrlToUpload = '';
+      if (fileOrString instanceof File) {
+        try {
+          dataUrlToUpload = await compressImage(fileOrString, 1200, 1200, 0.82);
+        } catch (e) {
+          console.warn("Pre-compression failed, uploading raw file:", e);
+        }
+      }
+
+      const storageRef = ref(storage, `${folder}/${fileName}`);
+
+      if (dataUrlToUpload && dataUrlToUpload.startsWith('data:')) {
+        const snapshot = await uploadString(storageRef, dataUrlToUpload, 'data_url');
+        return await getDownloadURL(snapshot.ref);
+      } else {
+        const snapshot = await uploadBytes(storageRef, fileOrString);
+        return await getDownloadURL(snapshot.ref);
+      }
+    }
+  } catch (err) {
+    console.error("Firebase Storage upload failed:", err);
+    throw err;
+  }
+
+  return '';
 }
 
