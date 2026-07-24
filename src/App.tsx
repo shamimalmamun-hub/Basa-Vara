@@ -1,8 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useApp } from './contexts/AppContext';
 import { useLanguage } from './contexts/LanguageContext';
 import { MotionConfig } from 'motion/react';
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'instant' as ScrollBehavior,
+    });
+  }, [pathname]);
+
+  return null;
+}
 
 // Pages
 import Navbar from './components/Navbar';
@@ -89,6 +104,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion={isMobile ? "always" : "user"}>
+      <ScrollToTop />
       <div className="min-h-screen bg-slate-50 dark:bg-[#0A0F1C] font-sans text-slate-800 dark:text-slate-200 transition-colors duration-500 relative selection:bg-indigo-500/30">
         {/* Modern Background Elements - Light Mode (Hidden on mobile to ensure fast performance and prevent scroll lagging) */}
         {!isMobile && (
