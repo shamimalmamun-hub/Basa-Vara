@@ -43,7 +43,7 @@ export default function WhatsAppWidget() {
   if (!isHomePage || !isVisible) return null;
 
   return (
-    <div id="whatsapp-widget-container" className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
+    <div id="whatsapp-widget-container" className="fixed bottom-4 right-4 sm:bottom-5 sm:right-5 z-50 flex flex-col items-end pointer-events-none">
       
       {/* Speech bubble above the WhatsApp logo */}
       <AnimatePresence>
@@ -54,16 +54,16 @@ export default function WhatsAppWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.9 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="mb-3 bg-emerald-500 dark:bg-emerald-600 text-white py-2.5 px-4 rounded-2xl shadow-xl border border-emerald-400/20 flex items-center gap-2 max-w-[280px] pointer-events-auto relative"
+            className="mb-2 bg-emerald-500 dark:bg-emerald-600 text-white py-2 px-3.5 rounded-xl shadow-xl border border-emerald-400/20 flex items-center gap-1.5 max-w-[260px] pointer-events-auto relative"
           >
             {/* Visual Speech Bubble Indicator Arrow */}
-            <div className="absolute bottom-[-6px] right-6 w-3 h-3 bg-emerald-500 dark:bg-emerald-600 rotate-45 border-r border-b border-emerald-400/20"></div>
+            <div className="absolute bottom-[-5px] right-5 w-2.5 h-2.5 bg-emerald-500 dark:bg-emerald-600 rotate-45 border-r border-b border-emerald-400/20"></div>
             
             <a 
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs md:text-sm font-semibold tracking-wide text-white hover:text-emerald-100 select-none mr-1"
+              className="text-xs font-semibold tracking-wide text-white hover:text-emerald-100 select-none mr-1"
             >
               {tooltipText}
             </a>
@@ -88,12 +88,12 @@ export default function WhatsAppWidget() {
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.92 }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        className="relative flex items-center justify-center w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg hover:shadow-emerald-500/20 shadow-emerald-500/10 cursor-pointer pointer-events-auto group overflow-hidden"
+        className="relative flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-md hover:shadow-emerald-500/20 shadow-emerald-500/10 cursor-pointer pointer-events-auto group overflow-hidden"
         title={tooltipText}
       >
         {/* Pulsing Backing Ring for eye-catching animation */}
@@ -104,7 +104,7 @@ export default function WhatsAppWidget() {
         
         {/* Custom High-Quality SVG WhatsApp Logo */}
         <svg 
-          className="w-8 h-8 relative z-10 transition-transform duration-350 group-hover:rotate-12" 
+          className="w-6 h-6 sm:w-6.5 sm:h-6.5 relative z-10 transition-transform duration-350 group-hover:rotate-12" 
           fill="currentColor" 
           viewBox="0 0 24 24" 
           xmlns="http://www.w3.org/2000/svg"
