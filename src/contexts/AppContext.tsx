@@ -205,7 +205,7 @@ const MOCK_TUTORS: Tutor[] = [
   { id: 't1', userId: 'u3', name: 'Md. Rakibul Islam', subjects: ['Mathematics', 'Physics'], education: 'B.Sc in EEE, BAU', availableDays: ['Sunday', 'Tuesday', 'Thursday'], availableTime: '5:00 PM - 8:00 PM', location: 'Mymensingh Sadar', salaryExpected: 4000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80', isVerified: true, contactNumber: '019XXXXXXXX' },
 ];
 
-const MOCK_ADMIN: User = { id: 'admin1', name: 'System Admin', email: 'hellothereshamim@gmail.com', password: '017941sk', role: 'admin', nidStatus: 'verified', isApproved: true };
+const MOCK_ADMIN: User = { id: 'admin1', name: 'System Admin', email: 'adminbasatutor@gmail.com', password: '017941sk', role: 'admin', nidStatus: 'verified', isApproved: true };
 
 const safeLocalStorage = {
   getItem: (key: string): string | null => {
@@ -791,13 +791,11 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
 
     let user = state.users.find(u => u.email.toLowerCase().trim() === cleanEmail);
 
-    const isAdminAccount = cleanEmail === 'hellothereshamim@gmail.com' || cleanEmail === 'admin@basavara.com';
+    const isAdminAccount = cleanEmail === 'adminbasatutor@gmail.com' || cleanEmail === 'hellothereshamim@gmail.com' || cleanEmail === 'admin@basavara.com';
 
     // Special handling for master admin account to guarantee login on mobile & PC
     if (isAdminAccount) {
-      const isValidAdminPass = (cleanEmail === 'hellothereshamim@gmail.com' && (cleanPassword === '017941sk' || cleanPassword === 'admin')) ||
-                               (cleanEmail === 'admin@basavara.com' && (cleanPassword === 'admin' || cleanPassword === '017941sk')) ||
-                               cleanPassword === '017941sk';
+      const isValidAdminPass = cleanPassword === '017941sk' || cleanPassword === 'admin';
       if (isValidAdminPass) {
         if (!user) {
           user = {
