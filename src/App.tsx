@@ -102,6 +102,9 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const location = useLocation();
+  const isAdminLoginPage = location.pathname === '/admin';
+
   return (
     <MotionConfig reducedMotion={isMobile ? "always" : "user"}>
       <ScrollToTop />
@@ -125,10 +128,12 @@ export default function App() {
         )}
 
         <div className="relative z-10 flex flex-col min-h-screen">
-          <div className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
-            <Navbar />
-            <ScrollingText />
-          </div>
+          {!isAdminLoginPage && (
+            <div className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
+              <Navbar />
+              <ScrollingText />
+            </div>
+          )}
           <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Home />} />
@@ -145,8 +150,8 @@ export default function App() {
               } />
             </Routes>
           </main>
-          <Footer />
-          <WhatsAppWidget />
+          {!isAdminLoginPage && <Footer />}
+          {!isAdminLoginPage && <WhatsAppWidget />}
         </div>
       </div>
     </MotionConfig>

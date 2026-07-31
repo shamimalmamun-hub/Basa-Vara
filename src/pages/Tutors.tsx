@@ -25,9 +25,7 @@ export default function Tutors() {
   }, [selectedLocation, filterSubj, filterGender]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
   }, [currentPage]);
 
   const itemsPerPage = 9;
@@ -113,9 +111,7 @@ export default function Tutors() {
             disabled={currentPage === 1}
             onClick={() => {
               setCurrentPage(prev => Math.max(prev - 1, 1));
-              window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-              document.documentElement.scrollTop = 0;
-              document.body.scrollTop = 0;
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
             }}
             className="px-5 py-2.5 text-sm font-semibold rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
           >
@@ -133,9 +129,7 @@ export default function Tutors() {
             disabled={currentPage === totalPages}
             onClick={() => {
               setCurrentPage(prev => Math.min(prev + 1, totalPages));
-              window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-              document.documentElement.scrollTop = 0;
-              document.body.scrollTop = 0;
+              window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
             }}
             className="px-5 py-2.5 text-sm font-semibold rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-slate-200 disabled:dark:bg-slate-800 disabled:text-slate-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/10"
           >

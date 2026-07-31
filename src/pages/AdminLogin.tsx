@@ -35,7 +35,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-8rem)] flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-100 dark:bg-[#0A0F1C] text-slate-900 dark:text-slate-100 transition-colors">
+    <div className="w-full min-h-screen flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8 relative overflow-hidden bg-slate-100 dark:bg-[#0A0F1C] text-slate-900 dark:text-slate-100 transition-colors">
       
       {/* Smooth unified gradient background overlays that blend naturally with header and footer */}
       <div className="absolute inset-0 bg-gradient-to-b from-indigo-50/80 via-slate-50 to-indigo-100/50 dark:from-slate-950 dark:via-indigo-950/80 dark:to-[#0A0F1C] pointer-events-none"></div>
