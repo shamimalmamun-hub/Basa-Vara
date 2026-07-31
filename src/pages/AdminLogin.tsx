@@ -14,9 +14,10 @@ export default function AdminLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedEmail = email.trim().toLowerCase();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
 
-    if (!trimmedEmail || !password) {
+    if (!cleanEmail || !cleanPassword) {
       toast.error('দয়া করে ইমেইল ও পাসওয়ার্ড প্রদান করুন');
       return;
     }
@@ -24,30 +25,26 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     setTimeout(() => {
-      if (trimmedEmail === 'hellothereshamim@gmail.com' && password === '017941sk') {
-        const success = login('hellothereshamim@gmail.com', '017941sk', true);
-        if (success) {
-          toast.success('এডমিন প্যানেলে স্বাগতম!');
-          navigate('/dashboard');
-        }
-      } else {
-        toast.error('ভুল এডমিন ইমেইল অথবা পাসওয়ার্ড!');
+      const success = login(cleanEmail, cleanPassword, true);
+      if (success) {
+        toast.success('এডমিন প্যানেলে স্বাগতম!');
+        navigate('/dashboard');
       }
       setIsLoading(false);
-    }, 400);
+    }, 300);
   };
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden bg-slate-50 dark:bg-slate-950">
       
-      {/* Decorative ambient lighting elements */}
-      <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-violet-500/10 dark:bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      {/* Decorative ambient lighting elements with mobile-visible floating animation */}
+      <div className="absolute -top-16 -left-16 sm:-top-24 sm:-left-24 w-72 h-72 sm:w-96 sm:h-96 bg-indigo-500/20 dark:bg-indigo-600/30 rounded-full blur-3xl pointer-events-none animate-float"></div>
+      <div className="absolute -bottom-16 -right-16 sm:-bottom-24 sm:-right-24 w-72 h-72 sm:w-96 sm:h-96 bg-violet-500/20 dark:bg-purple-600/30 rounded-full blur-3xl pointer-events-none animate-float" style={{ animationDelay: '3s' }}></div>
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md relative z-10 animate-fade-in">
         
         {/* Main Card Container */}
-        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl shadow-indigo-500/5 dark:shadow-none transition-all">
+        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-6 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl shadow-indigo-500/10 dark:shadow-none transition-all">
           
           {/* Header Badge & Title */}
           <div className="text-center mb-8">

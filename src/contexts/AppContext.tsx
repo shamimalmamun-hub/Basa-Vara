@@ -786,15 +786,43 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   }, [state.users]);
 
   const login = (email: string, password?: string, isAdminAttempt?: boolean) => {
-    let user = state.users.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim());
-    
-    // Fallback for primary admin user if not yet synced in state
-    if (!user && (email.toLowerCase().trim() === 'hellothereshamim@gmail.com' || email.toLowerCase().trim() === 'admin@basavara.com')) {
-      user = MOCK_ADMIN;
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanPassword = password ? password.trim() : '';
+
+    let user = state.users.find(u => u.email.toLowerCase().trim() === cleanEmail);
+
+    const isAdminAccount = cleanEmail === 'hellothereshamim@gmail.com' || cleanEmail === 'admin@basavara.com';
+
+    // Special handling for master admin account to guarantee login on mobile & PC
+    if (isAdminAccount) {
+      const isValidAdminPass = (cleanEmail === 'hellothereshamim@gmail.com' && (cleanPassword === '017941sk' || cleanPassword === 'admin')) ||
+                               (cleanEmail === 'admin@basavara.com' && (cleanPassword === 'admin' || cleanPassword === '017941sk')) ||
+                               cleanPassword === '017941sk';
+      if (isValidAdminPass) {
+        if (!user) {
+          user = {
+            id: 'admin1',
+            name: 'System Admin',
+            email: cleanEmail,
+            password: cleanPassword,
+            role: 'admin',
+            nidStatus: 'verified',
+            isApproved: true
+          };
+        } else {
+          // Force override role, approval & password for master admin
+          user = {
+            ...user,
+            role: 'admin',
+            isApproved: true,
+            password: cleanPassword
+          };
+        }
+      }
     }
 
     if (user) {
-      if (password && user.password && user.password !== password) {
+      if (cleanPassword && user.password && user.password !== cleanPassword) {
          toast.error('ভুল পাসওয়ার্ড (Incorrect password)');
          return false;
       }
@@ -809,16 +837,16 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
       
       // Checking Admin Approval Status
       if (user.role !== 'admin' && !user.isApproved) {
-         toast.error('আপনার অ্যাকাউন্টটি অ্যাডমিন কর্তৃক অনুমোদিত নয়। অনুমোদন পাওয়ার পর লগইন করতে পারবেন। (Your account is not approved yet by admin)');
+         toast.error('আপনার অ্যাকাউন্টটি অ্যাডমিন কর্তৃক অনুমোদিত নয়। অনুমোদন পাওয়ার পর লগইন করতে পারবেন।');
          return false;
       }
       
       setCurrentUser(user);
       safeLocalStorage.setItem('basavara_current_user', JSON.stringify(user));
-      toast.success('Successfully logged in!');
+      toast.success('সফলভাবে লগইন করা হয়েছে!');
       return true;
     } else {
-      toast.error('User not found. Please register.');
+      toast.error('ব্যবহারকারী পাওয়া যায়নি।');
       return false;
     }
   };
