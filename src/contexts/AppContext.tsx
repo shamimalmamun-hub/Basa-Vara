@@ -205,7 +205,7 @@ const MOCK_TUTORS: Tutor[] = [
   { id: 't1', userId: 'u3', name: 'Md. Rakibul Islam', subjects: ['Mathematics', 'Physics'], education: 'B.Sc in EEE, BAU', availableDays: ['Sunday', 'Tuesday', 'Thursday'], availableTime: '5:00 PM - 8:00 PM', location: 'Mymensingh Sadar', salaryExpected: 4000, image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80', isVerified: true, contactNumber: '019XXXXXXXX' },
 ];
 
-const MOCK_ADMIN: User = { id: 'admin1', name: 'System Admin', email: 'admin@basavara.com', password: 'admin', role: 'admin', nidStatus: 'verified', isApproved: true };
+const MOCK_ADMIN: User = { id: 'admin1', name: 'System Admin', email: 'hellothereshamim@gmail.com', password: '017941sk', role: 'admin', nidStatus: 'verified', isApproved: true };
 
 const safeLocalStorage = {
   getItem: (key: string): string | null => {
@@ -786,7 +786,13 @@ export const AppProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   }, [state.users]);
 
   const login = (email: string, password?: string, isAdminAttempt?: boolean) => {
-    const user = state.users.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim());
+    let user = state.users.find(u => u.email.toLowerCase().trim() === email.toLowerCase().trim());
+    
+    // Fallback for primary admin user if not yet synced in state
+    if (!user && (email.toLowerCase().trim() === 'hellothereshamim@gmail.com' || email.toLowerCase().trim() === 'admin@basavara.com')) {
+      user = MOCK_ADMIN;
+    }
+
     if (user) {
       if (password && user.password && user.password !== password) {
          toast.error('ভুল পাসওয়ার্ড (Incorrect password)');

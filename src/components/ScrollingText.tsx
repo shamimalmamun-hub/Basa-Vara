@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Megaphone } from 'lucide-react';
@@ -6,8 +7,12 @@ import { Megaphone } from 'lucide-react';
 export default function ScrollingText() {
   const { isScrollingTextEnabled, scrollingTextBn, scrollingTextEn } = useApp();
   const { language } = useLanguage();
+  const location = useLocation();
 
-  if (!isScrollingTextEnabled) return null;
+  // Hide announcement bar on Admin Login page and Dashboard page
+  if (!isScrollingTextEnabled || location.pathname === '/admin' || location.pathname.startsWith('/dashboard')) {
+    return null;
+  }
 
   const text = language === 'bn' ? scrollingTextBn : scrollingTextEn;
 

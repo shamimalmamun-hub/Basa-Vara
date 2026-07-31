@@ -1,56 +1,159 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
+import { ShieldCheck, Lock, Mail, Eye, EyeOff, KeyRound, ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AdminLogin() {
   const { login } = useApp();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'admin@basavara.com' && password === 'admin') {
-      const success = login('admin@basavara.com', password, true);
-      if (success) {
-        navigate('/dashboard');
-      }
-    } else {
-      alert('ভুল এডমিন ক্রেডেনশিয়াল');
+    const trimmedEmail = email.trim().toLowerCase();
+
+    if (!trimmedEmail || !password) {
+      toast.error('দয়া করে ইমেইল ও পাসওয়ার্ড প্রদান করুন');
+      return;
     }
+
+    setIsLoading(true);
+
+    setTimeout(() => {
+      if (trimmedEmail === 'hellothereshamim@gmail.com' && password === '017941sk') {
+        const success = login('hellothereshamim@gmail.com', '017941sk', true);
+        if (success) {
+          toast.success('এডমিন প্যানেলে স্বাগতম!');
+          navigate('/dashboard');
+        }
+      } else {
+        toast.error('ভুল এডমিন ইমেইল অথবা পাসওয়ার্ড!');
+      }
+      setIsLoading(false);
+    }, 400);
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 w-full max-w-md p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl">
-        <h2 className="text-2xl font-bold mb-6 text-center text-slate-900 dark:text-white">এডমিন লগইন</h2>
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">এডমিন ইমেইল</label>
-            <input 
-              type="email" 
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-              placeholder="admin@basavara.com"
-            />
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden bg-slate-50 dark:bg-slate-950">
+      
+      {/* Decorative ambient lighting elements */}
+      <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-violet-500/10 dark:bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="w-full max-w-md relative z-10">
+        
+        {/* Main Card Container */}
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-8 sm:p-10 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-2xl shadow-indigo-500/5 dark:shadow-none transition-all">
+          
+          {/* Header Badge & Title */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center p-3.5 bg-gradient-to-tr from-indigo-600 to-violet-600 text-white rounded-2xl shadow-lg shadow-indigo-500/25 mb-4 relative group">
+              <ShieldCheck className="w-8 h-8" />
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              এডমিন সিকিউর পোর্টাল
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">
+              বাসাভাড়া ও টিউটর প্ল্যাটফর্ম অ্যাডমিন কন্ট্রোল প্যানেল
+            </p>
+
+            {/* Security Notice Badge */}
+            <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/50">
+              <Lock className="w-3.5 h-3.5 shrink-0" />
+              <span>শুধুমাত্র অথরাইজড সিস্টেম এডমিনদের জন্য</span>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">পাসওয়ার্ড</label>
-            <input 
-              type="password" 
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-              placeholder="••••••••"
-            />
+
+          {/* Login Form */}
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                এডমিন ইমেইল এড্রেস
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <input 
+                  type="email" 
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder:text-slate-400 text-sm" 
+                  placeholder="ইমেইল এড্রেস প্রদান করুন"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                এডমিন পাসওয়ার্ড
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <KeyRound className="w-5 h-5" />
+                </div>
+                <input 
+                  type={showPassword ? 'text' : 'password'} 
+                  required
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all placeholder:text-slate-400 text-sm" 
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 active:scale-[0.98] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 text-sm disabled:opacity-70"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <ShieldCheck className="w-5 h-5" />
+                  <span>ড্যাশবোর্ডে প্রবেশ করুন</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Navigation Link */}
+          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center text-xs">
+            <Link 
+              to="/" 
+              className="text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 font-semibold transition-colors flex items-center gap-1.5"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>হোম পেইজে ফিরে যান</span>
+            </Link>
           </div>
-          <button type="submit" className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors">
-            ড্যাশবোর্ডে প্রবেশ করুন
-          </button>
-        </form>
+
+        </div>
+
+        {/* Footer Credit Tag */}
+        <p className="text-center text-slate-400 dark:text-slate-600 text-[11px] mt-6 font-medium">
+          © {new Date().getFullYear()} Basavara Admin System • All rights reserved.
+        </p>
+
       </div>
     </div>
   );
