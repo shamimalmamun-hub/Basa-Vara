@@ -279,18 +279,7 @@ export default function Home() {
           animate="visible"
           className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10 w-full"
         >
-          {/* Header Badge */}
-          {!selectedLocation && !isMobile && (
-            <motion.div 
-              variants={itemVariants}
-              className="inline-flex items-center space-x-2 bg-indigo-500/10 border border-indigo-400/20 backdrop-blur px-3 py-1.5 rounded-full mb-6 md:mb-8"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
-              <span className="text-indigo-200 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
-                {t('heroBadgeText')}
-              </span>
-            </motion.div>
-          )}
+
 
           <motion.h1 
             variants={itemVariants}

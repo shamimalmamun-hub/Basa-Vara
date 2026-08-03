@@ -68,3 +68,15 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
 }
+
+/* Prevent mobile browser auto-zoom on input focus (Safari/Chrome auto-zooms if font-size < 16px) */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Prevent accidental double-tap zoom on mobile buttons, links & controls */
+a, button, input, select, textarea, [role="button"] {
+  touch-action: manipulation;
+}

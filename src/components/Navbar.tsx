@@ -19,21 +19,21 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-2">
           {/* Brand Logo & Name */}
-          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2 shrink-0">
-            <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-8 h-8 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
-            <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-slate-900 dark:text-white truncate">
+          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+            <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
+            <span className="font-bold text-xs xs:text-sm sm:text-base md:text-xl tracking-tight text-slate-900 dark:text-white truncate max-w-[110px] xs:max-w-[140px] sm:max-w-none">
               {t('brandName') !== 'brandName' ? t('brandName') : (
                 language === 'bn' ? (
-                  <>বাসা ভাড়া <span className="text-indigo-600 dark:text-indigo-400">ও হোম টিউটর</span></>
+                  <>বাসা ভাড়া <span className="text-indigo-600 dark:text-indigo-400">ও টিউটর</span></>
                 ) : (
-                  <>Rent & <span className="text-indigo-600 dark:text-indigo-400">Home Tutor</span></>
+                  <>Rent & <span className="text-indigo-600 dark:text-indigo-400">Tutor</span></>
                 )
               )}
             </span>
           </Link>
 
-          {/* Desktop & Tablet Inline Search Bar directly in Navbar */}
-          <div className="hidden sm:flex flex-1 justify-center max-w-xs md:max-w-md mx-2">
+          {/* Inline Search Bar - visible on all screens in the top header row */}
+          <div className="flex-1 max-w-[180px] xs:max-w-[220px] sm:max-w-xs md:max-w-md mx-1 sm:mx-3">
             <GlobalSearch />
           </div>
 
@@ -73,16 +73,11 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu toggle button */}
-          <div className="sm:hidden flex items-center gap-1.5 shrink-0">
+          <div className="md:hidden flex items-center gap-1.5 shrink-0">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors">
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-        </div>
-
-        {/* Small Screen / Mobile Inline Search Bar always accessible directly under header if on mobile or in menu */}
-        <div className="sm:hidden pb-3 pt-1">
-          <GlobalSearch onSelectResult={() => setIsMenuOpen(false)} />
         </div>
       </div>
 
