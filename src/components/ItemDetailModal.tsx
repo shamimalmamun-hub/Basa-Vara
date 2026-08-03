@@ -22,10 +22,26 @@ export default function ItemDetailModal({ property, tutor, onClose }: ItemDetail
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
   useEffect(() => {
-    const originalStyle = document.body.style.overflow;
+    const scrollY = window.scrollY;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalTop = document.body.style.top;
+    const originalWidth = document.body.style.width;
+
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
     return () => {
-      document.body.style.overflow = originalStyle;
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.top = originalTop;
+      document.body.style.width = originalWidth;
+      window.scrollTo(0, scrollY);
     };
   }, []);
 
@@ -98,8 +114,13 @@ export default function ItemDetailModal({ property, tutor, onClose }: ItemDetail
   const modalContent = (
     <AnimatePresence>
       <div 
-        className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md overflow-hidden"
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md overflow-hidden overscroll-contain touch-none"
         onClick={onClose}
+        onTouchMove={(e) => {
+          if (e.target === e.currentTarget) {
+            e.preventDefault();
+          }
+        }}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -107,7 +128,7 @@ export default function ItemDetailModal({ property, tutor, onClose }: ItemDetail
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] sm:max-h-[80vh] flex flex-col overflow-hidden relative shrink-0"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] sm:max-h-[80vh] flex flex-col overflow-hidden relative shrink-0 overscroll-contain touch-auto"
         >
           {/* Header Bar */}
           <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/90 dark:bg-slate-900/90 shrink-0">
@@ -129,7 +150,7 @@ export default function ItemDetailModal({ property, tutor, onClose }: ItemDetail
           </div>
 
           {/* Modal Scrollable Body - contained within modal card only */}
-          <div className="p-4 overflow-y-auto flex-1 min-h-0 space-y-3.5 text-slate-800 dark:text-slate-200">
+          <div className="p-4 overflow-y-auto flex-1 min-h-0 space-y-3.5 text-slate-800 dark:text-slate-200 overscroll-contain">
             {/* PROPERTY VIEW */}
             {property && (
               <>
