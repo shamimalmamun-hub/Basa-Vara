@@ -21,20 +21,20 @@ export default function Navbar() {
           {/* Brand Logo & Name */}
           <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-1.5 xs:space-x-2 shrink min-w-0">
             <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
-            <span className="font-extrabold text-xl xs:text-2xl sm:text-2xl md:text-xl tracking-tight text-slate-900 dark:text-white truncate">
+            <span className="font-extrabold text-xl xs:text-2xl sm:text-2xl md:text-xl tracking-tight truncate bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 bg-clip-text text-transparent [filter:drop-shadow(0_0_8px_rgba(249,115,22,0.35))_drop-shadow(0_0_12px_rgba(236,72,153,0.3))]">
               {t('brandName') !== 'brandName' ? t('brandName') : (
                 language === 'bn' ? (
-                  <>বাসা ভাড়া <span className="text-indigo-600 dark:text-indigo-400">ও হোম টিউটর</span></>
+                  <>বাসা ভাড়া ও হোম টিউটর</>
                 ) : (
-                  <>Rent & <span className="text-indigo-600 dark:text-indigo-400">Home Tutor</span></>
+                  <>Rent & Home Tutor</>
                 )
               )}
             </span>
           </Link>
 
           {/* Desktop Search Bar Wrapper */}
-          <div className="hidden md:flex flex-1 max-w-xs md:max-w-md lg:max-w-lg mx-3">
-            <GlobalSearch mode="desktop" />
+          <div className="hidden md:flex flex-1 max-w-md lg:max-w-xl xl:max-w-2xl mx-3 lg:mx-6">
+            <GlobalSearch mode="desktop" className="w-full" />
           </div>
 
           {/* Desktop Nav Actions */}

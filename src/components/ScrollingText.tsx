@@ -31,10 +31,22 @@ export default function ScrollingText() {
           {/* Scrolling text area */}
           <div 
             className="flex-1 overflow-hidden mx-2 sm:mx-4 relative h-full flex items-center select-none"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onPointerEnter={(e) => {
+              // Only pause if using a precise desktop mouse cursor, NOT touch
+              if (e.pointerType === 'mouse' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+                setIsHovered(true);
+              }
+            }}
+            onPointerLeave={(e) => {
+              if (e.pointerType === 'mouse') {
+                setIsHovered(false);
+              }
+            }}
+            onTouchStart={() => setIsHovered(false)}
+            onTouchEnd={() => setIsHovered(false)}
+            onClick={() => setIsHovered(false)}
           >
-            <div className="w-full relative whitespace-nowrap overflow-hidden">
+            <div className="w-full relative whitespace-nowrap overflow-hidden pointer-events-none sm:pointer-events-auto">
               <div 
                 className="animate-marquee inline-block text-slate-800 dark:text-slate-100 pl-[100%] font-medium"
                 style={{

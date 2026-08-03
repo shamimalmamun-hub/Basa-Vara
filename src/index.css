@@ -37,7 +37,7 @@
   transform: translateZ(0);
 }
 
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .animate-marquee:hover {
     animation-play-state: paused;
   }

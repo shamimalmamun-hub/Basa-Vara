@@ -196,7 +196,7 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
   const showDesktopDropdown = isFocused && searchQuery.trim().length > 0 && !shouldRenderMobile;
 
   return (
-    <div ref={containerRef} className={`relative ${className}`}>
+    <div ref={containerRef} className={`relative w-full ${className}`}>
       {/* TRIGGER BUTTON (Mobile) vs INLINE INPUT (Desktop) */}
       {shouldRenderMobile ? (
         <button
