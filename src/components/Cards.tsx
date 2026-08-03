@@ -230,13 +230,15 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
   return (
     <div className="flex flex-col bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 rounded-3xl p-3 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300 relative group overflow-hidden h-full">
       <div className="absolute inset-0 bg-gradient-to-tr from-white/40 via-transparent to-white/10 dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+      {/* Top Right Badges: Verified */}
       {tutor.isVerified && (
-        <div className="absolute top-0 right-0 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-[10px] font-bold px-3 py-1.5 rounded-bl-xl uppercase tracking-wider">
+        <div className="absolute top-0 right-0 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-400 text-[10px] font-extrabold px-2.5 py-1 rounded-bl-xl border-l border-b border-indigo-200/50 dark:border-indigo-800 uppercase tracking-wider shadow-sm z-10">
           {t('tagVerified')}
         </div>
       )}
-      <div className="flex items-center space-x-3 mb-1 shrink-0 h-[50px]">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-indigo-100 dark:border-indigo-900/50 flex-shrink-0">
+
+      <div className="flex items-start space-x-3 mb-2 shrink-0 pt-1 pr-14">
+        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-indigo-100 dark:border-indigo-900/50 flex-shrink-0 mt-0.5">
           <img 
             src={tutor.image || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80'} 
             alt={tutor.name} 
@@ -246,17 +248,10 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
           />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-1">
-            <h3 className="font-semibold text-base text-slate-900 dark:text-white truncate">{tutor.name}</h3>
-            <Link 
-              to={`/tutors?id=${tutor.id}`}
-              className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/50 px-2 py-0.5 rounded-lg shrink-0 transition-colors"
-            >
-              {language === 'bn' ? 'বিস্তারিত 🔍' : 'Details 🔍'}
-            </Link>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-start">
-            <BookOpen className="w-3 h-3 mr-1 text-slate-400 shrink-0 mt-0.5" /> <span>{tutor.education}</span>
+          <h3 className="font-semibold text-base text-slate-900 dark:text-white leading-snug">{tutor.name}</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 flex items-start mt-0.5">
+            <BookOpen className="w-3.5 h-3.5 mr-1 text-slate-400 shrink-0 mt-0.5" />
+            <span className="leading-snug">{tutor.education}</span>
           </p>
         </div>
       </div>
@@ -280,12 +275,24 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
           <Clock className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
           <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{tutor.availableTime}</span>
         </div>
-        {tutor.experience && (
-        <div className="flex items-start text-sm">
-          <Briefcase className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
-          <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{tutor.experience}</span>
+
+        {/* Experience row with Details button aligned beside it */}
+        <div className="flex items-center justify-between text-sm">
+          {tutor.experience ? (
+            <div className="flex items-start min-w-0 pr-2">
+              <Briefcase className="w-4 h-4 text-indigo-500 mr-2 shrink-0 mt-0.5" />
+              <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{tutor.experience}</span>
+            </div>
+          ) : (
+            <div />
+          )}
+          <Link 
+            to={`/tutors?id=${tutor.id}`}
+            className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200/80 dark:border-emerald-800/80 px-2.5 py-0.5 rounded-lg shrink-0 transition-all shadow-sm hover:scale-105 uppercase tracking-wider ml-auto"
+          >
+            {language === 'bn' ? 'বিস্তারিত 🔍' : 'Details 🔍'}
+          </Link>
         </div>
-        )}
       </div>
 
       <div className="mt-1 pt-1 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-1 flex-grow">
