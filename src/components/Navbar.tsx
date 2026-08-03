@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApp } from '../contexts/AppContext';
-import { Home, LogOut, Menu, X, Languages, Sun, Moon } from 'lucide-react';
+import { Home, LogOut, Menu, X, Languages, Sun, Moon, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import GlobalSearch from './GlobalSearch';
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
@@ -12,15 +13,16 @@ export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [isLangOpen, setIsLangOpen] = React.useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = React.useState(false);
 
   return (
-    <nav className="w-full backdrop-blur-xl bg-white/70 dark:bg-[#0A0F1C]/70 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-indigo-900/10 transition-colors duration-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2.5">
-            <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-8 h-8 object-contain rounded-lg" referrerPolicy="no-referrer" />
-            <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 dark:text-white">
+    <nav className="w-full backdrop-blur-xl bg-white/80 dark:bg-[#0A0F1C]/80 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-indigo-900/10 transition-colors duration-500">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16 gap-2">
+          {/* Brand Logo & Name */}
+          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2 shrink-0">
+            <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-8 h-8 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
+            <span className="font-bold text-base sm:text-lg md:text-xl tracking-tight text-slate-900 dark:text-white truncate">
               {t('brandName') !== 'brandName' ? t('brandName') : (
                 language === 'bn' ? (
                   <>বাসা ভাড়া <span className="text-indigo-600 dark:text-indigo-400">ও হোম টিউটর</span></>
@@ -31,17 +33,22 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Desktop Central Search Bar */}
+          <div className="hidden md:flex flex-1 justify-center max-w-md">
+            <GlobalSearch inlineNav={true} />
+          </div>
+
+          {/* Desktop Nav Actions */}
+          <div className="hidden md:flex items-center space-x-6 shrink-0">
             <Link 
-              to="/" 
+              to="/rentals" 
               onClick={() => setSelectedLocation(null)}
               className="text-sm font-semibold text-slate-750 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               {t('navProperties')}
             </Link>
             <Link 
-              to="/" 
+              to="/tutors" 
               onClick={() => setSelectedLocation(null)}
               className="text-sm font-semibold text-slate-750 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
@@ -51,10 +58,10 @@ export default function Navbar() {
             <div className="flex items-center space-x-4 pl-4 border-l border-slate-200 dark:border-slate-700">
               {currentUser ? (
                 <div className="flex items-center space-x-4">
-                  <Link to="/dashboard" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                  <Link to="/dashboard" className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
                     {t('navDashboard')}
                   </Link>
-                  <button onClick={() => { logout(); navigate('/'); }} className="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors">
+                  <button onClick={() => { logout(); navigate('/'); }} className="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors cursor-pointer" title={t('navLogout')}>
                     <LogOut className="w-5 h-5" />
                   </button>
                 </div>
@@ -66,14 +73,27 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile menu controls */}
-          <div className="md:hidden flex items-center gap-1.5">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-600 dark:text-slate-400">
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {/* Mobile menu & quick search trigger */}
+          <div className="md:hidden flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className="p-2 text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors flex items-center gap-1"
+              title="সার্চ করুন"
+            >
+              <Search className="w-5 h-5 text-indigo-500" />
+            </button>
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors">
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Global Search Modal overlay (triggered via mobile search icon or shortcut) */}
+      <GlobalSearch 
+        isOpen={isSearchModalOpen} 
+        onClose={() => setIsSearchModalOpen(false)} 
+      />
 
       {/* Mobile Nav Menu */}
       <AnimatePresence>
@@ -83,10 +103,22 @@ export default function Navbar() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-5 space-y-2.5 overflow-hidden"
+            className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-3 pb-5 space-y-2.5 overflow-hidden shadow-xl"
           >
+            {/* Quick search button in mobile menu */}
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                setIsSearchModalOpen(true);
+              }}
+              className="w-full text-left px-4 py-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold text-sm flex items-center gap-2 mb-2"
+            >
+              <Search className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>{language === 'bn' ? 'ওয়েবসাইটের যেকোনো কিছু খুঁজুন...' : 'Search website content...'}</span>
+            </button>
+
             <Link 
-              to="/" 
+              to="/rentals" 
               onClick={() => {
                 setSelectedLocation(null);
                 setIsMenuOpen(false);
@@ -96,7 +128,7 @@ export default function Navbar() {
               {t('navProperties')}
             </Link>
             <Link 
-              to="/" 
+              to="/tutors" 
               onClick={() => {
                 setSelectedLocation(null);
                 setIsMenuOpen(false);
@@ -125,3 +157,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
