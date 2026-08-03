@@ -39,19 +39,31 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
     return () => window.removeEventListener('resize', checkMobile);
   }, [isMobileModalOpen, mode]);
 
-  // Focus mobile input when mobile modal opens and lock background body scroll
+  // Focus mobile input when mobile modal opens and strictly lock background body scroll
   useEffect(() => {
     if (isMobileModalOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
+
       setTimeout(() => {
         mobileInputRef.current?.focus();
       }, 100);
-    } else {
-      document.body.style.overflow = '';
+
+      return () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [isMobileModalOpen]);
 
   // Close dropdown when clicking outside on desktop
@@ -346,7 +358,10 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
               onClick={() => setIsMobileModalOpen(false)}
-              className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-start p-3 pt-12 sm:pt-16"
+              onTouchMove={(e) => {
+                if (e.target === e.currentTarget) e.preventDefault();
+              }}
+              className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-start p-3 pt-6 sm:pt-12 overscroll-none touch-none h-[100dvh] w-full overflow-hidden"
             >
               <motion.div
                 key="mobile-search-modal-card"
@@ -355,7 +370,7 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
                 exit={{ scale: 0.95, y: -10 }}
                 transition={{ duration: 0.15 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col w-full max-w-xs xs:max-w-sm mx-auto"
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col w-full max-w-xs xs:max-w-sm mx-auto max-h-[80dvh]"
               >
                 {/* Modal Top Search Input */}
                 <div className="p-2 sm:p-2.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-900/50">
@@ -392,7 +407,7 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
                 </div>
 
                 {/* Modal Body / Results */}
-                <div className="p-2.5 sm:p-3 overflow-y-auto max-h-[60vh] space-y-2">
+                <div className="p-2.5 sm:p-3 overflow-y-auto max-h-[55dvh] overscroll-contain space-y-2">
                   {!query ? (
                     <div className="py-2 px-1 text-center space-y-2">
                       <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
