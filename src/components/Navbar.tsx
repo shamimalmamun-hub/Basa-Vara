@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApp } from '../contexts/AppContext';
-import { Home, LogOut, Menu, X, Languages, Sun, Moon, Search } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import GlobalSearch from './GlobalSearch';
 
@@ -13,10 +13,9 @@ export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = React.useState(false);
 
   return (
-    <nav className="w-full backdrop-blur-xl bg-white/80 dark:bg-[#0A0F1C]/80 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-indigo-900/10 transition-colors duration-500">
+    <nav className="relative z-50 w-full backdrop-blur-xl bg-white/80 dark:bg-[#0A0F1C]/80 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm dark:shadow-indigo-900/10 transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-2">
           {/* Brand Logo & Name */}
@@ -33,9 +32,9 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop Central Search Bar */}
-          <div className="hidden md:flex flex-1 justify-center max-w-md">
-            <GlobalSearch inlineNav={true} />
+          {/* Desktop & Tablet Inline Search Bar directly in Navbar */}
+          <div className="hidden sm:flex flex-1 justify-center max-w-xs md:max-w-md mx-2">
+            <GlobalSearch />
           </div>
 
           {/* Desktop Nav Actions */}
@@ -73,27 +72,19 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile menu & quick search trigger */}
-          <div className="md:hidden flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={() => setIsSearchModalOpen(true)}
-              className="p-2 text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors flex items-center gap-1"
-              title="সার্চ করুন"
-            >
-              <Search className="w-5 h-5 text-indigo-500" />
-            </button>
+          {/* Mobile menu toggle button */}
+          <div className="sm:hidden flex items-center gap-1.5 shrink-0">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors">
               {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Global Search Modal overlay (triggered via mobile search icon or shortcut) */}
-      <GlobalSearch 
-        isOpen={isSearchModalOpen} 
-        onClose={() => setIsSearchModalOpen(false)} 
-      />
+        {/* Small Screen / Mobile Inline Search Bar always accessible directly under header if on mobile or in menu */}
+        <div className="sm:hidden pb-3 pt-1">
+          <GlobalSearch onSelectResult={() => setIsMenuOpen(false)} />
+        </div>
+      </div>
 
       {/* Mobile Nav Menu */}
       <AnimatePresence>
@@ -102,21 +93,9 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-3 pb-5 space-y-2.5 overflow-hidden shadow-xl"
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-5 space-y-2.5 overflow-hidden shadow-xl"
           >
-            {/* Quick search button in mobile menu */}
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                setIsSearchModalOpen(true);
-              }}
-              className="w-full text-left px-4 py-3 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-bold text-sm flex items-center gap-2 mb-2"
-            >
-              <Search className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span>{language === 'bn' ? 'ওয়েবসাইটের যেকোনো কিছু খুঁজুন...' : 'Search website content...'}</span>
-            </button>
-
             <Link 
               to="/rentals" 
               onClick={() => {
@@ -157,4 +136,3 @@ export default function Navbar() {
     </nav>
   );
 }
-
