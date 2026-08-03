@@ -3,15 +3,16 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { Search, X, Home, GraduationCap, MapPin, ChevronRight, Compass, ArrowLeft, SlidersHorizontal } from 'lucide-react';
+import { Search, X, Home, GraduationCap, MapPin, ChevronRight, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface NavbarSearchProps {
   className?: string;
   onSelectResult?: () => void;
+  mode?: 'auto' | 'mobile' | 'desktop';
 }
 
-export default function GlobalSearch({ className = '', onSelectResult }: NavbarSearchProps) {
+export default function GlobalSearch({ className = '', onSelectResult, mode = 'auto' }: NavbarSearchProps) {
   const { properties, tutors, setSelectedLocation } = useApp();
   const { language } = useLanguage();
   const navigate = useNavigate();
@@ -27,16 +28,16 @@ export default function GlobalSearch({ className = '', onSelectResult }: NavbarS
 
   useEffect(() => {
     const checkMobile = () => {
-      const mobile = window.innerWidth < 640;
+      const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (!mobile && isMobileModalOpen) {
+      if (!mobile && isMobileModalOpen && mode === 'auto') {
         setIsMobileModalOpen(false);
       }
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
-  }, [isMobileModalOpen]);
+  }, [isMobileModalOpen, mode]);
 
   // Focus mobile input when mobile modal opens
   useEffect(() => {
@@ -139,19 +140,20 @@ export default function GlobalSearch({ className = '', onSelectResult }: NavbarS
     if (onSelectResult) onSelectResult();
   };
 
-  const showDesktopDropdown = isFocused && searchQuery.trim().length > 0 && !isMobile;
+  const shouldRenderMobile = mode === 'mobile' || (mode === 'auto' && isMobile);
+  const showDesktopDropdown = isFocused && searchQuery.trim().length > 0 && !shouldRenderMobile;
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
-      {/* MOBILE TRIGGER BUTTON: Compact icon button on mobile screen */}
-      {isMobile ? (
+      {/* TRIGGER BUTTON (Mobile) vs INLINE INPUT (Desktop) */}
+      {shouldRenderMobile ? (
         <button
           type="button"
           onClick={() => setIsMobileModalOpen(true)}
-          className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-all flex items-center justify-center shrink-0 shadow-sm active:scale-95"
+          className="p-2 text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors flex items-center justify-center shrink-0 active:scale-95 cursor-pointer"
           aria-label="Search"
         >
-          <Search className="w-4 h-4" />
+          <Search className="w-5 h-5" />
         </button>
       ) : (
         /* DESKTOP INLINE INPUT BAR */
@@ -281,179 +283,183 @@ export default function GlobalSearch({ className = '', onSelectResult }: NavbarS
         )}
       </AnimatePresence>
 
-      {/* MOBILE POP-UP SEARCH MODAL */}
-      <AnimatePresence>
-        {isMobileModalOpen && createPortal(
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={() => setIsMobileModalOpen(false)}
-            className="fixed inset-0 z-[9999] bg-slate-950/60 backdrop-blur-sm flex flex-col items-center justify-start p-3 pt-12 sm:pt-16"
-          >
+      {/* MOBILE POP-UP SEARCH MODAL VIA PORTAL */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isMobileModalOpen && (
             <motion.div
-              initial={{ scale: 0.95, y: -8 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: -8 }}
+              key="mobile-search-modal-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col w-full max-w-sm mx-auto"
+              onClick={() => setIsMobileModalOpen(false)}
+              className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-md flex flex-col items-center justify-start p-3 pt-12 sm:pt-16"
             >
-              {/* Modal Top Search Input */}
-              <div className="p-2.5 sm:p-3 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-2 bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="flex items-center flex-1 px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-indigo-500/80 ring-2 ring-indigo-500/20 shadow-sm">
-                  <Search className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0 mr-2" />
-                  <input
-                    ref={mobileInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder={language === 'bn' ? 'বাসা, টিউটর বা এলাকা...' : 'Search rentals or tutors...'}
-                    className="w-full bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 text-xs font-semibold focus:outline-none"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSearchQuery('');
-                        mobileInputRef.current?.focus();
-                      }}
-                      className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+              <motion.div
+                key="mobile-search-modal-card"
+                initial={{ scale: 0.95, y: -10 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.95, y: -10 }}
+                transition={{ duration: 0.15 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden flex flex-col w-full max-w-xs xs:max-w-sm mx-auto"
+              >
+                {/* Modal Top Search Input */}
+                <div className="p-2 sm:p-2.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center gap-1.5 bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex items-center flex-1 px-2 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-indigo-500/80 ring-2 ring-indigo-500/20 shadow-sm min-w-0">
+                    <Search className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0 mr-1.5" />
+                    <input
+                      ref={mobileInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder={language === 'bn' ? 'বাসা, টিউটর বা এলাকা খুঁজুন...' : 'Search rentals or tutors...'}
+                      className="w-full bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 text-[11px] font-medium focus:outline-none truncate"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchQuery('');
+                          mobileInputRef.current?.focus();
+                        }}
+                        className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileModalOpen(false)}
+                    className="px-2 py-1.5 text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-200/70 dark:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer whitespace-nowrap"
+                  >
+                    {language === 'bn' ? 'বাতিল' : 'Cancel'}
+                  </button>
+                </div>
+
+                {/* Modal Body / Results */}
+                <div className="p-2.5 sm:p-3 overflow-y-auto max-h-[60vh] space-y-2">
+                  {!query ? (
+                    <div className="py-2 px-1 text-center space-y-2">
+                      <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        {language === 'bn' ? 'কী খুঁজতে চান?' : 'Quick Search'}
+                      </p>
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() => handlePageClick('/rentals')}
+                          className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Home className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>{language === 'bn' ? 'বাসা ভাড়া' : 'Rentals'}</span>
+                        </button>
+                        <button
+                          onClick={() => handlePageClick('/tutors')}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>{language === 'bn' ? 'হোম টিউটর' : 'Tutors'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : totalResults === 0 ? (
+                    <div className="py-4 text-center text-xs text-slate-400 font-medium">
+                      {language === 'bn' ? 'কোনো ফলাফল পাওয়া যায়নি' : 'No matching results found'}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {/* Rentals */}
+                      {matchingProperties.length > 0 && (
+                        <div>
+                          <div className="px-1 py-0.5 text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1 mb-1">
+                            <Home className="w-3 h-3" />
+                            <span>{language === 'bn' ? 'বাসা ভাড়া' : 'Rentals'}</span>
+                          </div>
+                          <div className="space-y-1">
+                            {matchingProperties.slice(0, 2).map(property => (
+                              <div
+                                key={property.id}
+                                onClick={() => handlePropertyClick(property.location)}
+                                className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                    {property.title}
+                                  </p>
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+                                    <MapPin className="w-2.5 h-2.5 text-amber-500 shrink-0" />
+                                    <span>{property.location}</span>
+                                    <span className="text-indigo-600 dark:text-indigo-400 font-bold ml-1">
+                                      ৳{property.price?.toLocaleString('en-IN')}
+                                    </span>
+                                  </p>
+                                </div>
+                                <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Tutors */}
+                      {matchingTutors.length > 0 && (
+                        <div>
+                          <div className="px-1 py-0.5 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1 mb-1">
+                            <GraduationCap className="w-3 h-3" />
+                            <span>{language === 'bn' ? 'হোম টিউটর' : 'Tutors'}</span>
+                          </div>
+                          <div className="space-y-1">
+                            {matchingTutors.slice(0, 2).map(tutor => (
+                              <div
+                                key={tutor.id}
+                                onClick={() => handleTutorClick(tutor.location)}
+                                className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                    {tutor.name}
+                                  </p>
+                                  <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+                                    {(tutor.subjects || []).join(', ')} • {tutor.location}
+                                  </p>
+                                </div>
+                                <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Static Pages */}
+                      {matchingPages.length > 0 && (
+                        <div className="space-y-1">
+                          {matchingPages.slice(0, 1).map(page => (
+                            <div
+                              key={page.id}
+                              onClick={() => handlePageClick(page.path)}
+                              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Compass className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                                <span className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                  {page.title}
+                                </span>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileModalOpen(false)}
-                  className="px-2.5 py-1.5 text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-200/70 dark:bg-slate-800 rounded-xl transition-colors shrink-0"
-                >
-                  {language === 'bn' ? 'বাতিল' : 'Cancel'}
-                </button>
-              </div>
-
-              {/* Modal Body / Results */}
-              <div className="p-2.5 sm:p-3 overflow-y-auto flex-1 space-y-2">
-                {!query ? (
-                  <div className="py-2 px-1 text-center space-y-2">
-                    <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                      {language === 'bn' ? 'কী খুঁজতে চান?' : 'Quick Search'}
-                    </p>
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handlePageClick('/rentals')}
-                        className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1.5"
-                      >
-                        <Home className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>{language === 'bn' ? 'বাসা ভাড়া' : 'Rentals'}</span>
-                      </button>
-                      <button
-                        onClick={() => handlePageClick('/tutors')}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-100 transition-colors flex items-center gap-1.5"
-                      >
-                        <GraduationCap className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>{language === 'bn' ? 'হোম টিউটর' : 'Tutors'}</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : totalResults === 0 ? (
-                  <div className="py-4 text-center text-xs text-slate-400 font-medium">
-                    {language === 'bn' ? 'কোনো ফলাফল পাওয়া যায়নি' : 'No matching results found'}
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {/* Rentals */}
-                    {matchingProperties.length > 0 && (
-                      <div>
-                        <div className="px-1 py-0.5 text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center gap-1 mb-1">
-                          <Home className="w-3 h-3" />
-                          <span>{language === 'bn' ? 'বাসা ভাড়া' : 'Rentals'}</span>
-                        </div>
-                        <div className="space-y-1">
-                          {matchingProperties.slice(0, 2).map(property => (
-                            <div
-                              key={property.id}
-                              onClick={() => handlePropertyClick(property.location)}
-                              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                  {property.title}
-                                </p>
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
-                                  <MapPin className="w-2.5 h-2.5 text-amber-500 shrink-0" />
-                                  <span>{property.location}</span>
-                                  <span className="text-indigo-600 dark:text-indigo-400 font-bold ml-1">
-                                    ৳{property.price?.toLocaleString('en-IN')}
-                                  </span>
-                                </p>
-                              </div>
-                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Tutors */}
-                    {matchingTutors.length > 0 && (
-                      <div>
-                        <div className="px-1 py-0.5 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider flex items-center gap-1 mb-1">
-                          <GraduationCap className="w-3 h-3" />
-                          <span>{language === 'bn' ? 'হোম টিউটর' : 'Tutors'}</span>
-                        </div>
-                        <div className="space-y-1">
-                          {matchingTutors.slice(0, 2).map(tutor => (
-                            <div
-                              key={tutor.id}
-                              onClick={() => handleTutorClick(tutor.location)}
-                              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                  {tutor.name}
-                                </p>
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                                  {(tutor.subjects || []).join(', ')} • {tutor.location}
-                                </p>
-                              </div>
-                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Static Pages */}
-                    {matchingPages.length > 0 && (
-                      <div className="space-y-1">
-                        {matchingPages.slice(0, 1).map(page => (
-                          <div
-                            key={page.id}
-                            onClick={() => handlePageClick(page.path)}
-                            className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
-                          >
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <Compass className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                              <span className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                {page.title}
-                              </span>
-                            </div>
-                            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-500 shrink-0" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>,
-          document.body
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
