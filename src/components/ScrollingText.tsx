@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -8,6 +8,7 @@ export default function ScrollingText() {
   const { isScrollingTextEnabled, scrollingTextBn, scrollingTextEn } = useApp();
   const { language } = useLanguage();
   const location = useLocation();
+  const [isHovered, setIsHovered] = useState(false);
 
   // Hide announcement bar on Admin Login page and Dashboard page
   if (!isScrollingTextEnabled || location.pathname === '/admin' || location.pathname.startsWith('/dashboard')) {
@@ -18,7 +19,7 @@ export default function ScrollingText() {
 
   return (
     <div className="w-full bg-indigo-50 dark:bg-slate-950 border-b border-indigo-100 dark:border-slate-800 shadow-sm relative z-10 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-10 text-xs sm:text-sm font-semibold text-indigo-900 dark:text-indigo-200">
           
           {/* Badge indicator */}
@@ -28,9 +29,18 @@ export default function ScrollingText() {
           </div>
 
           {/* Scrolling text area */}
-          <div className="flex-1 overflow-hidden mx-4 relative h-full flex items-center">
+          <div 
+            className="flex-1 overflow-hidden mx-2 sm:mx-4 relative h-full flex items-center select-none"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
             <div className="w-full relative whitespace-nowrap overflow-hidden">
-              <div className="animate-marquee inline-block text-slate-800 dark:text-slate-100 pl-[100%] font-medium">
+              <div 
+                className="animate-marquee inline-block text-slate-800 dark:text-slate-100 pl-[100%] font-medium"
+                style={{
+                  animationPlayState: isHovered ? 'paused' : 'running'
+                }}
+              >
                 {text}
               </div>
             </div>

@@ -37,8 +37,10 @@
   transform: translateZ(0);
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
+@media (hover: hover) {
+  .animate-marquee:hover {
+    animation-play-state: paused;
+  }
 }
 
 body {

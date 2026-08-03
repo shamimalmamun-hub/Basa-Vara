@@ -67,29 +67,75 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
 
   const query = searchQuery.trim().toLowerCase();
 
+  // Helper to build searchable text for properties including Bengali synonyms
+  const getPropertySearchText = (p: any) => {
+    const title = (p.title || '').toLowerCase();
+    const loc = (p.location || '').toLowerCase();
+    const addr = (p.address || '').toLowerCase();
+    const desc = (p.description || '').toLowerCase();
+    const types = Array.isArray(p.type) ? p.type : [p.type || ''];
+    const typeStr = types.join(' ').toLowerCase();
+
+    let synonyms = '';
+    if (typeStr.includes('female mess') || typeStr.includes('female') || title.includes('female') || title.includes('ছাত্রী')) {
+      synonyms += ' ছাত্রী মেস ছাত্রীমেস মেস ফিমেল মেস মেয়েদের মেস female mess ';
+    }
+    if (typeStr.includes('male mess') || typeStr.includes('male') || title.includes('male') || title.includes('ছাত্র')) {
+      synonyms += ' ছাত্র মেস ছাত্রমেস মেস মেল মেস ছেলেদের মেস male mess ';
+    }
+    if (typeStr.includes('family') || title.includes('family') || title.includes('ফ্যামিলি')) {
+      synonyms += ' ফ্যামিলি বাসা ফ্যামিলি ফ্ল্যাট পরিবার ফেমিলি family flat ';
+    }
+    if (typeStr.includes('bachelor') || title.includes('bachelor') || title.includes('ব্যাচেলর')) {
+      synonyms += ' ব্যাচেলর বাসা ব্যাচেলর মেস সাবলেট bachelor flat ';
+    }
+
+    return `${title} ${loc} ${addr} ${desc} ${typeStr} ${synonyms}`;
+  };
+
+  // Helper to build searchable text for tutors including Bengali synonyms
+  const getTutorSearchText = (t: any) => {
+    const name = (t.name || '').toLowerCase();
+    const subjects = (t.subjects || []).join(' ').toLowerCase();
+    const edu = (t.education || '').toLowerCase();
+    const loc = (t.location || '').toLowerCase();
+    const gender = (t.gender || '').toLowerCase();
+
+    let synonyms = '';
+    if (gender === 'female' || name.includes('মিস') || name.includes('মেহেজাবিন') || name.includes('সারিকা')) {
+      synonyms += ' ছাত্রী টিউটর মহিলা টিউটর ফিমেল female ';
+    } else if (gender === 'male') {
+      synonyms += ' ছাত্র টিউটর পুরুষ টিউটর মেল male ';
+    }
+
+    return `${name} ${subjects} ${edu} ${loc} ${synonyms} টিউটর টিউশন home tutor`;
+  };
+
   // Search Properties
   const matchingProperties = React.useMemo(() => {
     if (!query) return [];
-    return properties.filter(p => {
-      const title = (p.title || '').toLowerCase();
-      const loc = (p.location || '').toLowerCase();
-      const addr = (p.address || '').toLowerCase();
-      const typeStr = Array.isArray(p.type) ? p.type.join(' ').toLowerCase() : (p.type || '').toLowerCase();
+    const tokens = query.split(/\s+/).filter(Boolean);
 
-      return title.includes(query) || loc.includes(query) || addr.includes(query) || typeStr.includes(query);
+    return properties.filter(p => {
+      const text = getPropertySearchText(p);
+      if (text.includes(query)) return true;
+      if (tokens.length > 1 && tokens.every(token => text.includes(token))) return true;
+      if (tokens.length === 1 && tokens.some(token => text.includes(token))) return true;
+      return false;
     }).slice(0, 5);
   }, [properties, query]);
 
   // Search Tutors
   const matchingTutors = React.useMemo(() => {
     if (!query) return [];
-    return tutors.filter(t => {
-      const name = (t.name || '').toLowerCase();
-      const subjects = (t.subjects || []).join(' ').toLowerCase();
-      const edu = (t.education || '').toLowerCase();
-      const loc = (t.location || '').toLowerCase();
+    const tokens = query.split(/\s+/).filter(Boolean);
 
-      return name.includes(query) || subjects.includes(query) || edu.includes(query) || loc.includes(query);
+    return tutors.filter(t => {
+      const text = getTutorSearchText(t);
+      if (text.includes(query)) return true;
+      if (tokens.length > 1 && tokens.every(token => text.includes(token))) return true;
+      if (tokens.length === 1 && tokens.some(token => text.includes(token))) return true;
+      return false;
     }).slice(0, 5);
   }, [tutors, query]);
 

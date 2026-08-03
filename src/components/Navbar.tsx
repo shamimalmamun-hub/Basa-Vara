@@ -19,9 +19,9 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-2">
           {/* Brand Logo & Name */}
-          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2 shrink-0">
+          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-1.5 xs:space-x-2 shrink min-w-0">
             <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
-            <span className="font-bold text-lg xs:text-xl sm:text-2xl md:text-xl tracking-tight text-slate-900 dark:text-white truncate">
+            <span className="font-extrabold text-xl xs:text-2xl sm:text-2xl md:text-xl tracking-tight text-slate-900 dark:text-white truncate">
               {t('brandName') !== 'brandName' ? t('brandName') : (
                 language === 'bn' ? (
                   <>বাসা ভাড়া <span className="text-indigo-600 dark:text-indigo-400">ও হোম টিউটর</span></>
