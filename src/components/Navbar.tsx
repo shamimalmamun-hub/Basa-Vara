@@ -19,21 +19,21 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-2">
           {/* Brand Logo & Name */}
-          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
-            <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
-            <span className="font-bold text-xs xs:text-sm sm:text-base md:text-xl tracking-tight text-slate-900 dark:text-white truncate max-w-[110px] xs:max-w-[140px] sm:max-w-none">
+          <Link to="/" onClick={() => setSelectedLocation(null)} className="flex items-center space-x-2 shrink-0">
+            <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-8 h-8 sm:w-9 sm:h-9 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
+            <span className="font-bold text-sm xs:text-base sm:text-lg md:text-xl tracking-tight text-slate-900 dark:text-white truncate">
               {t('brandName') !== 'brandName' ? t('brandName') : (
                 language === 'bn' ? (
-                  <>বাসা ভাড়া <span className="text-indigo-600 dark:text-indigo-400">ও টিউটর</span></>
+                  <>বাসা ভাড়া <span className="text-indigo-600 dark:text-indigo-400">ও হোম টিউটর</span></>
                 ) : (
-                  <>Rent & <span className="text-indigo-600 dark:text-indigo-400">Tutor</span></>
+                  <>Rent & <span className="text-indigo-600 dark:text-indigo-400">Home Tutor</span></>
                 )
               )}
             </span>
           </Link>
 
-          {/* Inline Search Bar - visible on all screens in the top header row */}
-          <div className="flex-1 max-w-[180px] xs:max-w-[220px] sm:max-w-xs md:max-w-md mx-1 sm:mx-3">
+          {/* Inline Search Bar */}
+          <div className="flex-1 max-w-[120px] xs:max-w-[150px] sm:max-w-xs md:max-w-md lg:max-w-lg mx-1 sm:mx-3">
             <GlobalSearch />
           </div>
 

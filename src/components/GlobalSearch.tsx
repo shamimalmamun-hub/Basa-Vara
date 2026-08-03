@@ -17,8 +17,16 @@ export default function GlobalSearch({ className = '', onSelectResult }: NavbarS
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -109,6 +117,13 @@ export default function GlobalSearch({ className = '', onSelectResult }: NavbarS
     if (onSelectResult) onSelectResult();
   };
 
+  const placeholderText = React.useMemo(() => {
+    if (language === 'bn') {
+      return isMobile ? 'সার্চ করুন...' : 'বাসা, টিউটর, এলাকা লিখে সার্চ করুন...';
+    }
+    return isMobile ? 'Search...' : 'Search rentals, tutors, locations...';
+  }, [language, isMobile]);
+
   const showDropdown = isFocused && searchQuery.trim().length > 0;
 
   return (
@@ -125,7 +140,7 @@ export default function GlobalSearch({ className = '', onSelectResult }: NavbarS
             if (!isFocused) setIsFocused(true);
           }}
           onFocus={() => setIsFocused(true)}
-          placeholder={language === 'bn' ? 'বাসা, টিউটর, এলাকা লিখে সার্চ করুন...' : 'Search rentals, tutors, locations...'}
+          placeholder={placeholderText}
           className="w-full bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 text-xs font-semibold focus:outline-none"
         />
         {searchQuery && (
