@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Property, Tutor } from '../types';
@@ -20,6 +20,14 @@ export default function ItemDetailModal({ property, tutor, onClose }: ItemDetail
   const { currentUser } = useApp();
   const { language, t } = useLanguage();
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+
+  useEffect(() => {
+    const originalStyle = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
   if (!property && !tutor) return null;
 
