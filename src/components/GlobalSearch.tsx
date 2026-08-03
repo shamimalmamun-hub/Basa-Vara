@@ -39,13 +39,19 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
     return () => window.removeEventListener('resize', checkMobile);
   }, [isMobileModalOpen, mode]);
 
-  // Focus mobile input when mobile modal opens
+  // Focus mobile input when mobile modal opens and lock background body scroll
   useEffect(() => {
     if (isMobileModalOpen) {
+      document.body.style.overflow = 'hidden';
       setTimeout(() => {
         mobileInputRef.current?.focus();
       }, 100);
+    } else {
+      document.body.style.overflow = '';
     }
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isMobileModalOpen]);
 
   // Close dropdown when clicking outside on desktop
@@ -333,7 +339,7 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
                   <button
                     type="button"
                     onClick={() => setIsMobileModalOpen(false)}
-                    className="px-2 py-1.5 text-[10px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-200/70 dark:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer whitespace-nowrap"
+                    className="px-3 py-1.5 text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white bg-slate-200 dark:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer whitespace-nowrap"
                   >
                     {language === 'bn' ? 'বাতিল' : 'Cancel'}
                   </button>
