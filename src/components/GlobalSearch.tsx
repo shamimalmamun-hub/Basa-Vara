@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Property, Tutor } from '../types';
 import { Search, X, Home, GraduationCap, MapPin, ChevronRight, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -174,22 +175,22 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
 
   const totalResults = matchingProperties.length + matchingTutors.length + matchingPages.length;
 
-  const handlePropertyClick = (location: string) => {
-    if (location) {
-      setSelectedLocation(location);
+  const handlePropertyClick = (property: Property) => {
+    if (property.location) {
+      setSelectedLocation(property.location);
     }
-    navigate('/rentals');
+    navigate(`/rentals?id=${property.id}`);
     setSearchQuery('');
     setIsFocused(false);
     setIsMobileModalOpen(false);
     if (onSelectResult) onSelectResult();
   };
 
-  const handleTutorClick = (location: string) => {
-    if (location) {
-      setSelectedLocation(location);
+  const handleTutorClick = (tutor: Tutor) => {
+    if (tutor.location) {
+      setSelectedLocation(tutor.location);
     }
-    navigate('/tutors');
+    navigate(`/tutors?id=${tutor.id}`);
     setSearchQuery('');
     setIsFocused(false);
     setIsMobileModalOpen(false);
@@ -275,7 +276,7 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
                     {matchingProperties.map(property => (
                       <div
                         key={property.id}
-                        onClick={() => handlePropertyClick(property.location)}
+                        onClick={() => handlePropertyClick(property)}
                         className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
                       >
                         <div className="min-w-0 flex-1">
@@ -305,7 +306,7 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
                     {matchingTutors.map(tutor => (
                       <div
                         key={tutor.id}
-                        onClick={() => handleTutorClick(tutor.location)}
+                        onClick={() => handleTutorClick(tutor)}
                         className="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
                       >
                         <div className="min-w-0 flex-1">
@@ -444,10 +445,10 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
                             <span>{language === 'bn' ? 'বাসা ভাড়া' : 'Rentals'}</span>
                           </div>
                           <div className="space-y-1">
-                            {matchingProperties.slice(0, 2).map(property => (
+                            {matchingProperties.slice(0, 4).map(property => (
                               <div
                                 key={property.id}
-                                onClick={() => handlePropertyClick(property.location)}
+                                onClick={() => handlePropertyClick(property)}
                                 className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
                               >
                                 <div className="min-w-0 flex-1">
@@ -477,10 +478,10 @@ export default function GlobalSearch({ className = '', onSelectResult, mode = 'a
                             <span>{language === 'bn' ? 'হোম টিউটর' : 'Tutors'}</span>
                           </div>
                           <div className="space-y-1">
-                            {matchingTutors.slice(0, 2).map(tutor => (
+                            {matchingTutors.slice(0, 4).map(tutor => (
                               <div
                                 key={tutor.id}
-                                onClick={() => handleTutorClick(tutor.location)}
+                                onClick={() => handleTutorClick(tutor)}
                                 className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center justify-between gap-2 group"
                               >
                                 <div className="min-w-0 flex-1">

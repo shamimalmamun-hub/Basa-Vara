@@ -121,7 +121,15 @@ export function PropertyCard({ property }: { property: Property, key?: any }) {
 
       <div className="p-1 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
-          <h3 className="font-bold font-sans text-sm text-slate-900 dark:text-white leading-snug tracking-normal">{property.title}</h3>
+          <div className="flex justify-between items-start gap-1">
+            <h3 className="font-bold font-sans text-sm text-slate-900 dark:text-white leading-snug tracking-normal flex-1">{property.title}</h3>
+            <Link 
+              to={`/rentals?id=${property.id}`}
+              className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/50 dark:border-indigo-900/50 px-2 py-0.5 rounded-lg shrink-0 transition-colors"
+            >
+              {language === 'bn' ? 'বিস্তারিত 🔍' : 'Details 🔍'}
+            </Link>
+          </div>
           <p className="flex items-center text-xs text-amber-600 dark:text-amber-400 mt-1 font-bold">
             <MapPin className="w-4 h-4 mr-1 text-amber-500 shrink-0" /> {locationLabel}
           </p>
@@ -237,8 +245,16 @@ export function TutorCard({ tutor }: { tutor: Tutor, key?: any }) {
             loading="lazy"
           />
         </div>
-        <div className="min-w-0">
-          <h3 className="font-semibold text-base text-slate-900 dark:text-white truncate">{tutor.name}</h3>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-1">
+            <h3 className="font-semibold text-base text-slate-900 dark:text-white truncate">{tutor.name}</h3>
+            <Link 
+              to={`/tutors?id=${tutor.id}`}
+              className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/50 px-2 py-0.5 rounded-lg shrink-0 transition-colors"
+            >
+              {language === 'bn' ? 'বিস্তারিত 🔍' : 'Details 🔍'}
+            </Link>
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 flex items-start">
             <BookOpen className="w-3 h-3 mr-1 text-slate-400 shrink-0 mt-0.5" /> <span>{tutor.education}</span>
           </p>

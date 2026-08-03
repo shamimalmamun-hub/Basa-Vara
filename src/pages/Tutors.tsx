@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { TutorCard } from '../components/Cards';
 import { MAIN_LOCATIONS } from '../lib/utils';
 import { SlidersHorizontal } from 'lucide-react';
+import ItemDetailModal from '../components/ItemDetailModal';
 
 export default function Tutors() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedId = searchParams.get('id');
   const { tutors, selectedLocation, setSelectedLocation } = useApp();
   const { language, t } = useLanguage();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filterSubj, setFilterSubj] = useState<string>('All');
   const [filterGender, setFilterGender] = useState<string>('All');
+
+  const selectedTutor = selectedId ? tutors.find(t => t.id === selectedId) : null;
 
   const allSubjects = Array.from(new Set(tutors.flatMap(t => t.subjects))) as string[];
 
@@ -143,6 +149,14 @@ export default function Tutors() {
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('tutorsNotFound')}</h3>
           <p className="text-slate-500 max-w-sm mx-auto text-sm">{t('tutorsNotFoundLong')}</p>
         </div>
+      )}
+
+      {/* SINGLE ITEM DETAIL MODAL */}
+      {selectedTutor && (
+        <ItemDetailModal 
+          tutor={selectedTutor} 
+          onClose={() => setSearchParams({})} 
+        />
       )}
     </div>
   );

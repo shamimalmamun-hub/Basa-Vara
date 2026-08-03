@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PropertyCard } from '../components/Cards';
 import { MAIN_LOCATIONS, PROPERTY_TYPES } from '../lib/utils';
 import { SlidersHorizontal } from 'lucide-react';
+import ItemDetailModal from '../components/ItemDetailModal';
 
 export default function Rentals() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedId = searchParams.get('id');
   const { properties, selectedLocation, setSelectedLocation } = useApp();
   const { language, t } = useLanguage();
   const [filterType, setFilterType] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  const selectedProperty = selectedId ? properties.find(p => p.id === selectedId) : null;
 
   const filtered = properties.filter(p => 
     (selectedLocation === null || (p.location || '').toLowerCase().trim() === selectedLocation.toLowerCase().trim()) &&
@@ -132,6 +138,14 @@ export default function Rentals() {
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t('rentalsNotFound')}</h3>
           <p className="text-slate-500 max-w-sm mx-auto text-sm">{t('rentalsNotFoundLong')}</p>
         </div>
+      )}
+
+      {/* SINGLE ITEM DETAIL MODAL */}
+      {selectedProperty && (
+        <ItemDetailModal 
+          property={selectedProperty} 
+          onClose={() => setSearchParams({})} 
+        />
       )}
     </div>
   );
