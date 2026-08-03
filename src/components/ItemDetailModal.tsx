@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Property, Tutor } from '../types';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { updatePageMetaTags } from '../lib/meta';
 import { 
   X, MapPin, Phone, LockKeyhole, MessageCircle, Briefcase, 
   BookOpen, Clock, CalendarDays, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle
@@ -20,6 +21,30 @@ export default function ItemDetailModal({ property, tutor, onClose }: ItemDetail
   const { currentUser } = useApp();
   const { language, t } = useLanguage();
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+
+  // Dynamic Open Graph & Twitter meta tags update for social sharing previews
+  useEffect(() => {
+    if (property) {
+      updatePageMetaTags({
+        title: property.title,
+        description: property.description 
+          ? property.description.substring(0, 160)
+          : `${property.title} - ভাড়া: ৳${property.price?.toLocaleString('en-IN')}/মাস। এলাকা: ${property.location}`,
+        image: property.images?.[0] || '/og-image.jpg',
+      });
+    } else if (tutor) {
+      updatePageMetaTags({
+        title: `${tutor.name} (হোম টিউটর)`,
+        description: `${tutor.education} | বিষয়: ${tutor.subjects?.slice(0, 3).join(', ')} | প্রত্যাশিত বেতন: ৳${tutor.salaryExpected?.toLocaleString('en-IN')}/মাস | এলাকা: ${tutor.location}`,
+        image: tutor.image || '/og-image.jpg',
+      });
+    }
+
+    return () => {
+      // Reset meta tags to default on modal close
+      updatePageMetaTags();
+    };
+  }, [property, tutor]);
 
   useEffect(() => {
     const scrollY = window.scrollY;

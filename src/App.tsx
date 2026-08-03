@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useApp } from './contexts/AppContext';
 import { useLanguage } from './contexts/LanguageContext';
 import { MotionConfig } from 'motion/react';
+import { updatePageMetaTags } from './lib/meta';
 
 // Scroll to top on route change
 function ScrollToTop() {
@@ -54,15 +55,24 @@ export default function App() {
 
   // Dynamically update browser tab title and favicon when brand name or logo changes
   useEffect(() => {
-    // 1. Dynamic document/tab title update
+    // 1. Dynamic document/tab title update and Open Graph meta tags
     const brandName = t('brandName');
+    let pageTitle = "";
     if (brandName && brandName !== 'brandName' && brandName !== '') {
-      document.title = `${brandName} | ${language === 'bn' ? 'বাসা ভাড়া ও হোম টিউটর' : 'Basa Bhara & Home Tutor BD'}`;
+      pageTitle = `${brandName} | ${language === 'bn' ? 'বাসা ভাড়া ও হোম টিউটর' : 'Basa Bhara & Home Tutor BD'}`;
     } else {
-      document.title = language === 'bn' 
+      pageTitle = language === 'bn' 
         ? "বাসা ভাড়া ও হোম টিউটর | Basa Bhara & Home Tutor BD"
         : "Basa Bhara & Home Tutor BD";
     }
+
+    updatePageMetaTags({
+      title: pageTitle,
+      description: language === 'bn' 
+        ? "বাংলাদেশ প্রথম প্রযুক্তিবান্ধব বাসা ভাড়া, মেস ভাড়া এবং হোম টিউটর খোঁজার নির্ভরযোগ্য প্ল্যাটফর্ম। ময়মনসিংহ, ঢাকা, ত্রিশাল, ভালুকা সহ বিভিন্ন অঞ্চলে সহজে বাড়িভাড়া এবং দক্ষ গৃহশিক্ষক খুঁজুন।"
+        : "The most trusted platform in Bangladesh for house rentals, mess seats, and experienced home tutors.",
+      image: '/og-image.jpg'
+    });
 
     // 2. Dynamic favicon / browser tab icon update (combats browser aggressive caching with timestamp version)
     const customLogo = t('customLogoImage');
