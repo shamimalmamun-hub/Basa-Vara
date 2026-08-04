@@ -83,23 +83,30 @@ export default function ManagePosts() {
     if (!files || files.length === 0) return;
     const toastId = toast.loading(`${files.length} টি ছবি আপলোড করা হচ্ছে...`);
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!isImageFile(file)) {
-          toast.error(`"${file.name}" - সঠিক ছবির ফাইল নির্বাচন করুন (JPG, PNG, JFIF, WEBP ইত্যাদি)!`);
-          continue;
-        }
-        const url = await uploadImageToFirebase(file, 'properties');
+      const fileArray = Array.from(files).filter(f => isImageFile(f));
+      if (fileArray.length === 0) {
+        toast.error('সঠিক ছবির ফাইল নির্বাচন করুন (JPG, PNG, WEBP ইত্যাদি)!', { id: toastId });
+        return;
+      }
+
+      // Parallel fast upload
+      const uploadPromises = fileArray.map(file => uploadImageToFirebase(file, 'properties'));
+      const urls = await Promise.all(uploadPromises);
+      const validUrls = urls.filter(Boolean);
+
+      if (validUrls.length > 0) {
         setEditingProperty(prev => {
           if (!prev) return null;
           const existingImages = prev.images || [];
           return {
             ...prev,
-            images: [...existingImages, url]
+            images: [...existingImages, ...validUrls]
           };
         });
+        toast.success('ছবি আপলোড সম্পন্ন হয়েছে!', { id: toastId });
+      } else {
+        toast.error('ছবি আপলোড করা সম্ভব হয়নি.', { id: toastId });
       }
-      toast.success('ছবি আপলোড সম্পন্ন হয়েছে!', { id: toastId });
     } catch (err) {
       toast.error('ছবি আপলোড করা সম্ভব হয়নি.', { id: toastId });
     }

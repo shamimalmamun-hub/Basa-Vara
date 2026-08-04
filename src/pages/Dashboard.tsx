@@ -921,26 +921,26 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       }
     } else {
       // Multiple image uploads for property
-      const toastId = toast.loading(`${files.length} টি ছবি আপলোড হচ্ছে...`);
-      let count = 0;
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!isImageFile(file)) {
-          alert(`"${file.name}" - অনুগ্রহ করে একটি ছবি ফাইল নির্বাচন করুন (JPG, PNG, JFIF, WEBP ইত্যাদি)!`);
-          continue;
-        }
-
-        try {
-          const url = await uploadImageToFirebase(file, 'properties');
-          setUploadedImages(prev => [...prev, url]);
-          count++;
-        } catch (err) {
-          console.error("Property image upload failed:", err);
-        }
+      const fileArray = Array.from(files).filter(f => isImageFile(f));
+      if (fileArray.length === 0) {
+        alert('অনুগ্রহ করে সঠিক ছবির ফাইল নির্বাচন করুন (JPG, PNG, WEBP ইত্যাদি)!');
+        return;
       }
-      if (count > 0) {
-        toast.success(`${count} টি ছবি আপলোড সম্পূর্ণ!`, { id: toastId });
-      } else {
+
+      const toastId = toast.loading(`${fileArray.length} টি ছবি আপলোড করা হচ্ছে...`);
+      try {
+        const uploadPromises = fileArray.map(file => uploadImageToFirebase(file, 'properties'));
+        const urls = await Promise.all(uploadPromises);
+        const validUrls = urls.filter(Boolean);
+
+        if (validUrls.length > 0) {
+          setUploadedImages(prev => [...prev, ...validUrls]);
+          toast.success(`${validUrls.length} টি ছবি আপলোড সম্পূর্ণ!`, { id: toastId });
+        } else {
+          toast.error('ছবি আপলোডে সমস্যা হয়েছে', { id: toastId });
+        }
+      } catch (err) {
+        console.error("Property image upload failed:", err);
         toast.error('ছবি আপলোডে সমস্যা হয়েছে', { id: toastId });
       }
     }

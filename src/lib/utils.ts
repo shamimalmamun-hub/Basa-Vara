@@ -43,67 +43,99 @@ export function isImageFile(file: File): boolean {
 
 /**
  * Compresses any File, Blob or base64 Data URL string to a lightweight JPEG Data URL before storage.
+ * Optimized for speed and low file size (~70KB - 120KB).
  */
 export function compressImage(
   fileOrBlobOrString: File | Blob | string,
-  maxWidth = 1200,
-  maxHeight = 1200,
-  quality = 0.8
+  maxWidth = 1000,
+  maxHeight = 1000,
+  quality = 0.72
 ): Promise<string> {
   return new Promise((resolve, reject) => {
+    // 4-second safety guard against hanging file reading/canvas rendering
+    const compressionTimer = setTimeout(() => {
+      reject(new Error("Image compression timed out"));
+    }, 4000);
+
+    const cleanup = () => clearTimeout(compressionTimer);
+
     const processImageSource = (src: string) => {
       const img = new Image();
       img.crossOrigin = "anonymous";
-      img.src = src;
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
+        try {
+          const canvas = document.createElement('canvas');
+          let width = img.width || 800;
+          let height = img.height || 600;
 
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
           }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            // Fill white background for transparent PNGs converted to JPEG
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
           }
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          cleanup();
+          resolve(compressedBase64);
+        } catch (err) {
+          cleanup();
+          reject(err);
         }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          // Fill white background for transparent PNGs converted to JPEG
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, width, height);
-          ctx.drawImage(img, 0, 0, width, height);
-        }
-
-        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressedBase64);
       };
-      img.onerror = (err) => reject(err);
+      img.onerror = (err) => {
+        cleanup();
+        reject(err);
+      };
+      img.src = src;
     };
 
     if (typeof fileOrBlobOrString === 'string') {
-      processImageSource(fileOrBlobOrString);
+      if (fileOrBlobOrString.startsWith('data:') || fileOrBlobOrString.startsWith('blob:')) {
+        processImageSource(fileOrBlobOrString);
+      } else {
+        cleanup();
+        resolve(fileOrBlobOrString);
+      }
     } else {
       const reader = new FileReader();
-      reader.readAsDataURL(fileOrBlobOrString);
       reader.onload = (event) => {
-        processImageSource(event.target?.result as string);
+        const result = event.target?.result as string;
+        if (result) {
+          processImageSource(result);
+        } else {
+          cleanup();
+          reject(new Error("Failed to read file"));
+        }
       };
-      reader.onerror = (err) => reject(err);
+      reader.onerror = (err) => {
+        cleanup();
+        reject(err);
+      };
+      reader.readAsDataURL(fileOrBlobOrString);
     }
   });
 }
 
 /**
- * Compresses image first, then uploads to Firebase Storage and returns the permanent HTTPS download URL.
+ * Compresses image first, then uploads to Firebase Storage with a strict 2-second timeout fallback.
+ * If Firebase Storage is slow or network hangs, instantly returns the compressed base64 image.
  */
 export async function uploadImageToFirebase(
   fileOrString: File | Blob | string,
@@ -111,53 +143,54 @@ export async function uploadImageToFirebase(
 ): Promise<string> {
   if (!fileOrString) return '';
 
-  // 1. If it's already a hosted HTTP/HTTPS URL, return as is
+  // 1. If it's already an HTTP/HTTPS URL, return immediately
   if (typeof fileOrString === 'string') {
     if (fileOrString.startsWith('http://') || fileOrString.startsWith('https://')) {
       return fileOrString;
     }
   }
 
-  const timestamp = Date.now();
-  const randomStr = Math.random().toString(36).substring(2, 9);
-  const fileName = `${timestamp}_${randomStr}.jpg`;
-  const storageRef = ref(storage, `${folder}/${fileName}`);
-
+  // 2. Fast client-side image compression
+  let compressedDataUrl = '';
   try {
-    // MANDATORY COMPRESSION: Compress all images before uploading
-    let compressedDataUrl = '';
-    try {
-      compressedDataUrl = await compressImage(fileOrString, 1200, 1200, 0.8);
-    } catch (compressErr) {
-      console.warn("Pre-upload compression warning, proceeding with raw data:", compressErr);
-    }
-
-    if (compressedDataUrl && compressedDataUrl.startsWith('data:')) {
-      const snapshot = await uploadString(storageRef, compressedDataUrl, 'data_url');
-      return await getDownloadURL(snapshot.ref);
-    }
-
-    // Fallbacks
-    if (fileOrString instanceof File || fileOrString instanceof Blob) {
-      const snapshot = await uploadBytes(storageRef, fileOrString);
-      return await getDownloadURL(snapshot.ref);
-    } else if (typeof fileOrString === 'string' && fileOrString.startsWith('data:')) {
-      const snapshot = await uploadString(storageRef, fileOrString, 'data_url');
-      return await getDownloadURL(snapshot.ref);
-    }
-  } catch (err) {
-    console.warn("Firebase Storage upload failed, using compressed base64 fallback:", err);
+    compressedDataUrl = await compressImage(fileOrString, 1000, 1000, 0.72);
+  } catch (compressErr) {
+    console.warn("Fast compression failed, using fallback:", compressErr);
     if (typeof fileOrString === 'string' && fileOrString.startsWith('data:')) {
-      return fileOrString;
-    }
-    try {
-      return await compressImage(fileOrString, 1200, 1200, 0.8);
-    } catch {
-      // return empty if all fails
+      compressedDataUrl = fileOrString;
     }
   }
 
-  return '';
+  if (!compressedDataUrl) {
+    return '';
+  }
+
+  // 3. Attempt Firebase Storage upload with a strict 2-second timeout
+  try {
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 9);
+    const fileName = `${timestamp}_${randomStr}.jpg`;
+    const storageRef = ref(storage, `${folder}/${fileName}`);
+
+    const storageUploadTask = async (): Promise<string> => {
+      const snapshot = await uploadString(storageRef, compressedDataUrl, 'data_url');
+      return await getDownloadURL(snapshot.ref);
+    };
+
+    const timeoutPromise = new Promise<string>((_, reject) => {
+      setTimeout(() => reject(new Error('Firebase Storage timeout')), 2000);
+    });
+
+    const firebaseUrl = await Promise.race([storageUploadTask(), timeoutPromise]);
+    if (firebaseUrl) {
+      return firebaseUrl;
+    }
+  } catch (err) {
+    console.warn("Firebase Storage upload skipped or timed out, using fast compressed image:", err);
+  }
+
+  // Immediate return: lightweight compressed base64 JPEG (~70KB - 120KB)
+  return compressedDataUrl;
 }
 
 /**
