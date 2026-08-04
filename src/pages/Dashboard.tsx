@@ -126,9 +126,9 @@ export default function Dashboard() {
           </>
         )}
 
-        {currentUser.nidStatus === 'verified' && !isAdmin && currentUser.role !== 'visitor' && (
+        {!isAdmin && (
           <button onClick={() => setActiveTab('add-content')} className={`text-left px-4 py-3 rounded-xl font-medium transition-colors flex items-center ${activeTab === 'add-content' ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
-            <PlusCircle className="w-5 h-5 mr-3" /> {isTutor ? 'টিউটর প্রোফাইল তৈরি' : 'প্রপার্টি যোগ করুন'}
+            <PlusCircle className="w-5 h-5 mr-3" /> {isTutor ? 'টিউটর পোস্ট / প্রপার্টি যোগ' : 'প্রপার্টি যোগ / টিউটর পোস্ট'}
           </button>
         )}
 
@@ -784,7 +784,7 @@ export default function Dashboard() {
            <AddContentForm role="admin" onAddProperty={addProperty} onAddTutor={addTutor} ownerId={currentUser.id} />
         )}
 
-        {activeTab === 'add-content' && currentUser.nidStatus === 'verified' && !isAdmin && (
+        {activeTab === 'add-content' && !isAdmin && (
           isExpired ? (
             <div className="bg-rose-500/10 border-2 border-rose-300 dark:border-rose-900 rounded-3xl p-8 max-w-2xl text-center space-y-4">
               <AlertCircle className="w-16 h-16 text-rose-500 mx-auto" />
@@ -1038,24 +1038,22 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
         {isAdmin ? 'নতুন পোস্ট যুক্ত করুন' : isTutor ? 'টিউটর প্রোফাইল তৈরি করুন' : 'নতুন প্রপার্টি যোগ করুন'}
       </h2>
 
-      {isAdmin && (
-        <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex gap-1.5 mb-6">
-          <button
-            type="button"
-            onClick={() => { setSelectedType('property'); setFormData({}); }}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${selectedType === 'property' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
-          >
-            🏠 বাসা ভাড়া/মেস পোস্ট
-          </button>
-          <button
-            type="button"
-            onClick={() => { setSelectedType('tutor'); setFormData({}); }}
-            className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${selectedType === 'tutor' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
-          >
-            🎓 হোম টিউটর পোস্ট
-          </button>
-        </div>
-      )}
+      <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex gap-1.5 mb-6">
+        <button
+          type="button"
+          onClick={() => { setSelectedType('property'); setFormData({}); }}
+          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${selectedType === 'property' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+        >
+          🏠 বাসা ভাড়া/মেস পোস্ট
+        </button>
+        <button
+          type="button"
+          onClick={() => { setSelectedType('tutor'); setFormData({}); }}
+          className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${selectedType === 'tutor' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'}`}
+        >
+          🎓 হোম টিউটর পোস্ট
+        </button>
+      </div>
       
       <div>
         <label className="block text-sm font-medium mb-1">

@@ -130,8 +130,15 @@ export async function uploadImageToFirebase(
       return await getDownloadURL(snapshot.ref);
     }
   } catch (err) {
-    console.error("Firebase Storage upload failed:", err);
-    throw err;
+    console.warn("Firebase Storage upload failed, using compressed base64 fallback:", err);
+    if (typeof fileOrString === 'string' && fileOrString.startsWith('data:')) {
+      return fileOrString;
+    }
+    try {
+      return await compressImage(fileOrString, 1200, 1200, 0.8);
+    } catch {
+      // return empty if all fails
+    }
   }
 
   return '';
