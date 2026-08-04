@@ -91,73 +91,66 @@ export default function Tutors() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            {t('tutorsTitle')}
-          </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
-            {t('tutorsSubtitle')}
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5">
-          <div className="flex items-center text-sm font-semibold text-slate-600 dark:text-slate-400 px-2">
-            <SlidersHorizontal className="w-4 h-4 mr-2 text-indigo-500" /> {t('rentalsFilter')}
-          </div>
-          <select 
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-sm cursor-pointer"
-            value={selectedLocation || 'All'} 
-            onChange={e => setSelectedLocation(e.target.value === 'All' ? null : e.target.value)}
-          >
-            <option value="All">{language === 'bn' ? 'সকল এলাকা' : 'All Areas'}</option>
-            {MAIN_LOCATIONS.map(l => {
-              let label = l;
-              if (l === 'Mymensingh Sadar') label = language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar';
-              else if (l === 'Madhupur') label = language === 'bn' ? 'মধুপুর' : 'Madhupur';
-              return (
-                <option key={l} value={l}>
-                  {label}
-                </option>
-              );
-            })}
-          </select>
-          <select 
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-sm cursor-pointer"
-            value={filterSubj} 
-            onChange={e => setFilterSubj(e.target.value)}
-          >
-            <option value="All">{t('tutorsAllSubjects')}</option>
-            {allSubjects.map(s => <option key={s} value={s}>{getSubjectLabel(s)}</option>)}
-          </select>
-          <select 
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-sm cursor-pointer"
-            value={filterGender} 
-            onChange={e => setFilterGender(e.target.value)}
-          >
-            <option value="All">{language === 'bn' ? 'সকল লিঙ্গ' : 'All Gender'}</option>
-            <option value="male">{language === 'bn' ? 'ছেলে' : 'Male'}</option>
-            <option value="female">{language === 'bn' ? 'মেয়ে' : 'Female'}</option>
-          </select>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          {t('tutorsTitle')}
+        </h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">
+          {t('tutorsSubtitle')}
+        </p>
       </div>
 
-      {/* PRICE RANGE & SORT FILTER PANEL */}
-      <div className="mb-10">
-        <PriceFilter
-          minPrice={minPrice}
-          setMinPrice={setMinPrice}
-          maxPrice={maxPrice}
-          setMaxPrice={setMaxPrice}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-          onResetAll={handleResetAll}
-          isFilterActive={isFilterActive}
-          typeLabel="tutor"
-          minBound={minPostedSalary}
-          maxBound={maxPostedSalary}
-        />
-      </div>
+      {/* UNIFIED MAIN FILTER PANEL */}
+      <PriceFilter
+        minPrice={minPrice}
+        setMinPrice={setMinPrice}
+        maxPrice={maxPrice}
+        setMaxPrice={setMaxPrice}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        onResetAll={handleResetAll}
+        isFilterActive={isFilterActive}
+        typeLabel="tutor"
+        minBound={minPostedSalary}
+        maxBound={maxPostedSalary}
+      >
+        <select 
+          className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
+          value={selectedLocation || 'All'} 
+          onChange={e => setSelectedLocation(e.target.value === 'All' ? null : e.target.value)}
+        >
+          <option value="All">{language === 'bn' ? 'সকল এলাকা' : 'All Areas'}</option>
+          {MAIN_LOCATIONS.map(l => {
+            let label = l;
+            if (l === 'Mymensingh Sadar') label = language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar';
+            else if (l === 'Madhupur') label = language === 'bn' ? 'মধুপুর' : 'Madhupur';
+            return (
+              <option key={l} value={l}>
+                {label}
+              </option>
+            );
+          })}
+        </select>
+
+        <select 
+          className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
+          value={filterSubj} 
+          onChange={e => setFilterSubj(e.target.value)}
+        >
+          <option value="All">{t('tutorsAllSubjects')}</option>
+          {allSubjects.map(s => <option key={s} value={s}>{getSubjectLabel(s)}</option>)}
+        </select>
+
+        <select 
+          className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
+          value={filterGender} 
+          onChange={e => setFilterGender(e.target.value)}
+        >
+          <option value="All">{language === 'bn' ? 'টিউটর নির্বাচন করুন' : 'Select Tutor'}</option>
+          <option value="male">{language === 'bn' ? 'ছেলে' : 'Male'}</option>
+          <option value="female">{language === 'bn' ? 'মেয়ে' : 'Female'}</option>
+        </select>
+      </PriceFilter>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {paginatedTutors.map(t => <TutorCard key={t.id} tutor={t} />)}

@@ -73,76 +73,68 @@ export default function Rentals() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-            {language === 'bn' ? 'ভাড়ার জন্য উপলব্ধ' : 'Available Rentals'}
-          </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
-            {t('rentalsSubtitle')}
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5">
-          <div className="flex items-center text-sm font-semibold text-slate-600 dark:text-slate-400 px-2">
-            <SlidersHorizontal className="w-4 h-4 mr-2 text-indigo-500" /> {t('rentalsFilter')}
-          </div>
-          <select 
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-sm cursor-pointer"
-            value={selectedLocation || 'All'} 
-            onChange={e => setSelectedLocation(e.target.value === 'All' ? null : e.target.value)}
-          >
-            <option value="All">{language === 'bn' ? 'সকল এলাকা' : 'All Areas'}</option>
-            {MAIN_LOCATIONS.map(l => {
-              let label = l;
-              if (l === 'Mymensingh Sadar') label = language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar';
-              else if (l === 'Madhupur') label = language === 'bn' ? 'মধুপুর' : 'Madhupur';
-              return (
-                <option key={l} value={l}>
-                  {label}
-                </option>
-              );
-            })}
-          </select>
-          <select 
-            className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-sm cursor-pointer"
-            value={filterType} 
-            onChange={e => setFilterType(e.target.value)}
-          >
-            <option value="All">{language === 'bn' ? 'সকল ধরন' : 'All Types'}</option>
-            {PROPERTY_TYPES.map(tOption => {
-              let localizedLabel = tOption;
-              if (tOption === 'Family Flat') localizedLabel = language === 'bn' ? 'ফ্যামিলি ফ্ল্যাট' : 'Family Flat';
-              else if (tOption === 'Female Mess') localizedLabel = language === 'bn' ? 'ছাত্রী মেস' : 'Female Mess';
-              else if (tOption === 'Male Mess') localizedLabel = language === 'bn' ? 'ছাত্র মেস' : 'Male Mess';
-              else if (tOption === 'Bachelor Flat') localizedLabel = language === 'bn' ? 'ব্যাচেলর ফ্ল্যাট' : 'Bachelor Flat';
-              
-              return (
-                <option key={tOption} value={tOption}>
-                  {localizedLabel}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          {language === 'bn' ? 'ভাড়ার জন্য উপলব্ধ' : 'Available Rentals'}
+        </h1>
+        <p className="mt-2 text-slate-600 dark:text-slate-400">
+          {t('rentalsSubtitle')}
+        </p>
       </div>
 
-      {/* PRICE RANGE & SORT FILTER PANEL */}
-      <div className="mb-10">
-        <PriceFilter
-          minPrice={minPrice}
-          setMinPrice={setMinPrice}
-          maxPrice={maxPrice}
-          setMaxPrice={setMaxPrice}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-          onResetAll={handleResetAll}
-          isFilterActive={isFilterActive}
-          typeLabel="rent"
-          minBound={minPostedPrice}
-          maxBound={maxPostedPrice}
-        />
-      </div>
+      {/* UNIFIED MAIN FILTER PANEL */}
+      <PriceFilter
+        minPrice={minPrice}
+        setMinPrice={setMinPrice}
+        maxPrice={maxPrice}
+        setMaxPrice={setMaxPrice}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+        onResetAll={handleResetAll}
+        isFilterActive={isFilterActive}
+        typeLabel="rent"
+        minBound={minPostedPrice}
+        maxBound={maxPostedPrice}
+      >
+        <select 
+          className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
+          value={selectedLocation || 'All'} 
+          onChange={e => setSelectedLocation(e.target.value === 'All' ? null : e.target.value)}
+        >
+          <option value="All">{language === 'bn' ? 'সকল এলাকা' : 'All Areas'}</option>
+          {MAIN_LOCATIONS.map(l => {
+            let label = l;
+            if (l === 'Mymensingh Sadar') label = language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar';
+            else if (l === 'Madhupur') label = language === 'bn' ? 'মধুপুর' : 'Madhupur';
+            return (
+              <option key={l} value={l}>
+                {label}
+              </option>
+            );
+          })}
+        </select>
+
+        <select 
+          className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
+          value={filterType} 
+          onChange={e => setFilterType(e.target.value)}
+        >
+          <option value="All">{language === 'bn' ? 'সকল ধরন' : 'All Types'}</option>
+          {PROPERTY_TYPES.map(tOption => {
+            let localizedLabel = tOption;
+            if (tOption === 'Family Flat') localizedLabel = language === 'bn' ? 'ফ্যামিলি ফ্ল্যাট' : 'Family Flat';
+            else if (tOption === 'Female Mess') localizedLabel = language === 'bn' ? 'ছাত্রী মেস' : 'Female Mess';
+            else if (tOption === 'Male Mess') localizedLabel = language === 'bn' ? 'ছাত্র মেস' : 'Male Mess';
+            else if (tOption === 'Bachelor Flat') localizedLabel = language === 'bn' ? 'ব্যাচেলর ফ্ল্যাট' : 'Bachelor Flat';
+            
+            return (
+              <option key={tOption} value={tOption}>
+                {localizedLabel}
+              </option>
+            );
+          })}
+        </select>
+      </PriceFilter>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {paginatedProperties.map(p => <PropertyCard key={p.id} property={p} />)}
