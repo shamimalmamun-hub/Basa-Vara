@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { generateId, uploadImageToFirebase } from '../lib/utils';
+import { generateId, uploadImageToFirebase, IMAGE_ACCEPT_TYPES } from '../lib/utils';
 import { FileBadge } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -291,7 +291,7 @@ export default function Login() {
                           <div className="flex text-xs text-slate-600 dark:text-slate-400 mt-2">
                             <label htmlFor="file-upload-front" className="relative cursor-pointer rounded-md font-bold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 hover:text-indigo-500">
                               <span>{language === 'bn' ? 'এনআইডি সামনের ছবি' : 'NID Front Photo'}</span>
-                              <input id="file-upload-front" name="file-upload-front" type="file" className="sr-only" onChange={handleFileChangeFront} accept="image/*" required={role !== 'visitor'} />
+                              <input id="file-upload-front" name="file-upload-front" type="file" className="sr-only" onChange={handleFileChangeFront} accept={IMAGE_ACCEPT_TYPES} required={role !== 'visitor'} />
                             </label>
                           </div>
                           <p className="text-[10px] text-slate-500">Upload front part</p>
@@ -316,7 +316,7 @@ export default function Login() {
                           <div className="flex text-xs text-slate-600 dark:text-slate-400 mt-2">
                             <label htmlFor="file-upload-back" className="relative cursor-pointer rounded-md font-bold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-500 hover:text-indigo-500">
                               <span>{language === 'bn' ? 'এনআইডি পিছনের ছবি' : 'NID Back Photo'}</span>
-                              <input id="file-upload-back" name="file-upload-back" type="file" className="sr-only" onChange={handleFileChangeBack} accept="image/*" required={role !== 'visitor'} />
+                              <input id="file-upload-back" name="file-upload-back" type="file" className="sr-only" onChange={handleFileChangeBack} accept={IMAGE_ACCEPT_TYPES} required={role !== 'visitor'} />
                             </label>
                           </div>
                           <p className="text-[10px] text-slate-500">Upload back part</p>

@@ -6,6 +6,7 @@ import { PropertyCard } from '../components/Cards';
 import { MAIN_LOCATIONS, PROPERTY_TYPES } from '../lib/utils';
 import { SlidersHorizontal } from 'lucide-react';
 import ItemDetailModal from '../components/ItemDetailModal';
+import PriceFilter from '../components/PriceFilter';
 
 export default function Rentals() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,20 +14,54 @@ export default function Rentals() {
   const { properties, selectedLocation, setSelectedLocation } = useApp();
   const { language, t } = useLanguage();
   const [filterType, setFilterType] = useState<string>('All');
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<string>('default');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   const selectedProperty = selectedId ? properties.find(p => p.id === selectedId) : null;
 
-  const filtered = properties.filter(p => 
-    (selectedLocation === null || (p.location || '').toLowerCase().trim() === selectedLocation.toLowerCase().trim()) &&
-    (filterType === 'All' || 
-      (Array.isArray(p.type) ? p.type.includes(filterType as any) : p.type === filterType)
-    )
-  );
+  // Calculate dynamic min & max prices from actual posted properties
+  const validPrices = properties.map(p => Number(p.price)).filter(val => !isNaN(val) && val > 0);
+  const minPostedPrice = validPrices.length > 0 ? Math.min(...validPrices) : 500;
+  const maxPostedPrice = validPrices.length > 0 ? Math.max(...validPrices) : 30000;
+
+  const handleResetAll = () => {
+    setSelectedLocation(null);
+    setFilterType('All');
+    setMinPrice('');
+    setMaxPrice('');
+    setSortOrder('default');
+  };
+
+  const isFilterActive = selectedLocation !== null || filterType !== 'All' || minPrice !== '' || maxPrice !== '' || sortOrder !== 'default';
+
+  const filtered = properties
+    .filter(p => {
+      if (selectedLocation !== null && (p.location || '').toLowerCase().trim() !== selectedLocation.toLowerCase().trim()) {
+        return false;
+      }
+      if (filterType !== 'All') {
+        const isTypeMatch = Array.isArray(p.type) ? p.type.includes(filterType as any) : p.type === filterType;
+        if (!isTypeMatch) return false;
+      }
+      if (minPrice !== '' && !isNaN(Number(minPrice))) {
+        if (Number(p.price) < Number(minPrice)) return false;
+      }
+      if (maxPrice !== '' && !isNaN(Number(maxPrice))) {
+        if (Number(p.price) > Number(maxPrice)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortOrder === 'price_asc') return Number(a.price) - Number(b.price);
+      if (sortOrder === 'price_desc') return Number(b.price) - Number(a.price);
+      return 0;
+    });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedLocation, filterType]);
+  }, [selectedLocation, filterType, minPrice, maxPrice, sortOrder]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -38,7 +73,7 @@ export default function Rentals() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             {language === 'bn' ? 'ভাড়ার জন্য উপলব্ধ' : 'Available Rentals'}
@@ -48,7 +83,7 @@ export default function Rentals() {
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5">
           <div className="flex items-center text-sm font-semibold text-slate-600 dark:text-slate-400 px-2">
             <SlidersHorizontal className="w-4 h-4 mr-2 text-indigo-500" /> {t('rentalsFilter')}
           </div>
@@ -90,6 +125,23 @@ export default function Rentals() {
             })}
           </select>
         </div>
+      </div>
+
+      {/* PRICE RANGE & SORT FILTER PANEL */}
+      <div className="mb-10">
+        <PriceFilter
+          minPrice={minPrice}
+          setMinPrice={setMinPrice}
+          maxPrice={maxPrice}
+          setMaxPrice={setMaxPrice}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          onResetAll={handleResetAll}
+          isFilterActive={isFilterActive}
+          typeLabel="rent"
+          minBound={minPostedPrice}
+          maxBound={maxPostedPrice}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

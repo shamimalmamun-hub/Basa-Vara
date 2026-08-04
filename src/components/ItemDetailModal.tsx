@@ -319,7 +319,9 @@ export default function ItemDetailModal({ property, tutor, onClose }: ItemDetail
                       <span className="text-[9px] uppercase font-bold text-slate-400 block">{language === 'bn' ? 'পড়ানোর দিন' : 'Available Days'}</span>
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                         {tutor.daysPerWeek ? (
-                          language === 'bn' ? `সপ্তাহে ${tutor.daysPerWeek} দিন` : `${tutor.daysPerWeek} days/week`
+                          language === 'bn' 
+                            ? (tutor.daysPerWeek.includes('দিন') ? `সপ্তাহে ${tutor.daysPerWeek}` : `সপ্তাহে ${tutor.daysPerWeek} দিন`) 
+                            : `${tutor.daysPerWeek.replace(/দিন/g, '').trim()} days/week`
                         ) : (
                           tutor.availableDays?.map(d => getDaysLabel(d)).join(', ') || 'N/A'
                         )}

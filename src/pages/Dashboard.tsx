@@ -4,7 +4,7 @@ import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { ShieldCheck, PlusCircle, CreditCard, LayoutDashboard, CheckCircle2, UserCircle, Settings, Megaphone, Upload, X, Image, Video, AlertTriangle, RefreshCw, Check, AlertCircle, XCircle, Send, Eye, Globe, Users, FileText } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, uploadImageToFirebase, deleteImageFromFirebase } from '../lib/utils';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, generateId, uploadImageToFirebase, deleteImageFromFirebase, isImageFile, IMAGE_ACCEPT_TYPES } from '../lib/utils';
 import { Property, Tutor, Invoice, User } from '../types';
 import ManageBanners from '../components/ManageBanners';
 import ManageVideo from '../components/ManageVideo';
@@ -902,12 +902,11 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
 
   const processFiles = async (files: FileList | File[]) => {
     if (!files || files.length === 0) return;
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
 
     if (isTutor) {
       const file = files[0];
-      if (!allowedTypes.includes(file.type)) {
-        alert('শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!');
+      if (!isImageFile(file)) {
+        alert('অনুগ্রহ করে একটি ছবি ফাইল নির্বাচন করুন (JPG, PNG, JFIF, WEBP ইত্যাদি)!');
         return;
       }
 
@@ -926,8 +925,8 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
       let count = 0;
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (!allowedTypes.includes(file.type)) {
-          alert(`"${file.name}" - শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!`);
+        if (!isImageFile(file)) {
+          alert(`"${file.name}" - অনুগ্রহ করে একটি ছবি ফাইল নির্বাচন করুন (JPG, PNG, JFIF, WEBP ইত্যাদি)!`);
           continue;
         }
 
@@ -1239,11 +1238,11 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
                     {isDragging ? 'এখানে ড্রপ করে দিন!' : 'ছবি নির্বাচন করতে এখানে ক্লিক করুন অথবা ড্রাগ অ্যান্ড ড্রপ করুন'}
                   </span>
                   <span className="text-xs text-slate-400 mt-1">
-                    PNG, JPEG, JPG, WEBP (সর্বোচ্চ ৪ মেগাবাইট)
+                    সব ধরনের ছবি (JPG, PNG, JFIF, WEBP ইত্যাদি)
                   </span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept={IMAGE_ACCEPT_TYPES}
                     onChange={handleFileChange}
                     className="hidden"
                   />
@@ -1314,12 +1313,12 @@ function AddContentForm({ role, onAddProperty, onAddTutor, ownerId }: any) {
                   {isDragging ? 'গ্রুপ অফ ইমেজ ড্রপ করুন!' : 'বাসার একাধিক ছবি যুক্ত করতে মাউস দিয়ে ড্রাগ করুন অথবা এখানে ক্লিক করুন'}
                 </span>
                 <span className="text-xs text-slate-450 dark:text-slate-400 mt-1">
-                  PNG, JPEG, JPG, WEBP (একসাথে একাধিক ফাইল মাউস ড্র্যাগ বা কিবোর্ড দিয়ে সিলেক্ট করতে পারেন)
+                  সব ধরনের ছবি - JPG, PNG, JFIF, WEBP (একসাথে একাধিক ফাইল সিলেক্ট করতে পারেন)
                 </span>
                 <input
                   type="file"
                   multiple
-                  accept="image/*"
+                  accept={IMAGE_ACCEPT_TYPES}
                   onChange={handleFileChange}
                   className="hidden"
                 />

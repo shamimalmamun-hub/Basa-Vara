@@ -25,6 +25,22 @@ export const MAIN_LOCATIONS = [
 
 export const PROPERTY_TYPES = ["Family Flat", "Female Mess", "Male Mess", "Bachelor Flat"];
 
+export const IMAGE_ACCEPT_TYPES = "image/*, .jfif, .pjpeg, .pjp, .jpg, .jpeg, .png, .gif, .webp, .avif, .heic, .heif, .bmp, .svg";
+
+export function isImageFile(file: File): boolean {
+  if (!file) return false;
+  if (file.type && (file.type.startsWith('image/') || file.type.includes('jfif') || file.type.includes('pjpeg'))) {
+    return true;
+  }
+  const ext = file.name.split('.').pop()?.toLowerCase();
+  if (!ext) return true;
+  const imageExtensions = [
+    'jpg', 'jpeg', 'jfif', 'pjpeg', 'pjp', 'png', 'gif', 'webp',
+    'bmp', 'svg', 'avif', 'heic', 'heif', 'tiff', 'tif', 'ico'
+  ];
+  return imageExtensions.includes(ext);
+}
+
 /**
  * Compresses any File, Blob or base64 Data URL string to a lightweight JPEG Data URL before storage.
  */

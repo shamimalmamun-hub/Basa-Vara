@@ -4,7 +4,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { AdBanner } from '../types';
 import { Trash2, Plus, Upload, Link as LinkIcon, Edit, Eye, Sparkles, X, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { uploadImageToFirebase } from '../lib/utils';
+import { uploadImageToFirebase, isImageFile, IMAGE_ACCEPT_TYPES } from '../lib/utils';
 
 export default function ManageBanners() {
   const { banners, updateBanner, addBanner, deleteBanner } = useApp();
@@ -50,12 +50,11 @@ export default function ManageBanners() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
+    if (!isImageFile(file)) {
       toast.error(
         language === 'bn' 
-          ? 'শুধুমাত্র PNG, JPEG, JPG এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!' 
-          : 'Only PNG, JPEG, JPG, and GIF images are allowed!'
+          ? 'অনুগ্রহ করে সঠিক ছবির ফাইল নির্বাচন করুন (JPG, PNG, JFIF, WEBP ইত্যাদি)!' 
+          : 'Please select a valid image file (JPG, PNG, JFIF, WEBP, etc.)!'
       );
       return;
     }
@@ -200,7 +199,7 @@ export default function ManageBanners() {
                     </span>
                     <input
                       type="file"
-                      accept="image/png, image/jpeg, image/jpg, image/gif"
+                      accept={IMAGE_ACCEPT_TYPES}
                       className="sr-only"
                       onChange={e => handleFileUpload(e, true)}
                     />
@@ -402,7 +401,7 @@ export default function ManageBanners() {
                             </span>
                             <input
                               type="file"
-                              accept="image/png, image/jpeg, image/jpg, image/gif"
+                              accept={IMAGE_ACCEPT_TYPES}
                               className="sr-only"
                               onChange={e => handleFileUpload(e, false)}
                             />

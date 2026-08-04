@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Search, MapPin, Phone, Trash2, Edit2, CheckCircle, XCircle, FileText, Briefcase, DollarSign, Calendar, SlidersHorizontal, ArrowUpDown, Image as ImageIcon, X, Upload, Plus } from 'lucide-react';
-import { MAIN_LOCATIONS, PROPERTY_TYPES, uploadImageToFirebase, deleteImageFromFirebase } from '../lib/utils';
+import { MAIN_LOCATIONS, PROPERTY_TYPES, uploadImageToFirebase, deleteImageFromFirebase, isImageFile, IMAGE_ACCEPT_TYPES } from '../lib/utils';
 import { Property, Tutor } from '../types';
 import toast from 'react-hot-toast';
 
@@ -83,11 +83,10 @@ export default function ManagePosts() {
     if (!files || files.length === 0) return;
     const toastId = toast.loading(`${files.length} টি ছবি আপলোড করা হচ্ছে...`);
     try {
-      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (!allowedTypes.includes(file.type)) {
-          toast.error(`"${file.name}" - শুধুমাত্র PNG, JPEG, JPG, WEBP এবং GIF ফরম্যাটের ছবি আপলোড করা সম্ভব!`);
+        if (!isImageFile(file)) {
+          toast.error(`"${file.name}" - সঠিক ছবির ফাইল নির্বাচন করুন (JPG, PNG, JFIF, WEBP ইত্যাদি)!`);
           continue;
         }
         const url = await uploadImageToFirebase(file, 'properties');
@@ -871,7 +870,7 @@ export default function ManagePosts() {
                       <input 
                         type="file" 
                         multiple 
-                        accept="image/*" 
+                        accept={IMAGE_ACCEPT_TYPES} 
                         onChange={handleFileChangeProperty}
                         className="hidden" 
                       />
@@ -1006,7 +1005,7 @@ export default function ManagePosts() {
                   <label className="cursor-pointer flex items-center gap-1.5 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold hover:bg-indigo-100 transition-colors">
                     <ImageIcon className="w-4 h-4" />
                     আপলোড
-                    <input type="file" accept="image/*" className="hidden" onChange={handleFileChangeTutor} />
+                    <input type="file" accept={IMAGE_ACCEPT_TYPES} className="hidden" onChange={handleFileChangeTutor} />
                   </label>
                 </div>
               </div>

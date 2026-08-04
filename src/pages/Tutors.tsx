@@ -6,6 +6,7 @@ import { TutorCard } from '../components/Cards';
 import { MAIN_LOCATIONS } from '../lib/utils';
 import { SlidersHorizontal } from 'lucide-react';
 import ItemDetailModal from '../components/ItemDetailModal';
+import PriceFilter from '../components/PriceFilter';
 
 export default function Tutors() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,20 +16,58 @@ export default function Tutors() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filterSubj, setFilterSubj] = useState<string>('All');
   const [filterGender, setFilterGender] = useState<string>('All');
+  const [minPrice, setMinPrice] = useState<string>('');
+  const [maxPrice, setMaxPrice] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<string>('default');
 
   const selectedTutor = selectedId ? tutors.find(t => t.id === selectedId) : null;
 
+  // Calculate dynamic min & max salaries from actual posted tutors
+  const validSalaries = tutors.map(t => Number(t.salaryExpected)).filter(val => !isNaN(val) && val > 0);
+  const minPostedSalary = validSalaries.length > 0 ? Math.min(...validSalaries) : 1000;
+  const maxPostedSalary = validSalaries.length > 0 ? Math.max(...validSalaries) : 20000;
+
   const allSubjects = Array.from(new Set(tutors.flatMap(t => t.subjects))) as string[];
 
-  const filtered = tutors.filter(t => 
-    (selectedLocation === null || (t.location || '').toLowerCase().trim() === selectedLocation.toLowerCase().trim()) &&
-    (filterSubj === 'All' || t.subjects.includes(filterSubj)) &&
-    (filterGender === 'All' || t.gender === filterGender)
-  );
+  const handleResetAll = () => {
+    setSelectedLocation(null);
+    setFilterSubj('All');
+    setFilterGender('All');
+    setMinPrice('');
+    setMaxPrice('');
+    setSortOrder('default');
+  };
+
+  const isFilterActive = selectedLocation !== null || filterSubj !== 'All' || filterGender !== 'All' || minPrice !== '' || maxPrice !== '' || sortOrder !== 'default';
+
+  const filtered = tutors
+    .filter(t => {
+      if (selectedLocation !== null && (t.location || '').toLowerCase().trim() !== selectedLocation.toLowerCase().trim()) {
+        return false;
+      }
+      if (filterSubj !== 'All' && !t.subjects.includes(filterSubj)) {
+        return false;
+      }
+      if (filterGender !== 'All' && t.gender !== filterGender) {
+        return false;
+      }
+      if (minPrice !== '' && !isNaN(Number(minPrice))) {
+        if (Number(t.salaryExpected) < Number(minPrice)) return false;
+      }
+      if (maxPrice !== '' && !isNaN(Number(maxPrice))) {
+        if (Number(t.salaryExpected) > Number(maxPrice)) return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortOrder === 'price_asc') return Number(a.salaryExpected) - Number(b.salaryExpected);
+      if (sortOrder === 'price_desc') return Number(b.salaryExpected) - Number(a.salaryExpected);
+      return 0;
+    });
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedLocation, filterSubj, filterGender]);
+  }, [selectedLocation, filterSubj, filterGender, minPrice, maxPrice, sortOrder]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
@@ -52,7 +91,7 @@ export default function Tutors() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             {t('tutorsTitle')}
@@ -62,7 +101,7 @@ export default function Tutors() {
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-lg shadow-indigo-500/5">
           <div className="flex items-center text-sm font-semibold text-slate-600 dark:text-slate-400 px-2">
             <SlidersHorizontal className="w-4 h-4 mr-2 text-indigo-500" /> {t('rentalsFilter')}
           </div>
@@ -96,11 +135,28 @@ export default function Tutors() {
             value={filterGender} 
             onChange={e => setFilterGender(e.target.value)}
           >
-            <option value="All">{language === 'bn' ? 'টিউটর নির্বাচন করুন' : 'Select Tutor'}</option>
+            <option value="All">{language === 'bn' ? 'সকল লিঙ্গ' : 'All Gender'}</option>
             <option value="male">{language === 'bn' ? 'ছেলে' : 'Male'}</option>
             <option value="female">{language === 'bn' ? 'মেয়ে' : 'Female'}</option>
           </select>
         </div>
+      </div>
+
+      {/* PRICE RANGE & SORT FILTER PANEL */}
+      <div className="mb-10">
+        <PriceFilter
+          minPrice={minPrice}
+          setMinPrice={setMinPrice}
+          maxPrice={maxPrice}
+          setMaxPrice={setMaxPrice}
+          sortOrder={sortOrder}
+          setSortOrder={setSortOrder}
+          onResetAll={handleResetAll}
+          isFilterActive={isFilterActive}
+          typeLabel="tutor"
+          minBound={minPostedSalary}
+          maxBound={maxPostedSalary}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
