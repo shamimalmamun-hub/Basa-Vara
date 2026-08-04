@@ -9,12 +9,8 @@ import { getYouTubeId } from '../lib/utils';
 import { DEFAULT_BANNERS } from '../contexts/AppContext';
 
 const LOCATION_NAMES: Record<string, { bn: string, en: string, icon: string }> = {
-  'Mymensingh Sadar': { bn: 'ময়মনসিংহ সদর', en: 'Mymensingh Sadar', icon: '🏛️' },
   'Madhupur': { bn: 'মধুপুর', en: 'Madhupur', icon: '🌳' },
-  'Muktagacha': { bn: 'মুক্তাগাছা', en: 'Muktagacha', icon: '🧁' },
-  'Trishal': { bn: 'ত্রিশাল', en: 'Trishal', icon: '📚' },
-  'Bhaluka': { bn: 'ভালুকা', en: 'Bhaluka', icon: '🏭' },
-  'Dhaka': { bn: 'ঢাকা', en: 'Dhaka', icon: '🏙️' },
+  'Mymensingh Sadar': { bn: 'ময়মনসিংহ সদর', en: 'Mymensingh Sadar', icon: '🏛️' },
 };
 
 // Animation Variants

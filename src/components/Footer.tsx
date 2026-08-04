@@ -17,13 +17,13 @@ export default function Footer() {
           {/* Brand Col */}
           <div className="space-y-4 flex flex-col items-start text-left">
             <Link to="/" className="flex items-center space-x-2.5 justify-start">
-              <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-6 h-6 object-contain rounded-md" referrerPolicy="no-referrer" />
-              <span className="font-bold text-lg tracking-tight text-white">
+              <img src={t('customLogoImage') || "/logo.png?v=2"} alt="Logo" className="w-8 h-8 object-contain rounded-lg shrink-0" referrerPolicy="no-referrer" />
+              <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-amber-400 via-orange-500 to-pink-500 bg-clip-text text-transparent [filter:drop-shadow(0_0_8px_rgba(249,115,22,0.35))_drop-shadow(0_0_12px_rgba(236,72,153,0.3))]">
                 {t('brandName') !== 'brandName' ? t('brandName') : (
                   language === 'bn' ? (
-                    <>বাসা ভাড়া <span className="text-indigo-400">ও হোম টিউটর</span></>
+                    <>বাসা ভাড়া ও হোম টিউটর</>
                   ) : (
-                    <>Rent & <span className="text-indigo-400">Home Tutor</span></>
+                    <>Rent & Home Tutor</>
                   )
                 )}
               </span>

@@ -20,11 +20,7 @@ export function getYouTubeId(url: string): string | null {
 
 export const MAIN_LOCATIONS = [
   "Madhupur",
-  "Mymensingh Sadar",
-  "Muktagacha",
-  "Bhaluka",
-  "Trishal",
-  "Dhaka"
+  "Mymensingh Sadar"
 ];
 
 export const PROPERTY_TYPES = ["Family Flat", "Female Mess", "Male Mess", "Bachelor Flat"];

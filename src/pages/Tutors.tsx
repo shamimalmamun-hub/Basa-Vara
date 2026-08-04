@@ -76,10 +76,6 @@ export default function Tutors() {
               let label = l;
               if (l === 'Mymensingh Sadar') label = language === 'bn' ? 'ময়মনসিংহ সদর' : 'Mymensingh Sadar';
               else if (l === 'Madhupur') label = language === 'bn' ? 'মধুপুর' : 'Madhupur';
-              else if (l === 'Muktagacha') label = language === 'bn' ? 'মুক্তাগাছা' : 'Muktagacha';
-              else if (l === 'Bhaluka') label = language === 'bn' ? 'ভালুকা' : 'Bhaluka';
-              else if (l === 'Trishal') label = language === 'bn' ? 'ত্রিশাল' : 'Trishal';
-              else if (l === 'Dhaka') label = language === 'bn' ? 'ঢাকা' : 'Dhaka';
               return (
                 <option key={l} value={l}>
                   {label}
