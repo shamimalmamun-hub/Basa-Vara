@@ -97,7 +97,7 @@ export default function Rentals() {
         maxBound={maxPostedPrice}
       >
         <select 
-          className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
+          className="w-full md:w-auto px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
           value={selectedLocation || 'All'} 
           onChange={e => setSelectedLocation(e.target.value === 'All' ? null : e.target.value)}
         >
@@ -115,7 +115,7 @@ export default function Rentals() {
         </select>
 
         <select 
-          className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
+          className="w-full md:w-auto px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200/80 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-semibold text-xs cursor-pointer shadow-sm"
           value={filterType} 
           onChange={e => setFilterType(e.target.value)}
         >
