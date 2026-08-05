@@ -9,7 +9,10 @@ export function updatePageMetaTags(options: MetaTagsOptions = {}) {
   if (typeof window === 'undefined') return;
 
   const origin = window.location.origin;
-  const currentUrl = options.url || window.location.href;
+  let currentUrl = options.url || window.location.href;
+  if (currentUrl.includes('/og-image.jpg')) {
+    currentUrl = `${origin}/`;
+  }
 
   const defaultTitle = "বাসা ভাড়া ও হোম টিউটর | Basa Bhara & Home Tutor BD";
   const defaultDesc = "বাংলাদেশ প্রথম প্রযুক্তিবান্ধব বাসা ভাড়া, মেস ভাড়া এবং হোম টিউটর খোঁজার নির্ভরযোগ্য প্ল্যাটফর্ম। সহজেই আপনার পছন্দের বাসা ও টিউটর খুঁজুন।";

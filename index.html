@@ -24,25 +24,25 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="বাসা ভাড়া ও হোম টিউটর | Basa Bhara & Home Tutor BD" />
     <meta property="og:description" content="বাংলাদেশ প্রথম প্রযুক্তিবান্ধব বাসা ভাড়া, মেস ভাড়া এবং হোম টিউটর খোঁজার নির্ভরযোগ্য প্ল্যাটফর্ম। সহজেই বাসা ও টিউটর খুঁজুন।" />
-    <meta property="og:url" content="/og-image.jpg" />
+    <meta property="og:url" content="https://basa-tutor.xfixbd.com/" />
     <meta property="og:site_name" content="বাসা ভাড়া ও হোম টিউটর (Basa Tutor)" />
     
     <!-- Single High-Quality Compressed OG Image (1200x630) -->
-    <meta property="og:image" content="/og-image.jpg" />
-    <meta property="og:image:secure_url" content="/og-image.jpg" />
+    <meta property="og:image" content="https://basa-tutor.xfixbd.com/og-image.jpg" />
+    <meta property="og:image:secure_url" content="https://basa-tutor.xfixbd.com/og-image.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="বাসা ভাড়া ও হোম টিউটর - Basa Tutor Banner" />
     
     <!-- Legacy WhatsApp / Telegram Image Tag -->
-    <link rel="image_src" href="/og-image.jpg" />
+    <link rel="image_src" href="https://basa-tutor.xfixbd.com/og-image.jpg" />
     
     <!-- Twitter Sharing Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="বাসা ভাড়া ও হোম টিউটর | Basa Bhara & Home Tutor BD" />
     <meta name="twitter:description" content="বাংলাদেশ প্রথম প্রযুক্তিবান্ধব বাসা ভাড়া, মেস ভাড়া এবং হোম টিউটর খোঁজার নির্ভরযোগ্য প্ল্যাটফর্ম। সহজেই বাসা ও টিউটর খুঁজুন।" />
-    <meta name="twitter:image" content="/og-image.jpg" />
+    <meta name="twitter:image" content="https://basa-tutor.xfixbd.com/og-image.jpg" />
     <meta name="twitter:image:alt" content="বাসা ভাড়া ও হোম টিউটর - Basa Tutor Banner" />
 
     <!-- Instant Meta Tag Origin Resolution Script for Crawlers & Browsers -->
@@ -51,6 +51,7 @@
         try {
           var origin = window.location.origin;
           var href = window.location.href;
+          var pageUrl = href.indexOf('/og-image.jpg') !== -1 ? (origin + '/') : href;
           var imgUrl = origin + '/og-image.jpg';
 
           var setAttr = function(selector, attr, val) {
@@ -58,7 +59,7 @@
             if (el) el.setAttribute(attr, val);
           };
 
-          setAttr('meta[property="og:url"]', 'content', href);
+          setAttr('meta[property="og:url"]', 'content', pageUrl);
           setAttr('meta[property="og:image"]', 'content', imgUrl);
           setAttr('meta[property="og:image:secure_url"]', 'content', imgUrl);
           setAttr('meta[name="twitter:image"]', 'content', imgUrl);

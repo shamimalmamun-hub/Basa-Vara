@@ -34,6 +34,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// Redirect human browser visits to /og-image.jpg back to the homepage (for users clicking old shared social media links)
+app.get("/og-image.jpg", (req, res, next) => {
+  const userAgent = (req.headers["user-agent"] || "").toLowerCase();
+  const acceptHeader = (req.headers["accept"] || "").toLowerCase();
+  const isBot = /facebookexternalhit|whatsapp|twitterbot|telegrambot|linkedinbot|slackbot|discordbot|googlebot|bingbot|crawler|spider/i.test(userAgent);
+
+  if (acceptHeader.includes("text/html") && !isBot) {
+    return res.redirect(301, "/");
+  }
+  next();
+});
+
 // API routes
 app.post("/api/send-email", async (req, res) => {
   try {
